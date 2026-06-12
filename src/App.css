@@ -2,6 +2,11 @@
   text-align: center;
 }
 
+/* Prevent layout shift when pages show or hide the vertical scrollbar */
+html {
+  overflow-y: scroll;
+}
+
 .App-logo {
   height: 40vmin;
   pointer-events: none;
