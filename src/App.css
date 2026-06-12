@@ -1,5 +1,5 @@
 .App {
-  text-align: center;
+  /* Global center-alignment removed to preserve standard layout alignments. */
 }
 
 /* Prevent layout shift when pages show or hide the vertical scrollbar */

@@ -48,7 +48,7 @@ export default function Footer({ isVerdant = false }) {
         <div className="flex flex-col gap-5">
           {isVerdant ? (
             <Link to="/" className="flex items-center gap-1.5 group">
-              <span className="font-fraunces font-black text-xl text-white tracking-tight transition-colors group-hover:text-moss">
+              <span className="font-sans font-black text-xl text-white tracking-tight transition-colors group-hover:text-moss">
                 Verdant<span className="text-moss font-bold">.</span>
               </span>
             </Link>
@@ -134,11 +134,11 @@ export default function Footer({ isVerdant = false }) {
               { label: 'Order Tracking', path: '/customer/orders' },
               { label: 'Shipping & Delivery', path: '/shipping' },
               { label: 'Order History', path: '/customer/orders' },
-              { label: 'Advanced Search', path: '/' },
+              { label: 'Seller Dashboard', path: '/seller/dashboard' },
               { label: 'My Account', path: '/customer/dashboard' },
               { label: 'Careers', path: '/careers' },
               { label: 'About Us', path: '/about' },
-              { label: 'Corporate Sales', path: '/corporate' },
+              { label: 'Become a Merchant', path: '/register' },
               { label: 'Privacy Policy', path: '/privacy' },
             ].map(({ label, path }) => (
               <li key={label}>
@@ -164,7 +164,7 @@ export default function Footer({ isVerdant = false }) {
               <Link
                 key={tag}
                 to={`/product-list?q=${encodeURIComponent(tag)}`}
-                className={`bg-neutral-800 text-gray-300 px-3 py-1.5 rounded-sm text-[10px] font-bold leading-none transition-all ${
+                className={`bg-neutral-800 text-gray-300 px-3 py-1.5 rounded-pill text-[10px] font-bold leading-none transition-all ${
                   isVerdant ? 'hover:bg-moss hover:text-white' : 'hover:bg-emerald-600 hover:text-white'
                 }`}
               >
