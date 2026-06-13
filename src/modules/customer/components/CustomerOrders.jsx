@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { getUserOrders, cancelOrder, retryPayment, changePaymentMethod, getEsewaSignature, initiateKhaltiPayment, requestRefund } from '../../../shared/api/customerApi';
+import { getUserOrders, cancelOrder, retryPayment, changePaymentMethod, getEsewaSignature, initiateKhaltiPayment, requestRefund, openDispute } from '../../../shared/api/customerApi';
 import { BASE_URL } from '../../../shared/api/apiClient';
 import { getProductLink } from '../../../shared/utils/slugHelper';
 
@@ -338,6 +338,13 @@ const OrderDetailView = ({ order, onBack, busyId, onCancel, onRetry, onRefundReq
   const [refundError, setRefundError] = useState('');
   const [refundSuccess, setRefundSuccess] = useState('');
 
+  const [disputeOpen, setDisputeOpen] = useState(false);
+  const [disputeType, setDisputeType] = useState('OTHER');
+  const [disputeReason, setDisputeReason] = useState('');
+  const [disputeSubmitting, setDisputeSubmitting] = useState(false);
+  const [disputeError, setDisputeError] = useState('');
+  const [disputeSuccess, setDisputeSuccess] = useState('');
+
   if (!order) return null;
 
   const refundableItems = (order.items || [])
@@ -382,6 +389,31 @@ const OrderDetailView = ({ order, onBack, busyId, onCancel, onRetry, onRefundReq
       setRefundError(error.response?.data?.message || 'Refund request failed.');
     } finally {
       setRefundSubmitting(false);
+    }
+  };
+
+  const handleDisputeSubmit = async (event) => {
+    event.preventDefault();
+    if (!disputeReason.trim()) {
+      setDisputeError('Please describe your dispute complaint.');
+      return;
+    }
+    try {
+      setDisputeSubmitting(true);
+      setDisputeError('');
+      setDisputeSuccess('');
+      await openDispute({
+        orderId: order.orderId,
+        type: disputeType,
+        description: disputeReason.trim()
+      });
+      setDisputeSuccess('Dispute ticket opened successfully. You can track it under My Disputes.');
+      await onRefundRequested?.();
+      setTimeout(() => setDisputeOpen(false), 1200);
+    } catch (error) {
+      setDisputeError(error.response?.data?.message || 'Failed to open dispute.');
+    } finally {
+      setDisputeSubmitting(false);
     }
   };
 
@@ -482,6 +514,20 @@ const OrderDetailView = ({ order, onBack, busyId, onCancel, onRetry, onRefundReq
                 disabled={busyId === order.orderId}
                 onClick={() => onCancel(order.orderId)}>
                 {busyId === order.orderId ? '…' : 'Cancel Order'}
+              </button>
+            )}
+            {order.status !== 'DRAFT' && order.status !== 'PENDING' && (
+              <button
+                className="w-full py-2.5 rounded-lg border border-[#dbcded] bg-[#f6f0ff]/50 text-[#5c2d91] font-bold hover:bg-[#f6f0ff] transition-colors"
+                onClick={() => {
+                  setDisputeOpen(true);
+                  setDisputeError('');
+                  setDisputeSuccess('');
+                  setDisputeReason('');
+                  setDisputeType('OTHER');
+                }}
+              >
+                ⚖️ File Dispute
               </button>
             )}
             {order.status === 'DRAFT' && order.paymentStatus !== 'PAID' && (
@@ -795,6 +841,88 @@ const OrderDetailView = ({ order, onBack, busyId, onCancel, onRetry, onRefundReq
                   className="rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-black text-white hover:bg-emerald-700 disabled:opacity-50"
                 >
                   {refundSubmitting ? 'Submitting...' : 'Submit Refund Request'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {disputeOpen && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="w-full max-w-lg overflow-hidden rounded-xl bg-white shadow-2xl">
+            <div className="flex items-start justify-between gap-4 border-b border-gray-100 bg-[#f6f0ff] px-5 py-4">
+              <div>
+                <h3 className="text-lg font-black text-gray-900">⚖️ File Dispute Ticket</h3>
+                <p className="mt-1 text-xs font-semibold text-gray-500">
+                  Escalate issues for Order {order.customOrderId || `#${order.orderId}`} to administrators.
+                </p>
+              </div>
+              <button
+                onClick={() => setDisputeOpen(false)}
+                className="rounded-lg p-2 text-gray-400 hover:bg-white hover:text-gray-700"
+                type="button"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleDisputeSubmit} className="space-y-4 p-5 text-left font-sans text-[#222529]">
+              <div>
+                <label className="mb-2 block text-xs font-black uppercase tracking-wider text-gray-700">
+                  Dispute Type / Category
+                </label>
+                <select
+                  value={disputeType}
+                  onChange={event => setDisputeType(event.target.value)}
+                  className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm font-semibold text-gray-700 outline-none focus:border-[#5c2d91] focus:bg-white"
+                  required
+                >
+                  <option value="NOT_RECEIVED">Item Not Received</option>
+                  <option value="DAMAGED">Damaged Item Received</option>
+                  <option value="COUNTERFEIT">Counterfeit / Fake Product</option>
+                  <option value="OTHER">Other Issue</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="mb-2 block text-xs font-black uppercase tracking-wider text-gray-700">
+                  Describe the Issue
+                </label>
+                <textarea
+                  value={disputeReason}
+                  onChange={event => setDisputeReason(event.target.value)}
+                  className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 text-xs font-semibold text-gray-700 outline-none focus:border-[#5c2d91] focus:bg-white min-h-[100px]"
+                  placeholder="Provide detailed description of the issues faced, defects, or missing items..."
+                  required
+                />
+              </div>
+
+              {disputeError && (
+                <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-xs font-bold text-red-700">
+                  {disputeError}
+                </div>
+              )}
+              {disputeSuccess && (
+                <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-xs font-bold text-emerald-700">
+                  {disputeSuccess}
+                </div>
+              )}
+
+              <div className="flex flex-col-reverse gap-3 pt-1 sm:flex-row sm:justify-end">
+                <button
+                  type="button"
+                  onClick={() => setDisputeOpen(false)}
+                  className="rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-bold text-gray-600 hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={disputeSubmitting || !disputeReason.trim()}
+                  className="rounded-lg bg-[#5c2d91] px-5 py-2.5 text-sm font-black text-white hover:bg-[#4a2275] disabled:opacity-50"
+                >
+                  {disputeSubmitting ? 'Submitting...' : 'Submit Dispute'}
                 </button>
               </div>
             </form>

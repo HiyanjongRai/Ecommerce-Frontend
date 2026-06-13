@@ -41,6 +41,7 @@ const CustomerLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const currentLabel = BREADCRUMBS[location.pathname] || 'My Account';
+  const isCheckoutOrCart = location.pathname === '/customer/cart' || location.pathname === '/customer/checkout';
 
   const [darkMode, setDarkMode] = useState(() => {
     return localStorage.getItem('customer-theme') === 'dark';
@@ -420,13 +421,15 @@ const CustomerLayout = () => {
       <div className="max-w-[1440px] mx-auto px-6 py-2.5">
         <div className="flex gap-4 items-start">
           {/* Sidebar */}
-          <aside className="w-52 flex-shrink-0">
-            <CustomerSidebar 
-              currentPath={location.pathname} 
-              darkMode={darkMode}
-              toggleDarkMode={toggleDarkMode}
-            />
-          </aside>
+          {!isCheckoutOrCart && (
+            <aside className="w-52 flex-shrink-0">
+              <CustomerSidebar 
+                currentPath={location.pathname} 
+                darkMode={darkMode}
+                toggleDarkMode={toggleDarkMode}
+              />
+            </aside>
+          )}
 
           {/* Page Content */}
           <main className="flex-1 min-w-0">

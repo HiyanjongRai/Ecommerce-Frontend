@@ -412,7 +412,7 @@ const Cart = () => {
             {/* Bottom Actions Row: Clear Cart */}
             <div className="bg-gray-50/50 p-4 border-t border-gray-150 flex justify-end">
               <button
-                className="text-red-500 hover:text-red-700 text-[9px] font-black uppercase tracking-widest border border-red-200 hover:border-red-400 px-4 py-2 bg-white rounded-sm transition-all"
+                className="text-red-500 hover:text-red-700 hover:bg-red-50/30 text-xs font-black uppercase tracking-widest border border-red-200 hover:border-red-400 px-5 py-2.5 bg-white rounded-sm transition-all"
                 onClick={handleClear}
               >
                 Clear Entire Cart
@@ -424,20 +424,20 @@ const Cart = () => {
           <div className="bg-white border border-gray-255 rounded-sm p-4 shadow-sm flex flex-col md:flex-row gap-3 items-center justify-between">
             <form onSubmit={handleApplyCoupon} className="flex gap-2 w-full md:max-w-sm">
               <input
-                className="flex-1 px-3 py-2 border border-gray-200 rounded-sm text-xs font-semibold outline-none focus:border-[#222529] uppercase tracking-wider placeholder:normal-case placeholder:text-gray-400 transition-colors"
+                className="flex-1 px-4 py-2.5 border border-gray-200 rounded-sm text-xs font-semibold outline-none focus:border-[#222529] uppercase tracking-wider placeholder:normal-case placeholder:text-gray-400 transition-colors bg-gray-50/20"
                 placeholder="Coupon code (e.g. JHAPCHAM10)"
                 value={couponCode}
                 onChange={(e) => setCouponCode(e.target.value)}
               />
               <button 
                 type="submit"
-                className="bg-[#222529] hover:bg-black text-white text-[9px] font-black uppercase tracking-widest px-4 py-2 rounded-sm transition-all"
+                className="bg-[#222529] hover:bg-black text-white text-xs font-black uppercase tracking-widest px-5 py-2.5 rounded-sm transition-all"
               >
                 Apply Coupon
               </button>
             </form>
             {couponMessage && (
-              <span className={`text-[10px] font-black uppercase tracking-wider ${couponMessage.startsWith('❌') ? 'text-red-500' : 'text-green-600'}`}>
+              <span className={`text-xs font-black uppercase tracking-wider ${couponMessage.startsWith('❌') ? 'text-red-500' : 'text-green-600'}`}>
                 {couponMessage}
               </span>
             )}
@@ -527,13 +527,13 @@ const Cart = () => {
             {/* Grand Total */}
             <div className="pt-2 flex justify-between items-baseline">
               <span className="uppercase text-[10px] font-black tracking-widest text-[#222529]">Total Amount</span>
-              <span className="text-base font-black text-blue-600">Rs. {formatMoney(grandTotal)}</span>
+              <span className="text-base font-black text-emerald-600">Rs. {formatMoney(grandTotal)}</span>
             </div>
           </div>
 
           {/* Checkout CTA */}
           <button
-            className="w-full bg-[#222529] hover:bg-black text-white text-[10px] font-black uppercase tracking-widest py-3.5 rounded-sm transition-all shadow-md shadow-[#222529]/10 flex items-center justify-center gap-2"
+            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black uppercase tracking-widest py-3.5 rounded-sm transition-all shadow-md shadow-emerald-600/10 flex items-center justify-center gap-2"
             onClick={() => navigate('/customer/checkout')}
           >
             Proceed to Checkout ➔

@@ -20,7 +20,8 @@ import {
 } from 'lucide-react';
 import { useCustomer } from '../../../modules/customer/contexts/CustomerContext';
 import LoginModal from '../../../modules/auth/components/LoginModal';
-import { getCart, getWishlist, removeCartItem, removeFromWishlist, addToCart, getActivePromos } from '../../api/customerApi';
+import { getCart, getWishlist, removeCartItem, removeFromWishlist, addToCart, getActivePromos, searchProducts } from '../../api/customerApi';
+import { getProductLink } from '../../utils/slugHelper';
 import { toast } from 'react-toastify';
 
 const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
@@ -65,6 +66,11 @@ export default function Navbar() {
 
   const cartRef = useRef(null);
   const accountRef = useRef(null);
+  const searchRef = useRef(null);
+
+  const [suggestions, setSuggestions] = useState([]);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+  const [isSearchSuggestionsOpen, setIsSearchSuggestionsOpen] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -82,6 +88,9 @@ export default function Navbar() {
       }
       if (accountRef.current && !accountRef.current.contains(event.target)) {
         setIsAccountDropdownOpen(false);
+      }
+      if (searchRef.current && !searchRef.current.contains(event.target)) {
+        setIsSearchSuggestionsOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -138,6 +147,33 @@ export default function Navbar() {
         console.error("Failed to load active promos in navbar", err);
       });
   }, []);
+
+  // Search Autocomplete suggestions debounce
+  useEffect(() => {
+    const term = searchQuery.trim();
+    if (term.length < 2) {
+      setSuggestions([]);
+      setIsSearchSuggestionsOpen(false);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setLoadingSuggestions(true);
+      try {
+        const res = await searchProducts(term, { size: 5 });
+        const data = res.data?.content || res.data || [];
+        setSuggestions(Array.isArray(data) ? data.slice(0, 5) : []);
+        setIsSearchSuggestionsOpen(true);
+      } catch (err) {
+        console.error("Failed to load suggestions", err);
+        setSuggestions([]);
+      } finally {
+        setLoadingSuggestions(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   const formatCountdown = (seconds) => {
     const hrs = Math.floor(seconds / 3600);
@@ -317,19 +353,80 @@ export default function Navbar() {
             </Link>
 
             {/* Search Pill */}
-            <form onSubmit={handleSearch} className="flex-1 max-w-2xl relative hidden md:block">
+            <form ref={searchRef} onSubmit={handleSearch} className="flex-1 max-w-2xl relative hidden md:block">
               <div className="relative flex items-center border border-gray-300 hover:border-emerald-500 focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-500/20 rounded-pill bg-white overflow-hidden transition-all">
                 <input 
                   type="text" 
                   placeholder="Search for products, brands, or categories..." 
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  onFocus={() => { if (searchQuery.trim().length >= 2) setIsSearchSuggestionsOpen(true); }}
                   className="w-full px-4 py-1.5 text-xs bg-transparent outline-none text-slate-800 placeholder-gray-400 focus:outline-none"
                 />
                 <button type="submit" className="p-2 text-gray-400 hover:text-emerald-600 transition-colors outline-none">
                   <Search className="w-3.5 h-3.5" />
                 </button>
               </div>
+
+              {/* Autocomplete Dropdown suggestions */}
+              {isSearchSuggestionsOpen && (
+                <div className="absolute left-0 right-0 mt-1.5 bg-white border border-gray-200 rounded-lg shadow-lg z-[100] overflow-hidden font-inter text-slate-800 max-h-80 overflow-y-auto animate-in fade-in slide-in-from-top-1 duration-150">
+                  {loadingSuggestions ? (
+                    <div className="flex items-center gap-2 px-4 py-3 text-xs text-gray-400 font-semibold">
+                      <svg className="animate-spin h-3.5 w-3.5 text-emerald-600" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                      </svg>
+                      <span>Searching for matches…</span>
+                    </div>
+                  ) : suggestions.length > 0 ? (
+                    <div className="divide-y divide-gray-100">
+                      {suggestions.map((product) => {
+                        const productUrl = getProductLink(product);
+                        const img = product.imagePaths?.[0] || product.imagePath || product.thumbnail || null;
+                        const resolvedImg = img ? (img.startsWith('http') ? img : `${BASE_URL}${img.startsWith('/') ? '' : '/'}${img}`) : null;
+                        const originalPrice = product.price || product.originalPrice || product.minPrice || 0;
+                        const finalPrice = product.salePrice || product.finalPrice || originalPrice;
+
+                        return (
+                          <Link 
+                            key={product.id || product.productId}
+                            to={productUrl}
+                            onClick={() => setIsSearchSuggestionsOpen(false)}
+                            className="flex items-center gap-3 px-4 py-2.5 hover:bg-emerald-50/45 transition-colors group text-left"
+                          >
+                            <div className="w-9 h-9 rounded bg-white border border-gray-100 flex-shrink-0 flex items-center justify-center overflow-hidden">
+                              {resolvedImg ? (
+                                <img src={resolvedImg} alt="" className="w-full h-full object-contain" />
+                              ) : (
+                                <span className="text-sm">📦</span>
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-bold text-xs text-slate-800 truncate group-hover:text-emerald-700 transition-colors">
+                                {product.name}
+                              </p>
+                              {product.brand && (
+                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{product.brand}</p>
+                              )}
+                            </div>
+                            <div className="text-right flex-shrink-0">
+                              <p className="text-xs font-extrabold text-emerald-600 font-mono">Rs. {Number(finalPrice).toLocaleString()}</p>
+                              {finalPrice < originalPrice && (
+                                <p className="text-[9px] text-gray-400 line-through font-mono">Rs. {Number(originalPrice).toLocaleString()}</p>
+                              )}
+                            </div>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="px-4 py-3 text-xs text-gray-400 font-semibold italic text-center">
+                      No matching products found.
+                    </div>
+                  )}
+                </div>
+              )}
             </form>
 
             {/* Icons Actions Row */}
