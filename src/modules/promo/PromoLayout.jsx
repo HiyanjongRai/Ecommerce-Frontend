@@ -4,7 +4,7 @@ import Footer from '../../shared/components/Footer/Footer';
 
 export default function PromoLayout() {
   return (
-    <div className="min-h-screen bg-[#0A0A0A] text-[#111] overflow-x-hidden">
+    <div className="min-h-screen bg-[#F9FAFB] text-slate-800 overflow-x-hidden">
       <Outlet />
       <Footer />
     </div>

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { getNotifications, markNotifRead } from '../../../shared/api/customerApi';
 import { useCustomer } from '../contexts/CustomerContext';
 
@@ -124,7 +124,13 @@ const CustomerNotifications = () => {
         <div className="text-center py-16 bg-white border border-gray-200 rounded-sm">
           <div className="text-5xl mb-4 select-none">🔔</div>
           <h3 className="text-sm font-black text-gray-800 uppercase tracking-wider mb-2">No notifications</h3>
-          <p className="text-xs text-gray-400">We'll alert you here when something happens.</p>
+          <p className="text-xs text-gray-400 mb-4">We'll alert you here when something happens.</p>
+          <Link
+            to="/"
+            className="inline-block bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black uppercase tracking-wider px-6 py-2.5 rounded-sm transition-colors duration-150"
+          >
+            Explore Storefront
+          </Link>
         </div>
       ) : (
         <div className="bg-white border border-gray-200 rounded-sm overflow-hidden divide-y divide-gray-100 shadow-sm">
@@ -142,8 +148,8 @@ const CustomerNotifications = () => {
               }}
               className={`
                 p-5 flex gap-4 items-start transition-all duration-150
-                ${!n.isRead ? 'bg-blue-50/20' : 'bg-white'}
-                cursor-pointer hover:bg-blue-50/30 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset
+                ${!n.isRead ? 'bg-emerald-50/20' : 'bg-white'}
+                cursor-pointer hover:bg-emerald-50/30 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-inset
               `}
             >
               <div className="text-3xl flex-shrink-0 mt-0.5 select-none">
@@ -165,7 +171,7 @@ const CustomerNotifications = () => {
               </div>
 
               {!n.isRead && (
-                <div className="w-2.5 h-2.5 bg-blue-600 rounded-full flex-shrink-0 mt-2 animate-pulse" />
+                <div className="w-2.5 h-2.5 bg-emerald-600 rounded-full flex-shrink-0 mt-2 animate-pulse" />
               )}
             </div>
           ))}

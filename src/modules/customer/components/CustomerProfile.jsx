@@ -159,7 +159,7 @@ const CustomerProfile = () => {
           <p className={`text-xs font-semibold mb-4 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>{user?.email}</p>
 
           <div className="flex justify-center gap-2">
-            <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-sm border ${isDarkMode ? 'bg-emerald-900 border-emerald-700 text-emerald-300' : 'bg-blue-50 border-blue-200 text-blue-600'}`}>
+            <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-sm border ${isDarkMode ? 'bg-emerald-900 border-emerald-700 text-emerald-300' : 'bg-emerald-50 border-emerald-200 text-emerald-600'}`}>
               {user?.role}
             </span>
             <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-sm border ${user?.status === 'ACTIVE' ? (isDarkMode ? 'bg-emerald-900 border-emerald-700 text-emerald-300' : 'bg-green-50 border-green-200 text-green-700') : (isDarkMode ? 'bg-red-900 border-red-700 text-red-300' : 'bg-red-50 border-red-200 text-red-600')}`}>
@@ -208,7 +208,7 @@ const CustomerProfile = () => {
           <div>
             <label className={`block text-[10px] font-black uppercase tracking-wider mb-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-400'}`}>Full Name</label>
             <input
-              className={`w-full px-3.5 py-2.5 border rounded-sm text-sm outline-none transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700 text-gray-100 focus:border-emerald-500' : 'border-gray-200 text-gray-900 focus:border-blue-600'}`}
+              className={`w-full px-3.5 py-2.5 border rounded-sm text-sm outline-none transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700 text-gray-100 focus:border-emerald-500' : 'border-gray-200 text-gray-900 focus:border-emerald-600'}`}
               name="fullName" value={form.fullName} onChange={handleChange} placeholder="Your full name"
             />
           </div>
@@ -216,7 +216,7 @@ const CustomerProfile = () => {
           <div>
             <label className={`block text-[10px] font-black uppercase tracking-wider mb-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-400'}`}>Username</label>
             <input
-              className={`w-full px-3.5 py-2.5 border rounded-sm text-sm outline-none transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700 text-gray-100 focus:border-emerald-500' : 'border-gray-200 text-gray-900 focus:border-blue-600'}`}
+              className={`w-full px-3.5 py-2.5 border rounded-sm text-sm outline-none transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700 text-gray-100 focus:border-emerald-500' : 'border-gray-200 text-gray-900 focus:border-emerald-600'}`}
               name="username" value={form.username} onChange={handleChange} placeholder="Username"
             />
           </div>
@@ -224,7 +224,7 @@ const CustomerProfile = () => {
           <div>
             <label className={`block text-[10px] font-black uppercase tracking-wider mb-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-400'}`}>Email</label>
             <input
-              className={`w-full px-3.5 py-2.5 border rounded-sm text-sm outline-none transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700 text-gray-100 focus:border-emerald-500' : 'border-gray-200 text-gray-900 focus:border-blue-600'}`}
+              className={`w-full px-3.5 py-2.5 border rounded-sm text-sm outline-none transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700 text-gray-100 focus:border-emerald-500' : 'border-gray-200 text-gray-900 focus:border-emerald-600'}`}
               name="email" type="email" value={form.email} onChange={handleChange} placeholder="Email address"
             />
           </div>
@@ -232,7 +232,7 @@ const CustomerProfile = () => {
           <div>
             <label className={`block text-[10px] font-black uppercase tracking-wider mb-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-400'}`}>Phone Number</label>
             <input
-              className={`w-full px-3.5 py-2.5 border rounded-sm text-sm outline-none transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700 text-gray-100 focus:border-emerald-500' : 'border-gray-200 text-gray-900 focus:border-blue-600'}`}
+              className={`w-full px-3.5 py-2.5 border rounded-sm text-sm outline-none transition-colors ${isDarkMode ? 'bg-gray-800 border-gray-700 text-gray-100 focus:border-emerald-500' : 'border-gray-200 text-gray-900 focus:border-emerald-600'}`}
               name="contactNumber" value={form.contactNumber} onChange={handleChange} placeholder="98XXXXXXXX"
             />
           </div>
@@ -240,7 +240,7 @@ const CustomerProfile = () => {
           <div className="pt-4">
             <button
               type="submit"
-              className={`w-full text-xs font-black uppercase tracking-wider py-3.5 rounded-sm transition-colors duration-150 ${isDarkMode ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
+              className="w-full text-xs font-black uppercase tracking-wider py-3.5 rounded-sm transition-colors duration-150 bg-emerald-600 hover:bg-emerald-700 text-white"
               disabled={saving}
             >
               {saving ? 'Saving…' : 'Save Changes'}

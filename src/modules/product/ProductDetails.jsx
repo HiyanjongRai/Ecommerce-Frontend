@@ -6,6 +6,120 @@ import { useCustomer } from '../customer/contexts/CustomerContext';
 import { updateSellerProductStatus } from '../seller/services/sellerService';
 import ProductCard from './components/ProductCard';
 import { useToast } from '../../shared/contexts/ToastContext';
+import { 
+  Heart, 
+  ShoppingBag, 
+  Mail, 
+  Store, 
+  ShieldCheck, 
+  ChevronRight, 
+  MessageSquare, 
+  Star,
+  Info,
+  Clock,
+  ThumbsUp,
+  Award,
+  Sliders,
+  Cpu,
+  Tv,
+  Camera,
+  Database,
+  Zap,
+  Maximize2
+} from 'lucide-react';
+
+const parseSpecification = (specStr) => {
+  if (!specStr) return [];
+  let cleanStr = specStr.replace(/^SpecificationDetails/, '').trim();
+  const keys = [
+    'Processor',
+    'RAM & Storage',
+    'Display',
+    'Cameras',
+    'Build',
+    'Battery & Charging',
+    'Storage & RAM',
+    'Material',
+    'Dimensions',
+    'Weight',
+    'Operating System',
+    'Warranty',
+    'Model',
+    'Color',
+    'Battery'
+  ];
+  const matches = [];
+  keys.forEach(key => {
+    const idx = cleanStr.indexOf(key);
+    if (idx !== -1) {
+      matches.push({ key, index: idx });
+    }
+  });
+  // Sort matches by index ascending, then by key length descending
+  matches.sort((a, b) => {
+    if (a.index !== b.index) return a.index - b.index;
+    return b.key.length - a.key.length;
+  });
+  
+  // Filter out overlapping matches
+  const filteredMatches = [];
+  let lastEndIndex = -1;
+  for (const match of matches) {
+    if (match.index >= lastEndIndex) {
+      filteredMatches.push(match);
+      lastEndIndex = match.index + match.key.length;
+    }
+  }
+
+  if (filteredMatches.length === 0) {
+    if (cleanStr.includes('\n')) {
+      return cleanStr.split('\n').map(line => {
+        const parts = line.split(':');
+        if (parts.length > 1) {
+          return { key: parts[0].trim(), value: parts.slice(1).join(':').trim() };
+        }
+        return { key: 'General', value: line.trim() };
+      });
+    }
+    return [{ key: 'Specification', value: cleanStr }];
+  }
+  const result = [];
+  for (let i = 0; i < filteredMatches.length; i++) {
+    const current = filteredMatches[i];
+    const next = filteredMatches[i + 1];
+    const valStart = current.index + current.key.length;
+    const valEnd = next ? next.index : cleanStr.length;
+    const value = cleanStr.substring(valStart, valEnd).trim();
+    result.push({
+      key: current.key,
+      value: value.replace(/^[:\-\s]+/, '').trim()
+    });
+  }
+  return result;
+};
+
+const getSpecIcon = (key) => {
+  const normalizedKey = key.toLowerCase();
+  if (normalizedKey.includes('processor') || normalizedKey.includes('cpu')) {
+    return <Cpu className="w-3.5 h-3.5 text-emerald-600" />;
+  }
+  if (normalizedKey.includes('display') || normalizedKey.includes('screen')) {
+    return <Tv className="w-3.5 h-3.5 text-emerald-600" />;
+  }
+  if (normalizedKey.includes('camera')) {
+    return <Camera className="w-3.5 h-3.5 text-emerald-600" />;
+  }
+  if (normalizedKey.includes('ram') || normalizedKey.includes('storage')) {
+    return <Database className="w-3.5 h-3.5 text-emerald-600" />;
+  }
+  if (normalizedKey.includes('battery') || normalizedKey.includes('charging') || normalizedKey.includes('power')) {
+    return <Zap className="w-3.5 h-3.5 text-emerald-600" />;
+  }
+  if (normalizedKey.includes('build') || normalizedKey.includes('material') || normalizedKey.includes('shield') || normalizedKey.includes('warranty')) {
+    return <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />;
+  }
+  return <Sliders className="w-3.5 h-3.5 text-emerald-600" />;
+};
 
 const ProductDetails = () => {
   const { slug } = useParams();
@@ -28,6 +142,7 @@ const ProductDetails = () => {
   const [addingToCart, setAddingToCart] = useState(false);
   const [addingToWishlist, setAddingToWishlist] = useState(false);
   const [activeTab, setActiveTab] = useState('description');
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
 
   const { showToast } = useToast();
 
@@ -210,11 +325,11 @@ const ProductDetails = () => {
   const stock = selectedVariant ? selectedVariant.stockQuantity : product.stockQuantity;
 
   return (
-    <div className="min-h-screen bg-[#fafafa] font-sans text-[#222529]">
+    <div className="min-h-screen bg-[#F9FAFB] font-sans text-slate-800">
       {/* Seller Admin Control Bar */}
       {user && (user.id === product.sellerUserId || user.role === 'ADMIN') && (
         <div className="bg-gradient-to-r from-slate-900 to-slate-800 text-white border-b border-slate-700 shadow-md">
-          <div className="max-w-5xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div className="max-w-4xl mx-auto px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 text-xs">
             <div className="flex items-center gap-2">
               <span className="bg-blue-500 text-white text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-sm">
                 Seller Controls
@@ -261,23 +376,26 @@ const ProductDetails = () => {
       )}
 
       {/* Breadcrumb Path */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-[#777]">
-          <Link to="/" className="hover:text-blue-600 transition-colors">Home</Link>
-          <span>/</span>
-          <Link to="/products" className="hover:text-blue-600 transition-colors">{product.category || 'Shop'}</Link>
-          <span>/</span>
-          <span className="text-[#222] font-black">{product.name}</span>
+      <div className="bg-white border-b border-gray-100 shadow-xs">
+        <div className="max-w-4xl mx-auto px-4 py-2.5 flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-wider text-slate-400">
+          <Link to="/" className="hover:text-emerald-600 transition-colors">Home</Link>
+          <ChevronRight className="w-2.5 h-2.5 text-slate-300" />
+          <Link to="/products" className="hover:text-emerald-600 transition-colors">{product.category || 'Shop'}</Link>
+          <ChevronRight className="w-2.5 h-2.5 text-slate-300" />
+          <span className="text-slate-800 font-extrabold truncate max-w-[200px]">{product.name}</span>
         </div>
       </div>
 
-      <main className="max-w-5xl mx-auto px-4 py-6 md:py-8">
-        <div className="bg-white border border-gray-200 rounded-sm p-4 md:p-6 mb-6 shadow-sm">
-          <div className="grid grid-cols-1 lg:grid-cols-[4.5fr_7.5fr] gap-6 md:gap-8">
+      <main className="max-w-4xl mx-auto px-4 py-4 md:py-6">
+        <div className="bg-white border border-gray-200 rounded-2xl p-4 md:p-6 mb-6 shadow-sm">
+          <div className="grid grid-cols-1 lg:grid-cols-[5fr_7fr] gap-6 md:gap-8">
 
             {/* Left: Gallery */}
             <div>
-              <div className="aspect-square max-h-[340px] bg-white rounded-sm overflow-hidden border border-gray-200 mb-3 relative flex items-center justify-center p-3 mx-auto">
+              <div 
+                className="aspect-square max-h-[320px] bg-white rounded-2xl overflow-hidden border border-gray-100 mb-3 relative flex items-center justify-center p-4 mx-auto shadow-sm group/gallery cursor-zoom-in"
+                onClick={() => setIsLightboxOpen(true)}
+              >
                 {selectedSalePercentage > 0 && (
                   <div className="absolute top-3 left-3 flex flex-col gap-1 z-10">
                     <span className="bg-red-500 text-white text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-sm shadow-sm">
@@ -289,19 +407,22 @@ const ProductDetails = () => {
                   <img 
                     src={mainImage.startsWith('http') ? mainImage : `${BASE_URL}${mainImage.startsWith('/') ? '' : '/'}${mainImage}`} 
                     alt={product.name} 
-                    className="w-full h-full object-contain" 
+                    className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105" 
                   />
                 ) : (
                   <span className="text-gray-300 font-bold tracking-widest uppercase text-[10px]">No Image Available</span>
                 )}
+                <div className="absolute top-2 right-2 p-1.5 rounded-lg bg-white/80 backdrop-blur-xs shadow-sm opacity-0 group-hover/gallery:opacity-100 transition-opacity duration-300 pointer-events-none">
+                  <Maximize2 className="w-3.5 h-3.5 text-slate-600" />
+                </div>
               </div>
               {product.imagePaths?.length > 1 && (
-                <div className="flex gap-2 justify-center overflow-x-auto pb-1">
+                <div className="flex gap-1.5 justify-center overflow-x-auto pb-1">
                   {product.imagePaths.map((img, idx) => (
                     <button 
                       key={idx} 
                       onClick={() => setMainImage(img)}
-                      className={`w-12 h-12 flex-shrink-0 rounded-sm overflow-hidden border-2 transition-all p-0.5 bg-white ${mainImage === img ? 'border-blue-600' : 'border-gray-200 hover:border-gray-400'}`}
+                      className={`w-11 h-11 flex-shrink-0 rounded-lg overflow-hidden border-2 transition-all p-0.5 bg-white ${mainImage === img ? 'border-emerald-600 shadow-sm' : 'border-gray-200 hover:border-gray-400'}`}
                     >
                       <img 
                         src={img.startsWith('http') ? img : `${BASE_URL}${img.startsWith('/') ? '' : '/'}${img}`} 
@@ -319,54 +440,71 @@ const ProductDetails = () => {
               <div>
                 <div className="border-b border-gray-100 pb-3 mb-3">
                   {product.brand && (
-                    <span className="text-[9px] font-black tracking-widest text-[#777] uppercase mb-0.5 block">{product.brand}</span>
+                    <span className="text-[9px] font-extrabold tracking-widest text-emerald-600 uppercase mb-1 block">{product.brand}</span>
                   )}
-                  <h1 className="text-lg md:text-xl font-bold text-[#222529] tracking-tight leading-tight mb-1">
+                  <h1 className="text-lg md:text-xl font-bold text-slate-900 tracking-tight leading-tight mb-1.5">
                     {product.name}
                   </h1>
                   
                   {/* Rating & reviews */}
-                  <div className="flex items-center gap-2 text-xs">
-                    <div className="flex text-[#e0a800] text-xs">
-                      {'★'.repeat(Math.round(product.averageRating || 0))}{'☆'.repeat(5 - Math.round(product.averageRating || 0))}
+                  <div className="flex items-center gap-1.5 text-[11px]">
+                    <div className="flex items-center gap-0.5">
+                      {Array.from({ length: 5 }).map((_, i) => {
+                        const isActive = i < Math.round(product.averageRating || 0);
+                        return (
+                          <Star 
+                            key={i} 
+                            className={`w-3.5 h-3.5 ${isActive ? 'text-amber-400 fill-amber-400' : 'text-gray-200'}`} 
+                          />
+                        );
+                      })}
                     </div>
-                    <span className="text-[10px] font-bold text-[#777]">({product.totalReviews || reviews.length} reviews)</span>
+                    <span className="font-semibold text-slate-400">({product.totalReviews || reviews.length} reviews)</span>
                   </div>
                 </div>
 
                 {/* Price Block */}
-                <div className="mb-4">
-                  <div className="flex items-end gap-2.5 mb-0.5">
-                    <span className="text-xl md:text-2xl font-extrabold text-[#222529]">
-                      Rs. {currentPrice?.toLocaleString()}
-                    </span>
-                    {isOnSale && (
-                      <span className="text-sm text-[#777] font-bold line-through mb-0.5">
-                        Rs. {originalPrice?.toLocaleString()}
+                <div className="mb-4 bg-slate-50 border border-slate-100 rounded-xl p-3 flex flex-wrap items-center justify-between gap-3 shadow-2xs">
+                  <div>
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-xl md:text-2xl font-extrabold text-slate-900">
+                        Rs. {currentPrice?.toLocaleString()}
                       </span>
-                    )}
+                      {isOnSale && (
+                        <span className="text-xs text-slate-400 font-medium line-through">
+                          Rs. {originalPrice?.toLocaleString()}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                      <span className="relative flex h-2 w-2">
+                        {stock > 0 && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>}
+                        <span className={`relative inline-flex rounded-full h-2 w-2 ${stock > 0 ? 'bg-emerald-500' : 'bg-red-500'}`}></span>
+                      </span>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                        {stock > 0 ? (stock < 5 ? `Only ${stock} left!` : 'In Stock') : <span className="text-red-500 font-extrabold">Out of Stock</span>}
+                      </span>
+                    </div>
                   </div>
-                  <p className="text-[10px] font-black uppercase tracking-wider text-green-600">
-                    {stock > 0 ? (stock < 5 ? `Only ${stock} left in stock` : 'In Stock') : <span className="text-red-500">Out of Stock</span>}
-                  </p>
+
                   {product.status !== 'ACTIVE' && (
-                    <span className="inline-block text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-sm bg-orange-100 text-orange-700 border border-orange-200 mt-1.5 font-sans">
-                      ⚠️ Listing Status: {product.status}
+                    <span className="inline-block text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-250 font-sans shadow-sm animate-pulse">
+                      ⚠️ Status: {product.status}
                     </span>
                   )}
                 </div>
 
                 {/* Short Description */}
-                <div className="text-xs text-[#777] leading-relaxed mb-4 font-medium">
+                <div className="text-[11px] text-slate-500 leading-relaxed mb-4 font-medium">
                   {product.shortDescription || 'Experience the perfect blend of performance and styling in a clean, modern design built to last.'}
                 </div>
 
                 {/* Dynamic Variant Selectors */}
                 {product.hasVariants && product.attributeOptions && Object.keys(product.attributeOptions).length > 0 && (
-                  <div className="space-y-3 mb-4 border-t border-gray-150 pt-4">
+                  <div className="space-y-3 mb-4 border-t border-gray-100 pt-4">
                     {Object.entries(product.attributeOptions).map(([attrName, options]) => (
                       <div key={attrName} className="flex items-center">
-                        <h4 className="w-20 text-[10px] font-bold uppercase tracking-widest text-[#777]">{attrName}:</h4>
+                        <h4 className="w-20 text-[9px] font-bold uppercase tracking-widest text-slate-400">{attrName}:</h4>
                         <div className="flex flex-wrap gap-1.5 flex-1">
                           {options.map(opt => {
                             const isSelected = selectedAttributes[attrName] === opt.value;
@@ -374,11 +512,11 @@ const ProductDetails = () => {
                               <button
                                 key={opt.id}
                                 onClick={() => handleAttributeChange(attrName, opt.value)}
-                                className={`px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-sm border transition-all ${
+                                className={`px-2.5 py-1 text-[9px] font-extrabold uppercase tracking-wider rounded-lg border transition-all duration-200 ${
                                   isSelected 
-                                    ? 'border-[#222529] bg-[#222529] text-white font-extrabold' 
-                                    : 'border-gray-200 text-gray-700 hover:border-gray-400 bg-white'
-                                  }`}
+                                    ? 'border-emerald-600 bg-emerald-600 text-white font-extrabold shadow-md shadow-emerald-100 scale-[1.02]' 
+                                    : 'border-gray-200 text-slate-655 hover:border-gray-300 hover:scale-[1.01] bg-white'
+                                    }`}
                               >
                                 {opt.value}
                               </button>
@@ -388,61 +526,65 @@ const ProductDetails = () => {
                       </div>
                     ))}
                     {!selectedVariant && (
-                      <p className="text-[10px] font-bold text-red-500 mt-1">Selected option combination is currently unavailable.</p>
+                      <p className="text-[9px] font-bold text-red-500 mt-2 flex items-center gap-1 font-sans">
+                        <span>⚠️</span> Selected option combination is currently unavailable.
+                      </p>
                     )}
                   </div>
                 )}
               </div>
 
               {/* Actions Section */}
-              <div className="space-y-3 pt-4 border-t border-gray-150">
-                <div className="flex flex-wrap gap-2.5 items-center">
+              <div className="space-y-3 pt-4 border-t border-gray-100">
+                <div className="flex flex-wrap gap-2 items-center">
                   
                   {/* Quantity box */}
-                  <div className="flex border border-gray-200 rounded-sm items-center w-24 bg-white h-9 overflow-hidden">
-                    <button className="flex-1 font-bold text-[#777] hover:text-[#222529] text-sm transition-colors" onClick={() => setQuantity(q => Math.max(1, q - 1))}>−</button>
-                    <span className="flex-1 text-center font-extrabold text-[#222529] text-[11px]">{quantity}</span>
-                    <button className="flex-1 font-bold text-[#777] hover:text-[#222529] text-sm transition-colors" onClick={() => setQuantity(q => Math.min(stock, q + 1))}>+</button>
+                  <div className="flex border border-gray-200 rounded-lg items-center w-22 bg-white h-9 overflow-hidden shadow-2xs">
+                    <button className="flex-1 font-bold text-slate-400 hover:text-slate-700 hover:bg-slate-50 h-full flex items-center justify-center transition-colors focus:outline-none" onClick={() => setQuantity(q => Math.max(1, q - 1))}>−</button>
+                    <span className="w-8 text-center font-extrabold text-slate-800 text-[11px]">{quantity}</span>
+                    <button className="flex-1 font-bold text-slate-400 hover:text-slate-700 hover:bg-slate-50 h-full flex items-center justify-center transition-colors focus:outline-none" onClick={() => setQuantity(q => Math.min(stock, q + 1))}>+</button>
                   </div>
 
                   {/* Add to Cart button */}
                   <button 
                     onClick={handleAddToCart}
                     disabled={addingToCart || stock < 1 || (product.hasVariants && !selectedVariant)}
-                    className="flex-1 min-w-[120px] bg-[#222529] hover:bg-[#000] disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-extrabold text-[10px] uppercase tracking-widest h-9 rounded-sm shadow-sm transition-all flex items-center justify-center gap-1.5"
+                    className="flex-1 min-w-[130px] bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-100 disabled:text-gray-300 disabled:cursor-not-allowed text-white font-extrabold text-[10px] uppercase tracking-widest h-9 rounded-lg shadow-sm hover:shadow-md hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-1.5 focus:ring-2 focus:ring-emerald-500/20"
                   >
-                    {addingToCart ? 'Adding…' : 'Add to Cart'}
+                    <ShoppingBag className="w-3.5 h-3.5" />
+                    <span>{addingToCart ? 'Adding…' : 'Add to Cart'}</span>
                   </button>
 
                   {/* Message Seller / Inquiry button */}
                   <button 
                     onClick={() => setIsMsgModalOpen(true)}
-                    className="px-3.5 bg-white border border-gray-200 hover:border-gray-800 hover:text-gray-900 text-gray-700 font-extrabold text-[10px] uppercase tracking-widest h-9 rounded-sm shadow-sm transition-all flex items-center justify-center gap-1"
+                    className="px-3 bg-white border border-gray-200 hover:border-slate-800 text-slate-700 hover:text-slate-900 font-extrabold text-[9px] uppercase tracking-widest h-9 rounded-lg shadow-2xs hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-1 focus:ring-2 focus:ring-gray-100"
                     title="Inquire about product"
                   >
-                    ✉ Inquire
+                    <MessageSquare className="w-3.5 h-3.5" />
+                    <span>Inquire</span>
                   </button>
 
                   {/* Wishlist Button */}
                   <button 
                     onClick={handleAddToWishlist}
                     disabled={addingToWishlist}
-                    className="w-9 h-9 border border-gray-200 hover:border-red-400 hover:text-red-500 text-gray-400 rounded-sm flex items-center justify-center transition-colors bg-white text-xs"
+                    className="w-9 h-9 border border-gray-200 hover:border-red-400 hover:text-red-500 text-gray-400 hover:scale-[1.02] active:scale-[0.98] rounded-lg flex items-center justify-center transition-all bg-white shadow-2xs"
                     title="Add to Wishlist"
                   >
-                    ♥
+                    <Heart className="w-3.5 h-3.5" />
                   </button>
                 </div>
 
                 {/* Additional Info Cards */}
-                <div className="grid grid-cols-2 gap-4 mt-6 pt-5 border-t border-gray-100 text-xs">
+                <div className="grid grid-cols-2 gap-3 mt-4 pt-3 border-t border-gray-100 text-[11px]">
                   <div>
-                    <span className="text-[#777] block uppercase tracking-wider text-[9px] font-bold mb-1">SKU</span>
-                    <span className="font-bold text-[#222529]">{selectedVariant?.sku || `PROD-${product.productId}`}</span>
+                    <span className="text-slate-400 block uppercase tracking-wider text-[8px] font-bold mb-0.5">SKU</span>
+                    <span className="font-bold text-slate-700">{selectedVariant?.sku || `PROD-${product.productId}`}</span>
                   </div>
                   <div>
-                    <span className="text-[#777] block uppercase tracking-wider text-[9px] font-bold mb-1">Category</span>
-                    <span className="font-bold text-[#222529]">{product.category || 'Shop'}</span>
+                    <span className="text-slate-400 block uppercase tracking-wider text-[8px] font-bold mb-0.5">Category</span>
+                    <span className="font-bold text-slate-700">{product.category || 'Shop'}</span>
                   </div>
                 </div>
               </div>
@@ -451,27 +593,32 @@ const ProductDetails = () => {
         </div>
 
         {/* Detailed Tabs */}
-        <div className="bg-white border border-gray-200 rounded-sm overflow-hidden mb-8 shadow-sm">
-          <div className="flex border-b border-gray-200 bg-white">
-            {['description', 'specs', 'seller', 'reviews'].map(tab => (
+        <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden mb-6 shadow-sm">
+          <div className="flex border-b border-gray-200 bg-slate-50/40 overflow-x-auto">
+            {[
+              { id: 'description', label: 'Description', icon: <Info className="w-3.5 h-3.5" /> },
+              { id: 'specs', label: 'Specifications', icon: <Sliders className="w-3.5 h-3.5" /> },
+              { id: 'seller', label: 'Seller Info', icon: <Store className="w-3.5 h-3.5" /> },
+              { id: 'reviews', label: `Reviews (${product.totalReviews || reviews.length})`, icon: <MessageSquare className="w-3.5 h-3.5" /> }
+            ].map(tab => (
               <button 
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`py-4 px-6 text-xs font-black uppercase tracking-wider transition-all border-r border-gray-100 relative ${
-                  activeTab === tab 
-                    ? 'text-[#222529] border-t-2 border-t-[#222529] bg-white font-black' 
-                    : 'text-[#777] hover:text-[#222529] hover:bg-gray-50'
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`py-2.5 px-4 text-[10px] font-extrabold uppercase tracking-wider transition-all border-r border-gray-100 flex items-center gap-1.5 relative ${
+                  activeTab === tab.id 
+                    ? 'text-emerald-600 bg-white border-b-2 border-b-emerald-600' 
+                    : 'text-slate-500 hover:text-slate-800 hover:bg-gray-50/50'
                 }`}
               >
-                {tab === 'specs' ? 'Specifications' : tab === 'seller' ? 'Seller Info' : tab}
-                {tab === 'reviews' && ` (${product.totalReviews || reviews.length})`}
+                {tab.icon}
+                <span>{tab.label}</span>
               </button>
             ))}
           </div>
 
-          <div className="p-6 md:p-8 overflow-hidden">
+          <div className="p-5 md:p-6 overflow-hidden text-slate-750">
             {activeTab === 'description' && (
-              <div className="prose prose-sm max-w-none text-[#777] leading-relaxed font-medium break-words overflow-hidden">
+              <div className="prose prose-sm max-w-none text-slate-500 text-[11px] leading-relaxed font-medium break-words overflow-hidden">
                 {product.description ? (
                   <div dangerouslySetInnerHTML={{ __html: product.description }} />
                 ) : (
@@ -481,120 +628,149 @@ const ProductDetails = () => {
             )}
             
             {activeTab === 'specs' && (
-              <div className="space-y-6">
+              <div className="space-y-4">
                 {product.specification && (
-                  <div>
-                    <h4 className="text-[10px] font-black uppercase tracking-widest text-[#222529] mb-2">General Specs</h4>
-                    <p className="text-xs text-[#777] whitespace-pre-wrap leading-relaxed break-words">{product.specification}</p>
+                  <div className="bg-slate-50/55 border border-slate-100 rounded-xl p-4 shadow-3xs">
+                    <h4 className="text-[9px] font-extrabold uppercase tracking-widest text-slate-800 mb-3 flex items-center gap-1.5 border-b border-slate-150 pb-1.5">
+                      <Sliders className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>General Specifications</span>
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-[11px]">
+                      {parseSpecification(product.specification).map((spec, i) => (
+                        <div key={i} className="flex gap-2.5 items-start p-2 bg-white border border-gray-100 rounded-lg shadow-4xs">
+                          <div className="mt-0.5 p-1 rounded bg-slate-50 flex items-center justify-center">
+                            {getSpecIcon(spec.key)}
+                          </div>
+                          <div>
+                            <span className="text-[9px] text-slate-400 font-bold block uppercase tracking-wider">{spec.key}</span>
+                            <span className="text-slate-700 font-semibold leading-tight">{spec.value}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
-                {product.features && (
-                  <div>
-                    <h4 className="text-[10px] font-black uppercase tracking-widest text-[#222529] mb-2">Key Features</h4>
-                    <p className="text-xs text-[#777] whitespace-pre-wrap leading-relaxed break-words">{product.features}</p>
+                {product.features && product.features !== product.specification && !product.features.startsWith('SpecificationDetails') && (
+                  <div className="bg-slate-50/55 border border-slate-100 rounded-xl p-4 shadow-3xs">
+                    <h4 className="text-[9px] font-extrabold uppercase tracking-widest text-slate-800 mb-2.5 flex items-center gap-1.5 border-b border-slate-150 pb-1.5">
+                      <Award className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>Key Features</span>
+                    </h4>
+                    <p className="text-[11px] text-slate-600 whitespace-pre-wrap leading-relaxed break-words pl-1">{product.features}</p>
                   </div>
                 )}
                 {product.colorOptions && (
-                  <div>
-                    <h4 className="text-[10px] font-black uppercase tracking-widest text-[#222529] mb-2">Color Options</h4>
-                    <p className="text-xs text-[#777]">{product.colorOptions}</p>
+                  <div className="bg-slate-50/55 border border-slate-100 rounded-xl p-4 shadow-3xs">
+                    <h4 className="text-[9px] font-extrabold uppercase tracking-widest text-slate-800 mb-1.5">Color Options</h4>
+                    <p className="text-[11px] text-slate-600">{product.colorOptions}</p>
                   </div>
                 )}
                 {product.storageSpec && (
-                  <div>
-                    <h4 className="text-[10px] font-black uppercase tracking-widest text-[#222529] mb-2">Storage Options</h4>
-                    <p className="text-xs text-[#777]">{product.storageSpec}</p>
+                  <div className="bg-slate-50/55 border border-slate-100 rounded-xl p-4 shadow-3xs">
+                    <h4 className="text-[9px] font-extrabold uppercase tracking-widest text-slate-800 mb-1.5">Storage Options</h4>
+                    <p className="text-[11px] text-slate-600">{product.storageSpec}</p>
                   </div>
                 )}
                 {(product.manufactureDate || product.expiryDate) && (
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-4 pt-1">
                     {product.manufactureDate && (
-                      <div>
-                        <h4 className="text-[10px] font-black uppercase tracking-widest text-[#222529] mb-2">Manufacture Date</h4>
-                        <p className="text-xs text-[#777]">{new Date(product.manufactureDate).toLocaleDateString()}</p>
+                      <div className="bg-slate-50/55 border border-slate-100 rounded-xl p-4 shadow-3xs">
+                        <h4 className="text-[9px] font-extrabold uppercase tracking-widest text-slate-800 mb-1">Manufacture Date</h4>
+                        <p className="text-[11px] text-slate-600">{new Date(product.manufactureDate).toLocaleDateString()}</p>
                       </div>
                     )}
                     {product.expiryDate && (
-                      <div>
-                        <h4 className="text-[10px] font-black uppercase tracking-widest text-[#222529] mb-2">Expiry Date</h4>
-                        <p className="text-xs text-red-600 font-bold">{new Date(product.expiryDate).toLocaleDateString()}</p>
+                      <div className="bg-slate-50/55 border border-slate-100 rounded-xl p-4 shadow-3xs">
+                        <h4 className="text-[9px] font-extrabold uppercase tracking-widest text-slate-800 mb-1">Expiry Date</h4>
+                        <p className="text-[11px] text-red-600 font-bold">{new Date(product.expiryDate).toLocaleDateString()}</p>
                       </div>
                     )}
                   </div>
                 )}
                 {product.warrantyMonths > 0 && (
-                  <div>
-                    <h4 className="text-[10px] font-black uppercase tracking-widest text-[#222529] mb-2">Warranty</h4>
-                    <p className="text-xs text-[#777] font-bold">{product.warrantyMonths} Months</p>
+                  <div className="bg-slate-50/55 border border-slate-100 rounded-xl p-4 shadow-3xs">
+                    <h4 className="text-[9px] font-extrabold uppercase tracking-widest text-slate-800 mb-1">Warranty</h4>
+                    <p className="text-[11px] text-slate-600 font-bold">{product.warrantyMonths} Months</p>
                   </div>
                 )}
                 {!product.specification && !product.features && !product.warrantyMonths && !product.colorOptions && !product.storageSpec && !product.manufactureDate && !product.expiryDate && (
-                  <p className="text-xs text-gray-400 font-medium">No detailed specifications provided.</p>
+                  <p className="text-[11px] text-gray-400 font-medium">No detailed specifications provided.</p>
                 )}
               </div>
             )}
 
             {activeTab === 'seller' && (
-              <div className="space-y-6">
-                <div className="flex items-center gap-4 border-b border-gray-100 pb-5">
-                  <div className="w-14 h-14 bg-gray-50 rounded-full border border-gray-200 flex items-center justify-center overflow-hidden">
+              <div className="space-y-4">
+                <div className="flex items-center gap-3 border-b border-gray-100 pb-4">
+                  <div className="w-12 h-12 bg-slate-50 rounded-full border border-gray-150 flex items-center justify-center overflow-hidden shadow-2xs">
                     {product.logoImagePath || product.profileImagePath ? (
                       <img src={(product.logoImagePath || product.profileImagePath).startsWith('http') ? (product.logoImagePath || product.profileImagePath) : `${BASE_URL}${(product.logoImagePath || product.profileImagePath).startsWith('/') ? '' : '/'}${product.logoImagePath || product.profileImagePath}`} alt="Seller Logo" className="w-full h-full object-cover" />
                     ) : (
                       <span className="text-xl">🏪</span>
                     )}
                   </div>
-                  <div className="flex-1 flex flex-wrap items-center justify-between gap-4">
+                  <div className="flex-1 flex flex-wrap items-center justify-between gap-3">
                     <div>
-                      <h3 className="text-base font-extrabold text-[#222529]">{product.storeName || 'Jhapcham Seller'}</h3>
-                      <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{product.sellerFullName}</p>
+                      <h3 className="text-sm font-bold text-slate-800 leading-snug">{product.storeName || 'Jhapcham Seller'}</h3>
+                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{product.sellerFullName}</p>
                     </div>
                     <div className="flex gap-2">
                       <Link
                         to={`/seller-profile/${product.sellerUserId}`}
-                        className="bg-white border border-gray-200 hover:border-gray-800 text-gray-700 font-extrabold text-[9px] uppercase tracking-widest px-3 py-1.5 rounded-sm transition-colors"
+                        className="bg-white border border-gray-250 hover:border-slate-800 text-slate-700 hover:text-slate-900 font-extrabold text-[8px] uppercase tracking-widest px-3 py-1.5 rounded-lg transition-all shadow-3xs flex items-center gap-1"
                       >
-                        🏪 Visit Store
+                        <Store className="w-3 h-3" />
+                        <span>Visit Store</span>
                       </Link>
                       <button
                         onClick={() => setIsMsgModalOpen(true)}
-                        className="bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-[9px] uppercase tracking-widest px-3 py-1.5 rounded-sm transition-colors"
+                        className="bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-[8px] uppercase tracking-widest px-3 py-1.5 rounded-lg transition-all shadow-xs flex items-center gap-1"
                       >
-                        ✉ Message Seller
+                        <Mail className="w-3 h-3" />
+                        <span>Message Seller</span>
                       </button>
                     </div>
                   </div>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-[11px]">
                   {product.sellerEmail && (
-                    <div>
-                      <h4 className="text-[9px] font-black uppercase tracking-widest text-[#777] mb-1">Email Contact</h4>
-                      <p className="text-[#222529] font-medium">{product.sellerEmail}</p>
+                    <div className="flex items-center gap-1.5">
+                      <Mail className="w-3.5 h-3.5 text-slate-400" />
+                      <div>
+                        <span className="text-[8px] text-slate-400 font-bold block uppercase tracking-wider">Email</span>
+                        <span className="text-slate-700 font-semibold">{product.sellerEmail}</span>
+                      </div>
                     </div>
                   )}
                   {product.sellerContactNumber && (
-                    <div>
-                      <h4 className="text-[9px] font-black uppercase tracking-widest text-[#777] mb-1">Phone Number</h4>
-                      <p className="text-[#222529] font-medium">{product.sellerContactNumber}</p>
+                    <div className="flex items-center gap-1.5">
+                      <Clock className="w-3.5 h-3.5 text-slate-400" />
+                      <div>
+                        <span className="text-[8px] text-slate-400 font-bold block uppercase tracking-wider">Phone</span>
+                        <span className="text-slate-700 font-semibold">{product.sellerContactNumber}</span>
+                      </div>
                     </div>
                   )}
                   {product.storeAddress && (
-                    <div className="col-span-1 md:col-span-2">
-                      <h4 className="text-[9px] font-black uppercase tracking-widest text-[#777] mb-1">Store Address</h4>
-                      <p className="text-[#222529] font-medium">{product.storeAddress}</p>
+                    <div className="col-span-1 md:col-span-2 flex items-start gap-1.5">
+                      <Store className="w-3.5 h-3.5 text-slate-400 mt-0.5" />
+                      <div>
+                        <span className="text-[8px] text-slate-400 font-bold block uppercase tracking-wider">Store Address</span>
+                        <span className="text-slate-700 font-semibold">{product.storeAddress}</span>
+                      </div>
                     </div>
                   )}
                 </div>
-                <div className="mt-4 pt-4 border-t border-gray-100">
-                  <h4 className="text-[9px] font-black uppercase tracking-widest text-[#777] mb-2">Shipping Rates</h4>
-                  <div className="bg-[#fafafa] rounded-sm p-4 grid grid-cols-2 gap-4 border border-gray-100">
+                <div className="mt-3 pt-3 border-t border-gray-100">
+                  <h4 className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1.5">Shipping Rates</h4>
+                  <div className="bg-slate-50/50 rounded-xl p-3 grid grid-cols-2 gap-3 border border-slate-100">
                     <div>
-                      <p className="text-[10px] text-[#777] font-bold uppercase tracking-wider mb-1">Inside Valley</p>
-                      <p className="text-xs font-black text-[#222529]">{product.freeShipping ? 'FREE' : `Rs. ${product.insideValleyShipping || 0}`}</p>
+                      <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Inside Valley</p>
+                      <p className="text-xs font-bold text-slate-800">{product.freeShipping ? 'FREE' : `Rs. ${product.insideValleyShipping || 0}`}</p>
                     </div>
                     <div>
-                      <p className="text-[10px] text-[#777] font-bold uppercase tracking-wider mb-1">Outside Valley</p>
-                      <p className="text-xs font-black text-[#222529]">{product.freeShipping ? 'FREE' : `Rs. ${product.outsideValleyShipping || 0}`}</p>
+                      <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Outside Valley</p>
+                      <p className="text-xs font-bold text-slate-800">{product.freeShipping ? 'FREE' : `Rs. ${product.outsideValleyShipping || 0}`}</p>
                     </div>
                   </div>
                 </div>
@@ -604,29 +780,31 @@ const ProductDetails = () => {
             {activeTab === 'reviews' && (
               <div>
                 {reviews.length === 0 ? (
-                  <div className="text-center py-6">
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">No reviews yet for this product.</p>
+                  <div className="text-center py-4">
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">No reviews yet for this product.</p>
                   </div>
                 ) : (
-                  <div className="space-y-6">
+                  <div className="space-y-4">
                     {reviews.map(review => (
-                      <div key={review.id} className="border-b border-gray-100 pb-5 last:border-0 last:pb-0">
+                      <div key={review.id} className="border-b border-gray-100 pb-4 last:border-0 last:pb-0">
                         <div className="flex justify-between items-start mb-1">
                           <div>
-                            <p className="font-extrabold text-xs text-[#222529]">{review.customerName}</p>
-                            <p className="text-[9px] text-[#777] font-bold uppercase tracking-wider">
+                            <p className="font-bold text-[11px] text-slate-800">{review.customerName}</p>
+                            <p className="text-[8px] text-slate-400 font-bold uppercase tracking-wider">
                               {new Date(review.createdAt).toLocaleDateString()}
                             </p>
                           </div>
-                          <div className="flex text-[#e0a800] text-xs">
-                            {'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}
+                          <div className="flex text-amber-500 text-xs">
+                            {Array.from({ length: 5 }).map((_, i) => (
+                              <Star key={i} className={`w-3 h-3 ${i < review.rating ? 'text-amber-400 fill-amber-400' : 'text-gray-200'}`} />
+                            ))}
                           </div>
                         </div>
-                        {review.comment && <p className="text-xs text-[#777] mt-1 leading-relaxed">{review.comment}</p>}
+                        {review.comment && <p className="text-[11px] text-slate-650 mt-1 leading-relaxed">{review.comment}</p>}
                         {review.sellerReply && (
-                          <div className="mt-2 bg-gray-50 rounded-sm p-3 border-l-2 border-[#222529]">
-                            <p className="text-[9px] font-black uppercase tracking-widest text-[#222529] mb-1">Seller Response</p>
-                            <p className="text-xs text-[#777]">{review.sellerReply}</p>
+                          <div className="mt-1.5 bg-slate-50 rounded-lg p-2 border-l-2 border-emerald-500">
+                            <p className="text-[8px] font-black uppercase tracking-widest text-slate-800 mb-0.5">Seller Response</p>
+                            <p className="text-[10px] text-slate-500">{review.sellerReply}</p>
                           </div>
                         )}
                       </div>
@@ -640,11 +818,11 @@ const ProductDetails = () => {
 
         {/* Related Products Section */}
         {relatedProducts.length > 0 && (
-          <div className="mt-12">
-            <h2 className="text-lg font-black uppercase tracking-widest text-[#222529] mb-6 pb-2 border-b-2 border-b-[#222529] inline-block">
+          <div className="mt-8">
+            <h2 className="text-sm font-bold uppercase tracking-wider text-slate-800 mb-4 pb-1.5 border-b-2 border-b-emerald-600 inline-block">
               Related Products
             </h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
               {relatedProducts.map(p => (
                 <ProductCard key={p.id} product={p} />
               ))}
@@ -653,17 +831,38 @@ const ProductDetails = () => {
         )}
       </main>
 
+      {/* Fullscreen Lightbox */}
+      {isLightboxOpen && mainImage && (
+        <div 
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-md cursor-zoom-out"
+          onClick={() => setIsLightboxOpen(false)}
+        >
+          <button 
+            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white text-xl transition-colors"
+            onClick={() => setIsLightboxOpen(false)}
+          >
+            ✕
+          </button>
+          <img 
+            src={mainImage.startsWith('http') ? mainImage : `${BASE_URL}${mainImage.startsWith('/') ? '' : '/'}${mainImage}`} 
+            alt={product.name} 
+            className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl animate-scaleIn"
+            onClick={(e) => e.stopPropagation()} 
+          />
+        </div>
+      )}
+
       {/* Message / Inquiry Modal */}
       {isMsgModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
-          <div className="bg-white rounded-md w-full max-w-md overflow-hidden shadow-2xl animate-scaleIn border border-gray-200">
+          <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl animate-scaleIn border border-gray-200">
             {/* Modal Header */}
-            <div className="px-6 py-4 border-b border-gray-150 flex items-center justify-between bg-slate-50">
+            <div className="px-5 py-3.5 border-b border-gray-150 flex items-center justify-between bg-slate-50">
               <div>
                 <span className="text-[8px] font-black bg-blue-500/10 text-blue-600 border border-blue-500/20 px-2 py-0.5 rounded uppercase tracking-wider">
                   Product Inquiry
                 </span>
-                <h3 className="text-xs font-black text-gray-900 mt-1 uppercase tracking-wider">
+                <h3 className="text-xs font-bold text-gray-900 mt-1 uppercase tracking-wider">
                   Inquire about "{product.name}"
                 </h3>
               </div>
@@ -680,7 +879,7 @@ const ProductDetails = () => {
             </div>
 
             {/* Modal Form */}
-            <form onSubmit={handleSendMessage} className="p-6 space-y-4">
+            <form onSubmit={handleSendMessage} className="p-5 space-y-3">
               {msgError && (
                 <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-[11px] font-semibold">
                   ⚠️ {msgError}
@@ -693,7 +892,7 @@ const ProductDetails = () => {
               )}
 
               <div>
-                <label className="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5">
+                <label className="block text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">
                   Your Inquiry
                 </label>
                 <textarea
@@ -701,13 +900,13 @@ const ProductDetails = () => {
                   value={msgContent}
                   onChange={(e) => setMsgContent(e.target.value)}
                   placeholder={`Hi ${product.sellerFullName || 'Seller'}, I am interested in "${product.name}". Can you provide more details regarding availability/pricing?`}
-                  className="w-full bg-slate-50 border border-gray-200 rounded-xl px-4 py-3 text-slate-800 text-xs font-semibold placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500/80 resize-none transition-all"
+                  className="w-full bg-slate-50 border border-gray-200 rounded-xl px-3 py-2 text-slate-800 text-xs font-semibold placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500/80 resize-none transition-all"
                   disabled={sendingMsg || msgSuccess}
                 />
               </div>
 
               {/* Submit buttons */}
-              <div className="flex gap-3 pt-2">
+              <div className="flex gap-2 pt-1">
                 <button
                   type="button"
                   onClick={() => {
@@ -715,7 +914,7 @@ const ProductDetails = () => {
                     setMsgError('');
                     setMsgSuccess(false);
                   }}
-                  className="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-[10px] font-black uppercase tracking-wider flex-1 transition-all"
+                  className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-[10px] font-extrabold uppercase tracking-wider flex-1 transition-all"
                   disabled={sendingMsg || msgSuccess}
                 >
                   Cancel
@@ -723,7 +922,7 @@ const ProductDetails = () => {
                 <button
                   type="submit"
                   disabled={sendingMsg || msgSuccess}
-                  className="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-[10px] font-black uppercase tracking-wider flex-1 transition-all shadow-lg shadow-blue-500/10 disabled:opacity-50"
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-[10px] font-extrabold uppercase tracking-wider flex-1 transition-all shadow-lg shadow-blue-500/10 disabled:opacity-50"
                 >
                   {sendingMsg ? 'Sending...' : 'Send Inquiry'}
                 </button>

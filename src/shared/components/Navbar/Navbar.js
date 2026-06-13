@@ -252,7 +252,7 @@ export default function Navbar() {
       <header className="w-full bg-white border-b border-gray-200 sticky top-0 z-50 font-inter">
         {/* 1. Announcement Bar */}
         {isAnnouncementVisible && (
-          <div className="bg-slate-900 text-white text-xs py-2.5 px-4 flex justify-between items-center transition-all duration-300">
+          <div className="bg-slate-900 text-white text-[11px] py-1.5 px-4 flex justify-between items-center transition-all duration-300">
             <div className="flex-1 text-center font-medium tracking-wide font-inter">
               ✨ Free shipping on orders over $50. Special packaging for all premium products.
             </div>
@@ -267,7 +267,7 @@ export default function Navbar() {
         )}
 
         {/* 2. Utility Nav Row */}
-        <div className="bg-gray-50 text-gray-500 text-[11px] py-2 px-6 border-b border-gray-200 hidden lg:block">
+        <div className="bg-gray-50 text-gray-500 text-[10.5px] py-1 px-6 border-b border-gray-200 hidden lg:block">
           <div className="max-w-[1440px] mx-auto flex justify-between items-center">
             {/* Left Utility Links */}
             <div className="flex items-center gap-6">
@@ -306,7 +306,7 @@ export default function Navbar() {
         </div>
 
         {/* 3. Main Navbar */}
-        <div className="bg-white py-4 px-6 border-b border-gray-200">
+        <div className="bg-white py-2 px-6 border-b border-gray-200">
           <div className="max-w-[1440px] mx-auto flex items-center justify-between gap-4">
             
             {/* Logo */}
@@ -324,10 +324,10 @@ export default function Navbar() {
                   placeholder="Search for products, brands, or categories..." 
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full px-5 py-2.5 text-sm bg-transparent outline-none text-slate-800 placeholder-gray-400 focus:outline-none"
+                  className="w-full px-4 py-1.5 text-xs bg-transparent outline-none text-slate-800 placeholder-gray-400 focus:outline-none"
                 />
-                <button type="submit" className="p-3 text-gray-400 hover:text-emerald-600 transition-colors outline-none">
-                  <Search className="w-4 h-4" />
+                <button type="submit" className="p-2 text-gray-400 hover:text-emerald-600 transition-colors outline-none">
+                  <Search className="w-3.5 h-3.5" />
                 </button>
               </div>
             </form>
@@ -514,7 +514,7 @@ export default function Navbar() {
         </div>
 
         {/* 4. Mega Category Navigation */}
-        <div className="bg-white border-b border-gray-200 py-2 px-6">
+        <div className="bg-white border-b border-gray-200 py-1.5 px-6">
           <div className="max-w-[1440px] mx-auto flex items-center justify-between gap-6 overflow-hidden">
             {/* Scrollable Mega Links */}
             <div className="flex items-center gap-6 overflow-x-auto no-scrollbar scroll-smooth pr-6 py-1 flex-1">

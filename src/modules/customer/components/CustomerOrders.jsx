@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { getUserOrders, cancelOrder, retryPayment, changePaymentMethod, getEsewaSignature, initiateKhaltiPayment, requestRefund } from '../../../shared/api/customerApi';
 import { BASE_URL } from '../../../shared/api/apiClient';
+import { getProductLink } from '../../../shared/utils/slugHelper';
 
 // Robust image URL builder - handles null, relative paths, and already-absolute paths
 const getImgUrl = (path) => {
@@ -225,7 +226,13 @@ const CustomerOrders = () => {
           {filtered.length === 0 ? (
             <div className="text-center py-16 bg-white border border-gray-100 rounded-2xl shadow-sm">
               <div className="text-5xl mb-4 opacity-50">📭</div>
-              <p className="text-sm font-semibold text-gray-500">No orders found</p>
+              <p className="text-sm font-semibold text-gray-500 mb-4">No orders found</p>
+              <Link
+                to="/"
+                className="inline-block bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black uppercase tracking-wider px-6 py-2.5 rounded-sm transition-colors duration-150"
+              >
+                Explore Storefront
+              </Link>
             </div>
           ) : (
             <div className="space-y-4">
@@ -407,16 +414,18 @@ const OrderDetailView = ({ order, onBack, busyId, onCancel, onRetry, onRefundReq
         <h3 className="font-bold text-gray-900 text-lg mb-4">Items</h3>
         <div className="divide-y divide-gray-100">
           {order.items && order.items.map((item, idx) => (
-            <div key={idx} className="py-4 flex gap-4 items-start">
-              <div className="w-16 h-16 rounded-lg bg-gray-50 border border-gray-100 flex-shrink-0 flex items-center justify-center text-gray-400">
-                {item.imagePath ? <img src={getImgUrl(item.imagePath)} className="w-full h-full object-cover rounded-lg" alt="" /> : "📦"}
-              </div>
-              <div className="flex-1">
-                <p className="font-bold text-gray-900">{item.name || `Product #${item.productId}`}</p>
-                {item.variantLabel && <p className="text-sm text-gray-500">{item.variantLabel}</p>}
-                <p className="text-sm text-gray-500 mt-1">Qty: {item.quantity} × Rs. {(item.unitPrice || 0).toLocaleString()}</p>
-              </div>
-              <div className="text-right font-bold text-gray-900 shrink-0">
+            <div key={idx} className="py-4 flex gap-4 items-start justify-between">
+              <Link to={getProductLink(item)} className="flex gap-4 items-start hover:underline group flex-1">
+                <div className="w-16 h-16 rounded-lg bg-gray-50 border border-gray-100 flex-shrink-0 flex items-center justify-center text-gray-400 group-hover:border-emerald-300 transition-colors">
+                  {item.imagePath ? <img src={getImgUrl(item.imagePath)} className="w-full h-full object-cover rounded-lg" alt="" /> : "📦"}
+                </div>
+                <div className="flex-1">
+                  <p className="font-bold text-gray-900 group-hover:text-emerald-600 transition-colors">{item.name || `Product #${item.productId}`}</p>
+                  {item.variantLabel && <p className="text-sm text-gray-500">{item.variantLabel}</p>}
+                  <p className="text-sm text-gray-500 mt-1">Qty: {item.quantity} × Rs. {(item.unitPrice || 0).toLocaleString()}</p>
+                </div>
+              </Link>
+              <div className="text-right font-bold text-gray-900 shrink-0 pl-4">
                 Rs. {(item.lineTotal ?? (item.unitPrice * item.quantity) ?? 0).toLocaleString()}
               </div>
             </div>

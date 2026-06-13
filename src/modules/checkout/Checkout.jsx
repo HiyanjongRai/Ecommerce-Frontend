@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCustomer } from '../customer/contexts/CustomerContext';
-import { getCart, getProductById, getLoyaltyWallet, placeOrderFromCart, getEsewaSignature, initiateKhaltiPayment, quoteLoyaltyRedemption, validatePromoCode } from '../../shared/api/customerApi';
+import { getCart, getProductById, getLoyaltyWallet, placeOrderFromCart, getEsewaSignature, initiateKhaltiPayment, quoteLoyaltyRedemption, validatePromoCode, getAddresses } from '../../shared/api/customerApi';
 import { BASE_URL } from '../../shared/api/apiClient';
 const DEFAULT_INSIDE_VALLEY_SHIPPING = 100;
 const DEFAULT_OUTSIDE_VALLEY_SHIPPING = 150;
@@ -121,6 +121,7 @@ const Checkout = () => {
   const [loadingCart, setLoadingCart] = useState(true);
   const [loyaltyWallet, setLoyaltyWallet] = useState(null);
   const [loyaltyQuote, setLoyaltyQuote] = useState(null);
+  const [savedAddresses, setSavedAddresses] = useState([]);
 
   // Wizard Step State
   const [step, setStep] = useState(1);
@@ -206,6 +207,13 @@ const Checkout = () => {
     getLoyaltyWallet()
       .then((res) => setLoyaltyWallet(res.data))
       .catch(() => setLoyaltyWallet(null));
+  }, [userId]);
+
+  useEffect(() => {
+    if (!userId) return;
+    getAddresses(userId)
+      .then((res) => setSavedAddresses(Array.isArray(res.data) ? res.data : []))
+      .catch(() => setSavedAddresses([]));
   }, [userId]);
 
   useEffect(() => {
@@ -542,6 +550,42 @@ const Checkout = () => {
             )}
 
             <form className="space-y-6">
+              
+              {/* Ship to Saved Address Dropdown Picker */}
+              {savedAddresses.length > 0 && (
+                <div className="bg-emerald-50/30 border border-emerald-100 rounded-sm p-4 animate-in fade-in-50 duration-200">
+                  <label className="block text-[10px] font-black uppercase text-emerald-800 tracking-wider mb-2">
+                    📍 Ship to Saved Address
+                  </label>
+                  <select
+                    onChange={(e) => {
+                      const addrId = e.target.value;
+                      if (!addrId) return;
+                      const selected = savedAddresses.find(a => String(a.id) === addrId);
+                      if (selected) {
+                        setFormData(prev => ({
+                          ...prev,
+                          province: selected.province || '',
+                          district: selected.district || '',
+                          streetAddress: selected.street || '',
+                          municipality: selected.city || '',
+                          phone: selected.phone || prev.phone,
+                        }));
+                      }
+                    }}
+                    className="w-full border border-emerald-200 rounded-sm px-4 py-2.5 text-xs outline-none bg-white text-gray-700 font-semibold focus:border-emerald-500 transition-colors"
+                  >
+                    <option value="">-- Choose a saved address --</option>
+                    {savedAddresses.map(addr => (
+                      <option key={addr.id} value={addr.id}>
+                        {addr.label ? `[${addr.label.toUpperCase()}] ` : ''}
+                        {addr.street}, {addr.city}, {addr.district}, {addr.province} {addr.phone ? `(${addr.phone})` : ''}
+                        {addr.isDefault ? ' (Default)' : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>

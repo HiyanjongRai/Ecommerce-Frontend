@@ -66,7 +66,7 @@ const CustomerAddresses = () => {
       <div className="flex justify-between items-center mb-4 pb-3 border-b border-gray-200">
         <h2 className="text-xs font-black uppercase tracking-wider text-gray-800">My Addresses</h2>
         <button
-          className="bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-black uppercase tracking-wider px-4 py-2 rounded-sm transition-colors duration-150"
+          className="bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-black uppercase tracking-wider px-4 py-2 rounded-sm transition-colors duration-150"
           onClick={openAdd}
         >
           Add Address
@@ -85,14 +85,14 @@ const CustomerAddresses = () => {
                 <div>
                   <label className="block text-[9px] font-black uppercase tracking-wider text-gray-400 mb-1">Label (e.g. Home, Office)</label>
                   <input
-                    className="w-full px-3 py-1.5 border border-gray-200 rounded-sm text-xs outline-none focus:border-blue-600 transition-colors"
+                    className="w-full px-3 py-1.5 border border-gray-200 rounded-sm text-xs outline-none focus:border-emerald-600 transition-colors"
                     name="label" value={form.label || ''} onChange={handleChange} placeholder="e.g. Home"
                   />
                 </div>
                 <div>
                   <label className="block text-[9px] font-black uppercase tracking-wider text-gray-400 mb-1">Phone Number</label>
                   <input
-                    className="w-full px-3 py-1.5 border border-gray-200 rounded-sm text-xs outline-none focus:border-blue-600 transition-colors"
+                    className="w-full px-3 py-1.5 border border-gray-200 rounded-sm text-xs outline-none focus:border-emerald-600 transition-colors"
                     name="phone" value={form.phone || ''} onChange={handleChange} placeholder="98XXXXXXXX"
                   />
                 </div>
@@ -101,7 +101,7 @@ const CustomerAddresses = () => {
               <div>
                 <label className="block text-[9px] font-black uppercase tracking-wider text-gray-400 mb-1">Street Address</label>
                 <input
-                  className="w-full px-3 py-1.5 border border-gray-200 rounded-sm text-xs outline-none focus:border-blue-600 transition-colors"
+                  className="w-full px-3 py-1.5 border border-gray-200 rounded-sm text-xs outline-none focus:border-emerald-600 transition-colors"
                   name="street" value={form.street || ''} onChange={handleChange} placeholder="Street, Tole, Area" required
                 />
               </div>
@@ -110,14 +110,14 @@ const CustomerAddresses = () => {
                 <div>
                   <label className="block text-[9px] font-black uppercase tracking-wider text-gray-400 mb-1">City</label>
                   <input
-                    className="w-full px-3 py-1.5 border border-gray-200 rounded-sm text-xs outline-none focus:border-blue-600 transition-colors"
+                    className="w-full px-3 py-1.5 border border-gray-200 rounded-sm text-xs outline-none focus:border-emerald-600 transition-colors"
                     name="city" value={form.city || ''} onChange={handleChange} placeholder="City" required
                   />
                 </div>
                 <div>
                   <label className="block text-[9px] font-black uppercase tracking-wider text-gray-400 mb-1">District</label>
                   <input
-                    className="w-full px-3 py-1.5 border border-gray-200 rounded-sm text-xs outline-none focus:border-blue-600 transition-colors"
+                    className="w-full px-3 py-1.5 border border-gray-200 rounded-sm text-xs outline-none focus:border-emerald-600 transition-colors"
                     name="district" value={form.district || ''} onChange={handleChange} placeholder="District"
                   />
                 </div>
@@ -127,14 +127,14 @@ const CustomerAddresses = () => {
                 <div>
                   <label className="block text-[9px] font-black uppercase tracking-wider text-gray-400 mb-1">Province</label>
                   <input
-                    className="w-full px-3 py-1.5 border border-gray-200 rounded-sm text-xs outline-none focus:border-blue-600 transition-colors"
+                    className="w-full px-3 py-1.5 border border-gray-200 rounded-sm text-xs outline-none focus:border-emerald-600 transition-colors"
                     name="province" value={form.province || ''} onChange={handleChange} placeholder="Province"
                   />
                 </div>
                 <div>
                   <label className="block text-[9px] font-black uppercase tracking-wider text-gray-400 mb-1">Postal Code</label>
                   <input
-                    className="w-full px-3 py-1.5 border border-gray-200 rounded-sm text-xs outline-none focus:border-blue-600 transition-colors"
+                    className="w-full px-3 py-1.5 border border-gray-200 rounded-sm text-xs outline-none focus:border-emerald-600 transition-colors"
                     name="postalCode" value={form.postalCode || ''} onChange={handleChange} placeholder="44600"
                   />
                 </div>
@@ -144,7 +144,7 @@ const CustomerAddresses = () => {
                 <input
                   type="checkbox" name="isDefault"
                   checked={form.isDefault || false} onChange={handleChange}
-                  className="rounded-sm border-gray-300 text-blue-600 focus:ring-blue-500"
+                  className="rounded-sm border-gray-300 text-emerald-600 focus:ring-emerald-500"
                 />
                 Set as default billing/shipping address
               </label>
@@ -159,7 +159,7 @@ const CustomerAddresses = () => {
                 </button>
                 <button
                   type="submit"
-                  className="flex-2 bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-black uppercase tracking-wider py-2.5 px-5 rounded-sm transition-colors disabled:opacity-50"
+                  className="flex-2 bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-black uppercase tracking-wider py-2.5 px-5 rounded-sm transition-colors disabled:opacity-50"
                   disabled={saving}
                 >
                   {saving ? 'Saving…' : 'Save Address'}
@@ -183,16 +183,16 @@ const CustomerAddresses = () => {
               key={addr.id}
               className={`
                 relative bg-white border p-4 rounded-sm flex flex-col justify-between transition-all duration-200
-                ${addr.isDefault ? 'border-blue-600 shadow-sm' : 'border-gray-200 hover:border-gray-300'}
+                ${addr.isDefault ? 'border-emerald-600 shadow-sm' : 'border-gray-200 hover:border-gray-300'}
               `}
             >
               {addr.isDefault && (
-                <span className="absolute top-3 right-3 bg-blue-50 border border-blue-200 text-blue-600 text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-sm">
+                <span className="absolute top-3 right-3 bg-emerald-50 border border-emerald-200 text-emerald-600 text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-sm">
                   Default
                 </span>
               )}
               <div>
-                <div className="text-[10px] font-black uppercase tracking-wider text-blue-600 mb-2">
+                <div className="text-[10px] font-black uppercase tracking-wider text-emerald-600 mb-2">
                   {addr.label ? addr.label : 'Address'}
                 </div>
                 <div className="text-xs text-gray-800 leading-relaxed font-medium">

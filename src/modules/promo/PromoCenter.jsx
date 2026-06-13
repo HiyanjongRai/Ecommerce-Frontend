@@ -22,14 +22,14 @@ import {
 
 // ─── CONSTANTS & CONFIG ──────────────────────────────────────────────────────
 const ACCENT_PALETTE = [
-  '#16A34A', // Emerald
-  '#7C3AED', // Violet
-  '#DB2777', // Pink
-  '#2563EB', // Blue
-  '#D97706', // Amber
-  '#0891B2', // Cyan
-  '#EA580C', // Orange
-  '#DC2626', // Red
+  '#10B981', // Jhapcham Emerald
+  '#6366F1', // Royal Indigo
+  '#EC4899', // Rose Quartz
+  '#3B82F6', // Cobalt Blue
+  '#F59E0B', // Sunrise Amber
+  '#14B8A6', // Coral Teal
+  '#F97316', // Sunset Orange
+  '#F43F5E', // Vivid Rose
 ];
 
 // Helper to pad countdown digits
@@ -172,10 +172,10 @@ function CountdownBlocks({ dateString, accentColor = '#16A34A', large = false })
     );
   }
 
-  const blockClass = "flex flex-col items-center justify-center bg-black/40 border border-white/10 rounded-lg";
+  const blockClass = "flex flex-col items-center justify-center bg-white border border-gray-200 rounded-lg shadow-sm";
   const sizeClass = large ? "p-3 min-w-[56px]" : "p-1.5 min-w-[38px]";
-  const numClass = large ? "text-lg font-bold text-white font-mono" : "text-xs font-bold text-white font-mono";
-  const labelClass = large ? "text-[8px] text-gray-500 uppercase tracking-widest mt-0.5" : "text-[6px] text-gray-400 uppercase tracking-wider mt-0.5";
+  const numClass = large ? "text-lg font-bold text-slate-800 font-mono" : "text-xs font-bold text-slate-800 font-mono";
+  const labelClass = large ? "text-[8px] text-slate-400 uppercase tracking-widest mt-0.5" : "text-[6px] text-slate-500 uppercase tracking-wider mt-0.5";
 
   return (
     <div className="flex gap-1 items-center">
@@ -183,17 +183,17 @@ function CountdownBlocks({ dateString, accentColor = '#16A34A', large = false })
         <span className={numClass}>{pad(time.days)}</span>
         <span className={labelClass}>D</span>
       </div>
-      <span className="text-gray-600 font-bold text-xs">:</span>
+      <span className="text-gray-400 font-bold text-xs">:</span>
       <div className={`${blockClass} ${sizeClass}`}>
         <span className={numClass}>{pad(time.hrs)}</span>
         <span className={labelClass}>H</span>
       </div>
-      <span className="text-gray-600 font-bold text-xs">:</span>
+      <span className="text-gray-400 font-bold text-xs">:</span>
       <div className={`${blockClass} ${sizeClass}`}>
         <span className={numClass}>{pad(time.min)}</span>
         <span className={labelClass}>M</span>
       </div>
-      <span className="text-gray-600 font-bold text-xs">:</span>
+      <span className="text-gray-400 font-bold text-xs">:</span>
       <div className={`${blockClass} ${sizeClass}`}>
         <span className={numClass}>{pad(time.sec)}</span>
         <span className={labelClass}>S</span>
@@ -219,7 +219,7 @@ function CopyButton({ code, style = {} }) {
       onClick={handleCopy}
       style={{ ...style }}
       className={`px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 flex items-center justify-center gap-1.5 ${
-        copied ? 'bg-emerald-600 text-white' : 'bg-white/10 hover:bg-white/15 text-white border border-white/10'
+        copied ? 'bg-[#10B981] text-white' : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border border-gray-200'
       }`}
     >
       {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
@@ -231,17 +231,17 @@ function CopyButton({ code, style = {} }) {
 // ─── LOADER SKELETON CARD ─────────────────────────────────────────────────────
 function SkeletonCard() {
   return (
-    <div className="bg-[#111211] border border-white/5 rounded-2xl overflow-hidden h-64 animate-pulse flex flex-col justify-between">
-      <div className="h-16 bg-white/5 relative">
+    <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden h-64 animate-pulse flex flex-col justify-between shadow-sm">
+      <div className="h-16 bg-gray-100 relative">
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full animate-[shimmer_1.5s_infinite]" />
       </div>
       <div className="p-4 space-y-3 flex-1 flex flex-col justify-between">
         <div className="space-y-2">
-          <div className="h-4 bg-white/10 rounded w-2/3" />
-          <div className="h-3 bg-white/5 rounded w-full" />
-          <div className="h-3 bg-white/5 rounded w-5/6" />
+          <div className="h-4 bg-gray-200 rounded w-2/3" />
+          <div className="h-3 bg-gray-100 rounded w-full" />
+          <div className="h-3 bg-gray-100 rounded w-5/6" />
         </div>
-        <div className="h-8 bg-white/10 rounded-lg w-full" />
+        <div className="h-8 bg-gray-200 rounded-lg w-full" />
       </div>
     </div>
   );
@@ -250,10 +250,10 @@ function SkeletonCard() {
 // ─── EMPTY STATE & ERROR BANNER ──────────────────────────────────────────────
 function EmptyState({ icon, title, message }) {
   return (
-    <div className="text-center py-16 px-4 bg-[#111211]/40 border border-white/5 rounded-2xl max-w-md mx-auto">
+    <div className="text-center py-16 px-4 bg-gray-50 border border-gray-200 rounded-2xl max-w-md mx-auto shadow-sm">
       <div className="text-4xl mb-4">{icon || '🎟️'}</div>
-      <h3 className="text-sm font-bold text-white mb-2">{title || 'Nothing here'}</h3>
-      <p className="text-gray-400 text-xs leading-relaxed">{message || ''}</p>
+      <h3 className="text-sm font-bold text-slate-800 mb-2">{title || 'Nothing here'}</h3>
+      <p className="text-slate-500 text-xs leading-relaxed">{message || ''}</p>
     </div>
   );
 }
@@ -300,9 +300,9 @@ function PromoCard({ promo, onExplore }) {
   return (
     <div
       onClick={() => onExplore(promo)}
-      className="group bg-[#111211] border border-white/5 hover:border-emerald-500/40 rounded-2xl overflow-hidden cursor-pointer flex flex-col justify-between transition-all duration-300 hover:-translate-y-1"
+      className="group bg-white border border-gray-200 hover:border-[var(--accent-color)]/50 rounded-2xl overflow-hidden cursor-pointer flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 shadow-sm hover:shadow-md"
       style={{
-        boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
+        '--accent-color': promo.accentColor
       }}
     >
       {/* Top Banner overlay block */}
@@ -341,14 +341,14 @@ function PromoCard({ promo, onExplore }) {
           >
             {promo.category}
           </div>
-          <h4 className="text-xs font-bold text-white group-hover:text-emerald-400 transition-colors leading-tight line-clamp-1">{promo.title}</h4>
-          <p className="text-[11px] text-gray-400 leading-relaxed line-clamp-2">
+          <h4 className="text-xs font-bold text-slate-800 group-hover:text-[var(--accent-color)] transition-colors leading-tight line-clamp-1">{promo.title}</h4>
+          <p className="text-[11px] text-slate-500 leading-relaxed line-clamp-2">
             {promo.description}
           </p>
         </div>
 
         {/* Copy dashed stub */}
-        <div className="border border-dashed border-white/10 bg-black/30 rounded-xl p-2.5 flex items-center justify-between gap-3">
+        <div className="border border-dashed border-gray-250 bg-slate-50 rounded-xl p-2.5 flex items-center justify-between gap-3">
           <span 
             className="font-mono text-xs font-bold tracking-widest truncate"
             style={{ color: promo.accentColor }}
@@ -358,25 +358,26 @@ function PromoCard({ promo, onExplore }) {
           <button
             onClick={handleCopy}
             className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all duration-150 flex items-center gap-1 ${
-              copied ? 'bg-emerald-600 text-white' : 'bg-white/5 hover:bg-white/10 text-gray-300'
+              copied ? 'text-white' : 'bg-gray-100 hover:bg-[var(--accent-color)] hover:text-white text-slate-600'
             }`}
+            style={{ backgroundColor: copied ? '#10B981' : undefined, '--accent-color': promo.accentColor }}
           >
             {copied ? '✓ Copied' : 'Copy'}
           </button>
         </div>
 
         {/* Countdown / Meta */}
-        <div className="space-y-2 border-t border-white/5 pt-3">
+        <div className="space-y-2 border-t border-gray-100 pt-3">
           {countdownDate && (
             <div className="flex items-center justify-between gap-2">
-              <span className="text-[9px] text-gray-500 uppercase tracking-widest font-semibold">
+              <span className="text-[9px] text-slate-400 uppercase tracking-widest font-semibold">
                 {isUpcoming ? 'Starts in' : 'Ends in'}
               </span>
               <CountdownBlocks dateString={countdownDate} accentColor={promo.accentColor} />
             </div>
           )}
 
-          <div className="flex flex-wrap items-center gap-2 text-[10px] text-gray-500">
+          <div className="flex flex-wrap items-center gap-2 text-[10px] text-slate-500">
             {promo.minOrder > 0 && <span>Min: Rs. {promo.minOrder.toLocaleString()}</span>}
             {promo.usageLimit > 0 && (
               <>
@@ -425,13 +426,18 @@ function PromoDetailPage({ promo, products, onBack }) {
   ].filter(Boolean);
 
   return (
-    <div className="bg-[#060706] min-h-screen text-gray-200 font-sans pb-16">
+    <div 
+      className="bg-[#F9FAFB] min-h-screen text-slate-700 font-sans pb-16"
+      style={{
+        background: `radial-gradient(circle at top, ${promo.accentColor}08 0%, #F9FAFB 100%)`
+      }}
+    >
       
       {/* Hero Header */}
       <div 
-        className="relative overflow-hidden py-16 px-6 border-b border-white/5"
+        className="relative overflow-hidden py-16 px-6 border-b border-gray-200"
         style={{
-          background: `linear-gradient(135deg, ${promo.accentColor}44 0%, ${promo.accentColor}11 50%, #060706 100%)`
+          background: `linear-gradient(135deg, ${promo.accentColor}0e 0%, ${promo.accentColor}03 50%, #F9FAFB 100%)`
         }}
       >
         {promo.bannerImage && (
@@ -445,7 +451,8 @@ function PromoDetailPage({ promo, products, onBack }) {
         <div className="max-w-[1200px] mx-auto">
           <button
             onClick={onBack}
-            className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-gray-400 hover:text-white mb-8 bg-white/5 border border-white/10 hover:border-white/20 rounded-full px-4 py-2 transition-all duration-200"
+            className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-gray-500 hover:text-slate-800 mb-8 bg-white border border-gray-200 hover:border-[var(--accent-color)] rounded-full px-4 py-2 transition-all duration-200 shadow-sm"
+            style={{ '--accent-color': promo.accentColor }}
           >
             <ArrowLeft className="w-3.5 h-3.5" /> Back to Deals
           </button>
@@ -455,28 +462,28 @@ function PromoDetailPage({ promo, products, onBack }) {
               <span 
                 className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider text-white mb-4"
                 style={{
-                  background: isUpcoming ? '#EA580C' : '#16A34A'
+                  background: isUpcoming ? '#F97316' : '#10B981'
                 }}
               >
                 <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
                 {isUpcoming ? '⏳ Upcoming Deal' : '🟢 Active Deal'}
               </span>
 
-              <h1 className="text-3xl sm:text-4xl font-extrabold text-white leading-tight mb-3">
+              <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 leading-tight mb-3">
                 {promo.title}
               </h1>
 
-              <p className="text-gray-400 text-sm leading-relaxed mb-6 max-w-xl">
+              <p className="text-slate-600 text-sm leading-relaxed mb-6 max-w-xl">
                 {promo.description}
               </p>
 
-              {/* Glassmorphic ticket stub */}
+              {/* Ticket stub */}
               <div 
-                className="bg-black/55 backdrop-blur-md rounded-2xl p-5 flex flex-wrap items-center justify-between gap-4 border max-w-md"
-                style={{ borderColor: `${promo.accentColor}55` }}
+                className="bg-white rounded-2xl p-5 flex flex-wrap items-center justify-between gap-4 border border-gray-200 shadow-sm max-w-md"
+                style={{ borderLeftColor: promo.accentColor, borderLeftWidth: '4px' }}
               >
                 <div>
-                  <div className="text-[9px] uppercase tracking-wider text-gray-500 font-bold mb-1">Promo Coupon Code</div>
+                  <div className="text-[9px] uppercase tracking-wider text-slate-400 font-bold mb-1">Promo Coupon Code</div>
                   <span 
                     className="font-mono text-xl font-black tracking-widest"
                     style={{ color: promo.accentColor }}
@@ -496,7 +503,7 @@ function PromoDetailPage({ promo, products, onBack }) {
                         }
                       } catch (_) {}
                     }}
-                    className="p-2.5 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-white"
+                    className="p-2.5 rounded-xl border border-gray-200 bg-white hover:bg-slate-50 text-slate-700 shadow-sm"
                     title="Share Promo Code"
                   >
                     <Share2 className="w-4 h-4" />
@@ -509,17 +516,17 @@ function PromoDetailPage({ promo, products, onBack }) {
             <div className="flex flex-col gap-4 items-start md:items-end">
               {(promo.startDate || promo.endDate) && (
                 <div className="space-y-1.5 md:text-right">
-                  <div className="text-[10px] uppercase text-gray-500 tracking-wider">
+                  <div className="text-[10px] uppercase text-slate-500 tracking-wider">
                     {isUpcoming ? 'Starts in:' : 'Offer ends in:'}
                   </div>
                   <CountdownBlocks dateString={isUpcoming ? promo.startDate : promo.endDate} accentColor={promo.accentColor} large={true} />
                 </div>
               )}
-              <div className="text-3xl font-black text-white">
+              <div className="text-3xl font-black text-slate-900">
                 {discountLabel}
               </div>
               {promo.minOrder > 0 && (
-                <div className="text-xs text-gray-500">
+                <div className="text-xs text-slate-500">
                   Minimum Order Value: Rs. {promo.minOrder.toLocaleString()}
                 </div>
               )}
@@ -535,19 +542,26 @@ function PromoDetailPage({ promo, products, onBack }) {
           <div className="lg:col-span-2 space-y-8">
             
             {/* Steps guidelines */}
-            <div className="bg-[#111211] border border-white/5 rounded-2xl p-6 relative overflow-hidden">
-              <h3 className="text-base font-bold text-white mb-6 flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-emerald-500" /> How to Redeem this Code
+            <div className="bg-white border border-gray-200 rounded-2xl p-6 relative overflow-hidden shadow-sm">
+              <h3 className="text-base font-bold text-slate-800 mb-6 flex items-center gap-2">
+                <Sparkles className="w-4 h-4" style={{ color: promo.accentColor }} /> How to Redeem this Code
               </h3>
               <div className="grid sm:grid-cols-2 gap-6">
                 {steps.map((step, idx) => (
                   <div key={step.title} className="flex gap-3">
-                    <div className="w-9 h-9 rounded-xl border border-emerald-500/20 bg-emerald-500/10 text-emerald-500 flex items-center justify-center text-sm font-bold flex-shrink-0">
+                    <div 
+                      className="w-9 h-9 rounded-xl border flex items-center justify-center text-sm font-bold flex-shrink-0"
+                      style={{
+                        borderColor: `${promo.accentColor}44`,
+                        backgroundColor: `${promo.accentColor}15`,
+                        color: promo.accentColor
+                      }}
+                    >
                       {step.emoji}
                     </div>
                     <div>
-                      <h4 className="text-xs font-bold text-white mb-0.5">{idx + 1}. {step.title}</h4>
-                      <p className="text-gray-400 text-[11px] leading-relaxed">{step.desc}</p>
+                      <h4 className="text-xs font-bold text-slate-800 mb-0.5">{idx + 1}. {step.title}</h4>
+                      <p className="text-slate-500 text-[11px] leading-relaxed">{step.desc}</p>
                     </div>
                   </div>
                 ))}
@@ -557,10 +571,10 @@ function PromoDetailPage({ promo, products, onBack }) {
             {/* Eligible Products */}
             {products.length > 0 && (
               <div>
-                <h3 className="text-base font-bold text-white mb-6 flex items-center gap-2">
-                  <ShoppingBag className="w-4 h-4 text-emerald-500" /> Products Eligible for Coupons
+                <h3 className="text-base font-bold text-slate-800 mb-6 flex items-center gap-2">
+                  <ShoppingBag className="w-4 h-4" style={{ color: promo.accentColor }} /> Products Eligible for Coupons
                 </h3>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
                   {products.slice(0, 8).map((p) => (
                     <ProductCard key={p.id} product={p} isSmall />
                   ))}
@@ -573,16 +587,16 @@ function PromoDetailPage({ promo, products, onBack }) {
           <div className="space-y-6">
             
             {/* Parameters Table */}
-            <div className="bg-[#111211] border border-white/5 rounded-2xl p-5">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-4 flex items-center gap-1.5">
+            <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-4 flex items-center gap-1.5">
                 <Info className="w-3.5 h-3.5" /> Coupon Details
               </h4>
               <table className="w-full text-xs">
                 <tbody>
                   {infoRows.map(([lbl, val]) => (
-                    <tr key={lbl} className="border-b border-white/5 last:border-0">
-                      <td className="py-3 text-gray-500 font-medium">{lbl}</td>
-                      <td className="py-3 text-right text-white font-semibold">{val}</td>
+                    <tr key={lbl} className="border-b border-gray-100 last:border-0">
+                      <td className="py-3 text-slate-500 font-medium">{lbl}</td>
+                      <td className="py-3 text-right text-slate-800 font-semibold">{val}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -590,19 +604,19 @@ function PromoDetailPage({ promo, products, onBack }) {
             </div>
 
             {/* Savings Calculator Slider */}
-            <div className="bg-[#111211] border border-white/5 rounded-2xl p-5">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1.5 flex items-center gap-1.5">
+            <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5 flex items-center gap-1.5">
                 <Calculator className="w-3.5 h-3.5" /> Coupon Estimator
               </h4>
-              <p className="text-[10px] text-gray-500 mb-4 leading-relaxed">
+              <p className="text-[10px] text-slate-500 mb-4 leading-relaxed">
                 Drag the slider to estimate your total checkout savings with this coupon.
               </p>
 
               <div className="space-y-4">
                 <div>
                   <div className="flex justify-between items-baseline mb-2">
-                    <span className="text-[10px] text-gray-400">Order Subtotal</span>
-                    <span className="text-sm font-bold text-white">Rs. {orderAmount.toLocaleString()}</span>
+                    <span className="text-[10px] text-slate-500">Order Subtotal</span>
+                    <span className="text-sm font-bold text-slate-800">Rs. {orderAmount.toLocaleString()}</span>
                   </div>
                   <input 
                     type="range"
@@ -611,22 +625,23 @@ function PromoDetailPage({ promo, products, onBack }) {
                     step={100}
                     value={orderAmount}
                     onChange={(e) => setOrderAmount(Number(e.target.value))}
-                    className="w-full accent-emerald-500 cursor-pointer h-1 bg-white/10 rounded-lg outline-none"
+                    className="w-full cursor-pointer h-1 bg-gray-200 rounded-lg outline-none"
+                    style={{ accentColor: promo.accentColor }}
                   />
-                  <div className="flex justify-between text-[9px] text-gray-600 mt-1">
+                  <div className="flex justify-between text-[9px] text-slate-400 mt-1">
                     <span>Rs. 100</span>
                     <span>Rs. 15,000</span>
                   </div>
                 </div>
 
-                <div className="border-t border-white/5 pt-4 space-y-2.5">
+                <div className="border-t border-gray-100 pt-4 space-y-2.5">
                   <div className="flex justify-between items-center text-xs">
-                    <span className="text-gray-400">Savings ({discountLabel})</span>
-                    <span className="text-emerald-500 font-bold">- Rs. {savings.toLocaleString()}</span>
+                    <span className="text-slate-500">Savings ({discountLabel})</span>
+                    <span className="font-bold" style={{ color: promo.accentColor }}>- Rs. {savings.toLocaleString()}</span>
                   </div>
-                  <div className="flex justify-between items-center text-sm border-t border-dashed border-white/10 pt-2.5">
-                    <span className="text-white font-bold">Estimated Price</span>
-                    <span className="text-white font-extrabold text-base" style={{ color: promo.accentColor }}>
+                  <div className="flex justify-between items-center text-sm border-t border-dashed border-gray-200 pt-2.5">
+                    <span className="text-slate-800 font-bold">Estimated Price</span>
+                    <span className="text-slate-800 font-extrabold text-base" style={{ color: promo.accentColor }}>
                       Rs. {finalPrice.toLocaleString()}
                     </span>
                   </div>
@@ -635,14 +650,14 @@ function PromoDetailPage({ promo, products, onBack }) {
             </div>
 
             {/* Terms List */}
-            <div className="bg-[#111211] border border-white/5 rounded-2xl p-5">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-4 flex items-center gap-1.5">
+            <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-4 flex items-center gap-1.5">
                 <AlertTriangle className="w-3.5 h-3.5 text-amber-500/85" /> Terms & Conditions
               </h4>
-              <ul className="space-y-2.5 text-[11px] text-gray-400">
+              <ul className="space-y-2.5 text-[11px] text-slate-600">
                 {promo.terms.map((term, idx) => (
                   <li key={idx} className="flex gap-2 items-start leading-relaxed">
-                    <span className="text-emerald-500 flex-shrink-0 font-bold text-xs">✓</span>
+                    <span className="flex-shrink-0 font-bold text-xs" style={{ color: promo.accentColor }}>✓</span>
                     <span>{term}</span>
                   </li>
                 ))}
@@ -663,7 +678,7 @@ export default function PromoCenter() {
 
   useLayoutEffect(() => {
     const originalBg = document.body.style.backgroundColor;
-    document.body.style.backgroundColor = '#060706';
+    document.body.style.backgroundColor = '#F9FAFB';
     window.scrollTo(0, 0);
     return () => { document.body.style.backgroundColor = originalBg; };
   }, [location.pathname]);
@@ -789,7 +804,12 @@ export default function PromoCenter() {
   };
 
   return (
-    <div className="bg-[#060706] min-h-screen text-gray-200 font-sans pb-16">
+    <div 
+      className="bg-[#F9FAFB] min-h-screen text-slate-800 font-sans pb-16"
+      style={{
+        background: 'radial-gradient(circle at top, rgba(16, 185, 129, 0.04) 0%, #F9FAFB 100%)'
+      }}
+    >
       
       {/* Detail View */}
       {view === 'detail' && selectedPromo ? (
@@ -797,16 +817,16 @@ export default function PromoCenter() {
       ) : (
         <>
           {/* Hero Header */}
-          <section className="relative overflow-hidden py-14 px-6 border-b border-white/5 bg-gradient-to-b from-[#16A34A]/5 to-transparent">
+          <section className="relative overflow-hidden py-14 px-6 border-b border-gray-200 bg-gradient-to-b from-[#10B981]/5 to-transparent">
             <div className="max-w-[1200px] mx-auto grid md:grid-cols-2 gap-8 items-center">
               <div className="space-y-4">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-[10px] font-bold uppercase tracking-wider">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#10B981]/10 border border-[#10B981]/20 text-[#10B981] text-[10px] font-bold uppercase tracking-wider">
                   <Sparkles className="w-3.5 h-3.5" /> Jhapcham Deals Hub
                 </div>
-                <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-                  Exclusive <span className="text-emerald-500">Promo Codes</span> & Coupons
+                <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+                  Exclusive <span className="text-[#10B981]">Promo Codes</span> & Coupons
                 </h1>
-                <p className="text-gray-400 text-xs sm:text-sm max-w-md leading-relaxed">
+                <p className="text-slate-600 text-xs sm:text-sm max-w-md leading-relaxed">
                   Discover handpicked coupon codes and checkout deals from our sellers. Copy the coupon code, apply it during checkout, and receive instant savings!
                 </p>
               </div>
@@ -815,14 +835,14 @@ export default function PromoCenter() {
               {!loading && (
                 <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-2 xl:grid-cols-4 gap-3">
                   {[
-                    { label: 'Active Deals', value: activeCount, color: '#16A34A' },
-                    { label: 'Upcoming', value: upcomingCount, color: '#EA580C' },
-                    { label: 'Max Discount', value: maxDiscount > 0 ? `${maxDiscount}%` : '—', color: '#DC2626' },
-                    { label: 'Total Promos', value: promos.length, color: '#6B7280' },
+                    { label: 'Active Deals', value: activeCount, color: '#10B981' },
+                    { label: 'Upcoming', value: upcomingCount, color: '#F97316' },
+                    { label: 'Max Discount', value: maxDiscount > 0 ? `${maxDiscount}%` : '—', color: '#F43F5E' },
+                    { label: 'Total Promos', value: promos.length, color: '#94A3B8' },
                   ].map(({ label, value, color }) => (
-                    <div key={label} className="bg-[#111211] border border-white/5 p-4 rounded-2xl">
+                    <div key={label} className="bg-white border border-gray-200 p-4 rounded-2xl shadow-sm">
                       <div className="text-lg font-black" style={{ color }}>{value}</div>
-                      <div className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider mt-1">{label}</div>
+                      <div className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider mt-1">{label}</div>
                     </div>
                   ))}
                 </div>
@@ -831,7 +851,7 @@ export default function PromoCenter() {
           </section>
 
           {/* Sticky Controls bar */}
-          <div className="bg-[#0f0f0f] border-b border-white/5 py-4 px-6 sticky top-0 z-30 shadow-md">
+          <div className="bg-white/80 backdrop-blur-md border-b border-gray-200 py-4 px-6 sticky top-0 z-30 shadow-sm">
             <div className="max-w-[1200px] mx-auto flex flex-col md:flex-row gap-4 items-center justify-between">
               
               {/* Search input */}
@@ -841,24 +861,24 @@ export default function PromoCenter() {
                   placeholder="Search promo codes..." 
                   value={search}
                   onChange={e => setSearch(e.target.value)}
-                  className="w-full bg-black/40 border border-white/10 focus:border-emerald-500 rounded-xl py-2 pl-9 pr-4 text-xs text-white placeholder-gray-500 outline-none transition-colors"
+                  className="w-full bg-white border border-gray-300 focus:border-[#10B981] focus:ring-1 focus:ring-[#10B981] rounded-xl py-2 pl-9 pr-4 text-xs text-slate-800 placeholder-gray-400 outline-none transition-all"
                 />
-                <Search className="w-4 h-4 text-gray-500 absolute left-3 top-2.5" />
+                <Search className="w-4 h-4 text-gray-400 absolute left-3 top-2.5" />
               </div>
 
               {/* Filter Row Controls */}
               <div className="flex flex-wrap items-center gap-3 w-full md:w-auto justify-end">
                 
                 {/* Status tabs */}
-                <div className="flex items-center gap-1 bg-black/35 border border-white/5 p-1 rounded-xl">
+                <div className="flex items-center gap-1 bg-gray-100 border border-gray-200 p-1 rounded-xl">
                   {['All', 'Active', 'Upcoming'].map(s => (
                     <button
                       key={s}
                       onClick={() => setStatusFilter(s)}
                       className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-150 ${
                         statusFilter === s 
-                          ? 'bg-emerald-500 text-white shadow-lg' 
-                          : 'text-gray-400 hover:text-white'
+                          ? 'bg-[#10B981] text-white shadow' 
+                          : 'text-slate-500 hover:text-slate-800'
                       }`}
                     >
                       {s}
@@ -870,7 +890,7 @@ export default function PromoCenter() {
                 <select
                   value={sortBy}
                   onChange={e => setSortBy(e.target.value)}
-                  className="bg-black/35 border border-white/10 focus:border-emerald-500 rounded-xl px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-gray-300 outline-none cursor-pointer"
+                  className="bg-white border border-gray-300 focus:border-[#10B981] rounded-xl px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-700 outline-none cursor-pointer shadow-sm"
                 >
                   <option value="Newest">Newest</option>
                   <option value="Highest Discount">Highest Discount</option>
@@ -885,8 +905,8 @@ export default function PromoCenter() {
                       onClick={() => setDiscountPill(min)}
                       className={`px-2 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-wider transition-all duration-150 ${
                         discountPill === min 
-                          ? 'bg-emerald-600 text-white' 
-                          : 'bg-white/5 hover:bg-white/10 text-gray-400'
+                          ? 'bg-[#10B981] text-white shadow' 
+                          : 'bg-gray-100 hover:bg-gray-200 text-slate-600'
                       }`}
                     >
                       {label}
@@ -904,11 +924,11 @@ export default function PromoCenter() {
               
               {/* Sidebar Filters */}
               {allCategories.length > 0 && (
-                <aside className="bg-[#111211] border border-white/5 p-5 rounded-2xl space-y-6 hidden sm:block">
+                <aside className="bg-white border border-gray-200 p-5 rounded-2xl space-y-6 hidden sm:block shadow-sm">
                   
                   {/* Category selections */}
                   <div className="space-y-3">
-                    <h4 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest flex items-center gap-1">
+                    <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1">
                       <Tag className="w-3 h-3" /> Categories
                     </h4>
                     <div className="space-y-1.5">
@@ -919,13 +939,13 @@ export default function PromoCenter() {
                             key={cat}
                             onClick={() => toggleCategory(cat)}
                             className={`w-full flex justify-between items-center px-2.5 py-1.5 rounded-xl text-left text-xs transition-all ${
-                              active ? 'bg-emerald-500/10 text-emerald-400 font-bold' : 'text-gray-400 hover:text-white'
+                              active ? 'bg-[#10B981]/10 text-[#10B981] font-bold' : 'text-slate-600 hover:text-slate-900 hover:bg-gray-50'
                             }`}
                           >
                             <span>{cat}</span>
                             <span 
                               className={`text-[9px] font-bold rounded-full px-2 py-0.5 ${
-                                active ? 'bg-emerald-500 text-white' : 'bg-white/5 text-gray-500'
+                                active ? 'bg-[#10B981] text-white' : 'bg-gray-100 text-slate-500'
                               }`}
                             >
                               {catCounts[cat]}
@@ -937,7 +957,7 @@ export default function PromoCenter() {
                     {selectedCategories.length > 0 && (
                       <button
                         onClick={() => setSelectedCategories([])}
-                        className="text-[9px] font-bold uppercase text-red-500 hover:text-red-400"
+                        className="text-[9px] font-bold uppercase text-red-600 hover:text-red-500"
                       >
                         ✕ Clear Categories
                       </button>
@@ -945,20 +965,20 @@ export default function PromoCenter() {
                   </div>
 
                   {/* Min Discount range */}
-                  <div className="space-y-3 border-t border-white/5 pt-4">
-                    <h4 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest flex items-center gap-1">
+                  <div className="space-y-3 border-t border-gray-200 pt-4">
+                    <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1">
                       <Percent className="w-3 h-3" /> Min Discount
                     </h4>
                     <div className="space-y-2 text-xs">
                       {[0, 10, 20, 30, 50].map(min => (
-                        <label key={min} className="flex items-center gap-2 cursor-pointer text-gray-400 hover:text-white">
+                        <label key={min} className="flex items-center gap-2 cursor-pointer text-slate-600 hover:text-slate-950">
                           <input
                             type="radio" 
                             name="sidebarDiscount" 
                             value={min}
                             checked={sidebarDiscount === min}
                             onChange={() => setSidebarDiscount(min)}
-                            className="accent-emerald-500"
+                            className="accent-[#10B981]"
                           />
                           <span>{min === 0 ? 'Any' : `${min}%+`}</span>
                         </label>
@@ -1004,7 +1024,7 @@ export default function PromoCenter() {
                 {/* Grid Lists */}
                 {!loading && !error && filtered.length > 0 && (
                   <div className="space-y-3">
-                    <div className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">
+                    <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
                       Showing {filtered.length} coupon{filtered.length !== 1 ? 's' : ''}
                     </div>
                     <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">

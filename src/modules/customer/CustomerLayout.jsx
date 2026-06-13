@@ -304,11 +304,99 @@ const CustomerLayout = () => {
         .animate-slide-in {
           animation: slideIn 0.25s ease-out forwards;
         }
+
+        /* ── Compact Sizing Overrides for all Customer Pages ── */
+        .customer-page {
+          font-size: 0.8rem !important;
+        }
+        .customer-page .text-3xl { font-size: 1.25rem !important; }
+        .customer-page .text-2xl { font-size: 1.15rem !important; }
+        .customer-page .text-xl { font-size: 1.05rem !important; }
+        .customer-page .text-lg { font-size: 0.95rem !important; }
+        .customer-page .text-base { font-size: 0.85rem !important; }
+        .customer-page .text-sm { font-size: 0.75rem !important; }
+        .customer-page .text-xs { font-size: 0.7rem !important; }
+        .customer-page .text-\[10px\] { font-size: 0.65rem !important; }
+
+        .customer-page .p-8 { padding: 1.25rem !important; }
+        .customer-page .p-6 { padding: 1rem !important; }
+        .customer-page .p-5 { padding: 0.875rem !important; }
+        .customer-page .p-4 { padding: 0.75rem !important; }
+        .customer-page .p-3 { padding: 0.5rem !important; }
+        .customer-page .p-2.5 { padding: 0.4rem !important; }
+        .customer-page .p-2 { padding: 0.35rem !important; }
+        .customer-page .p-1.5 { padding: 0.25rem !important; }
+
+        .customer-page .py-12 { padding-top: 1.5rem !important; padding-bottom: 1.5rem !important; }
+        .customer-page .py-10 { padding-top: 1.25rem !important; padding-bottom: 1.25rem !important; }
+        .customer-page .py-8 { padding-top: 1rem !important; padding-bottom: 1rem !important; }
+        .customer-page .py-6 { padding-top: 0.75rem !important; padding-bottom: 0.75rem !important; }
+        .customer-page .py-5 { padding-top: 0.625rem !important; padding-bottom: 0.625rem !important; }
+        .customer-page .py-4 { padding-top: 0.5rem !important; padding-bottom: 0.5rem !important; }
+        .customer-page .py-3 { padding-top: 0.375rem !important; padding-bottom: 0.375rem !important; }
+        .customer-page .py-2.5 { padding-top: 0.3rem !important; padding-bottom: 0.3rem !important; }
+        .customer-page .py-2 { padding-top: 0.25rem !important; padding-bottom: 0.25rem !important; }
+        .customer-page .py-1.5 { padding-top: 0.175rem !important; padding-bottom: 0.175rem !important; }
+
+        .customer-page .px-8 { padding-left: 1.25rem !important; padding-right: 1.25rem !important; }
+        .customer-page .px-6 { padding-left: 1rem !important; padding-right: 1rem !important; }
+        .customer-page .px-5 { padding-left: 0.875rem !important; padding-right: 0.875rem !important; }
+        .customer-page .px-4 { padding-left: 0.625rem !important; padding-right: 0.625rem !important; }
+        .customer-page .px-3 { padding-left: 0.5rem !important; padding-right: 0.5rem !important; }
+        .customer-page .px-2.5 { padding-left: 0.375rem !important; padding-right: 0.375rem !important; }
+        .customer-page .px-2 { padding-left: 0.25rem !important; padding-right: 0.25rem !important; }
+
+        .customer-page .gap-8 { gap: 1.25rem !important; }
+        .customer-page .gap-6 { gap: 1rem !important; }
+        .customer-page .gap-5 { gap: 0.875rem !important; }
+        .customer-page .gap-4 { gap: 0.75rem !important; }
+        .customer-page .gap-3 { gap: 0.5rem !important; }
+        .customer-page .gap-2 { gap: 0.35rem !important; }
+
+        .customer-page .mb-8 { margin-bottom: 1.25rem !important; }
+        .customer-page .mb-6 { margin-bottom: 1rem !important; }
+        .customer-page .mb-5 { margin-bottom: 0.875rem !important; }
+        .customer-page .mb-4 { margin-bottom: 0.625rem !important; }
+        .customer-page .mb-3 { margin-bottom: 0.5rem !important; }
+        .customer-page .mb-2 { margin-bottom: 0.35rem !important; }
+        .customer-page .mb-1.5 { margin-bottom: 0.25rem !important; }
+
+        .customer-page .mt-8 { margin-top: 1.25rem !important; }
+        .customer-page .mt-6 { margin-top: 1rem !important; }
+        .customer-page .mt-5 { margin-top: 0.875rem !important; }
+        .customer-page .mt-4 { margin-top: 0.625rem !important; }
+        .customer-page .mt-3 { margin-top: 0.5rem !important; }
+        .customer-page .mt-2 { margin-top: 0.35rem !important; }
+
+        .customer-page th, .customer-page td {
+          padding: 0.4rem 0.5rem !important;
+        }
+
+        .customer-page input, .customer-page select, .customer-page textarea {
+          padding-top: 0.35rem !important;
+          padding-bottom: 0.35rem !important;
+          font-size: 0.75rem !important;
+        }
+
+        .customer-page button {
+          padding-top: 0.35rem !important;
+          padding-bottom: 0.35rem !important;
+          font-size: 0.75rem !important;
+        }
+
+        .customer-page .w-16 { width: 3rem !important; }
+        .customer-page .h-16 { height: 3rem !important; }
+        .customer-page .w-12 { width: 2.25rem !important; }
+        .customer-page .h-12 { height: 2.25rem !important; }
+        .customer-page .w-10 { width: 1.75rem !important; }
+        .customer-page .h-10 { height: 1.75rem !important; }
+        .customer-page .w-8 { width: 1.5rem !important; }
+        .customer-page .h-8 { height: 1.5rem !important; }
       `}</style>
       {/* Breadcrumb Banner */}
       <div className={`${darkMode ? 'theme-dark' : ''} bg-white border-b border-gray-100`}>
-        <div className="max-w-[1440px] mx-auto px-6 py-2.5">
-          <nav className="flex items-center gap-2 text-xs text-gray-400 mb-1 uppercase tracking-wider font-semibold">
+        <div className="max-w-[1440px] mx-auto px-6 py-1.5">
+          <nav className="flex items-center gap-2 text-xs text-gray-400 mb-0.5 uppercase tracking-wider font-semibold">
             <Link to="/" className="hover:text-emerald-600 transition-colors">Home</Link>
             <span>›</span>
             <span className="hover:text-emerald-600 cursor-pointer transition-colors">Shop</span>
@@ -317,7 +405,7 @@ const CustomerLayout = () => {
           </nav>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-black text-gray-800 tracking-tight">My Account</h1>
+              <h1 className="text-xl font-black text-gray-800 tracking-tight">My Account</h1>
               <NotificationButton
                 count={unreadNotifs}
                 onClick={() => navigate('/customer/notifications')}
@@ -329,10 +417,10 @@ const CustomerLayout = () => {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-[1440px] mx-auto px-6 py-4">
-        <div className="flex gap-8 items-start">
+      <div className="max-w-[1440px] mx-auto px-6 py-2.5">
+        <div className="flex gap-4 items-start">
           {/* Sidebar */}
-          <aside className="w-64 flex-shrink-0">
+          <aside className="w-52 flex-shrink-0">
             <CustomerSidebar 
               currentPath={location.pathname} 
               darkMode={darkMode}

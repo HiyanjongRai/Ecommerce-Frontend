@@ -10,9 +10,9 @@ import {
 
 /* ─── Status metadata ────────────────────────────────────────────── */
 const STATUS_META = {
-  REQUESTED:               { icon: Clock,         label: 'Submitted',          badge: 'bg-blue-100 text-blue-800 border-blue-300',       accent: 'text-blue-700' },
-  VIEWED:                  { icon: Clock,         label: 'Viewed by Seller',   badge: 'bg-blue-100 text-blue-800 border-blue-300',       accent: 'text-blue-700' },
-  UNDER_REVIEW:            { icon: ShieldCheck,   label: 'Under Review',       badge: 'bg-blue-100 text-blue-800 border-blue-300',       accent: 'text-blue-700' },
+  REQUESTED:               { icon: Clock,         label: 'Submitted',          badge: 'bg-emerald-50 text-emerald-800 border-emerald-200',       accent: 'text-emerald-700' },
+  VIEWED:                  { icon: Clock,         label: 'Viewed by Seller',   badge: 'bg-emerald-50 text-emerald-800 border-emerald-200',       accent: 'text-emerald-700' },
+  UNDER_REVIEW:            { icon: ShieldCheck,   label: 'Under Review',       badge: 'bg-emerald-50 text-emerald-800 border-emerald-200',       accent: 'text-emerald-700' },
   WAITING_FOR_CUSTOMER:    { icon: AlertTriangle, label: 'Action Required',    badge: 'bg-amber-100 text-amber-800 border-amber-300',    accent: 'text-amber-700' },
   WAITING_FOR_RETURN:      { icon: Package,       label: 'Return Required',    badge: 'bg-amber-100 text-amber-800 border-amber-300',    accent: 'text-amber-700' },
   RETURN_IN_TRANSIT:       { icon: Clock,         label: 'Return Shipped',     badge: 'bg-sky-100 text-sky-800 border-sky-300',          accent: 'text-sky-700' },
@@ -23,7 +23,7 @@ const STATUS_META = {
   PROCESSING_REFUND:       { icon: ShieldCheck,   label: 'Processing Refund',  badge: 'bg-emerald-100 text-emerald-800 border-emerald-300', accent: 'text-emerald-700' },
   GATEWAY_PENDING:         { icon: Clock,         label: 'Payment Processing', badge: 'bg-emerald-100 text-emerald-800 border-emerald-300', accent: 'text-emerald-700' },
   WEBHOOK_RECEIVED:        { icon: CheckCircle,   label: 'Payment Confirmed',  badge: 'bg-emerald-100 text-emerald-800 border-emerald-300', accent: 'text-emerald-700' },
-  PENDING_ADMIN_VERIFICATION: { icon: Clock,      label: 'Pending Verification', badge: 'bg-blue-100 text-blue-800 border-blue-300',    accent: 'text-blue-700' },
+  PENDING_ADMIN_VERIFICATION: { icon: Clock,      label: 'Pending Verification', badge: 'bg-emerald-50 text-emerald-800 border-emerald-200',    accent: 'text-emerald-700' },
   PARTIALLY_REFUNDED:      { icon: CheckCircle,   label: 'Partially Refunded', badge: 'bg-emerald-100 text-emerald-800 border-emerald-300', accent: 'text-emerald-700' },
   REFUNDED:                { icon: CheckCircle,   label: 'Refunded ✓',         badge: 'bg-emerald-100 text-emerald-800 border-emerald-300', accent: 'text-emerald-700' },
   COMPLETED:               { icon: CheckCircle,   label: 'Completed',          badge: 'bg-emerald-100 text-emerald-800 border-emerald-300', accent: 'text-emerald-700' },
@@ -159,7 +159,7 @@ function RefundStepper({ status }) {
                   : done
                     ? 'border-emerald-500 bg-emerald-500'
                     : current
-                      ? 'border-blue-500 bg-blue-500 shadow-md shadow-blue-200'
+                      ? 'border-emerald-500 bg-emerald-500 shadow-md shadow-emerald-200'
                       : 'border-gray-200 bg-gray-50'
               }`}>
                 {isFail && i === activeIdx ? (
@@ -176,7 +176,7 @@ function RefundStepper({ status }) {
               <span className={`text-[10px] font-bold whitespace-nowrap ${
                 isFail && i === activeIdx ? 'text-red-600'
                   : done ? 'text-emerald-600'
-                  : current ? 'text-blue-600'
+                  : current ? 'text-emerald-600'
                   : 'text-gray-400'
               }`}>
                 {isFail && i === activeIdx ? getStatusMeta(status).label : step.label}
@@ -377,7 +377,7 @@ export default function CustomerRefunds() {
       {/* Stats Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
         {[
-          { label: 'Active',        value: stats.active,   icon: Clock,        bg: 'bg-blue-50',    border: 'border-blue-200',   num: 'text-blue-700'  },
+          { label: 'Active',        value: stats.active,   icon: Clock,        bg: 'bg-emerald-50',    border: 'border-emerald-200',   num: 'text-emerald-700'  },
           { label: 'Action Needed', value: stats.needsAct, icon: Zap,          bg: 'bg-amber-50',   border: 'border-amber-200',  num: 'text-amber-700' },
           { label: 'Completed',     value: stats.done,     icon: CheckCircle,  bg: 'bg-emerald-50', border: 'border-emerald-200',num: 'text-emerald-700' },
           { label: 'Total Claimed', value: money(stats.total), icon: FileText, bg: 'bg-gray-50',    border: 'border-gray-200',   num: 'text-gray-700'  },
@@ -549,7 +549,7 @@ export default function CustomerRefunds() {
             </div>
           )}
           {(refund.adminComment || refund.providerReference) && (
-            <div className="rounded-xl border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900">
+            <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900">
               {refund.adminComment && <p><span className="font-bold">Admin note:</span> {refund.adminComment}</p>}
               {refund.providerReference && (
                 <p className="mt-1 font-mono text-xs font-black">Ref: {refund.providerReference}</p>

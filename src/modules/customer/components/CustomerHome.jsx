@@ -5,37 +5,36 @@ import { getUserOrdersSimple, getLoyaltyPoints } from '../../../shared/api/custo
 
 /* ── Icon Components ─────────────────────────────────────────── */
 const IconOrders = () => (
-  <svg className="w-7 h-7 text-gray-300 group-hover:text-blue-500 transition-colors duration-300" fill="none" stroke="currentColor" strokeWidth="1.2" viewBox="0 0 24 24">
+  <svg className="w-7 h-7 text-gray-300 group-hover:text-emerald-500 transition-colors duration-300" fill="none" stroke="currentColor" strokeWidth="1.2" viewBox="0 0 24 24">
     <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
     <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
     <line x1="12" y1="22.08" x2="12" y2="12"/>
   </svg>
 );
 
-const IconDownloads = () => (
-  <svg className="w-7 h-7 text-gray-300 group-hover:text-blue-500 transition-colors duration-300" fill="none" stroke="currentColor" strokeWidth="1.2" viewBox="0 0 24 24">
-    <polyline points="8 17 12 21 16 17"/>
-    <line x1="12" y1="12" x2="12" y2="21"/>
-    <path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.29"/>
+const IconRefunds = () => (
+  <svg className="w-7 h-7 text-gray-300 group-hover:text-emerald-500 transition-colors duration-300" fill="none" stroke="currentColor" strokeWidth="1.2" viewBox="0 0 24 24">
+    <rect x="2" y="5" width="20" height="14" rx="2" ry="2"/>
+    <line x1="2" y1="10" x2="22" y2="10"/>
   </svg>
 );
 
 const IconAddresses = () => (
-  <svg className="w-7 h-7 text-gray-300 group-hover:text-blue-500 transition-colors duration-300" fill="none" stroke="currentColor" strokeWidth="1.2" viewBox="0 0 24 24">
+  <svg className="w-7 h-7 text-gray-300 group-hover:text-emerald-500 transition-colors duration-300" fill="none" stroke="currentColor" strokeWidth="1.2" viewBox="0 0 24 24">
     <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
     <circle cx="12" cy="10" r="3"/>
   </svg>
 );
 
 const IconAccount = () => (
-  <svg className="w-7 h-7 text-gray-300 group-hover:text-blue-500 transition-colors duration-300" fill="none" stroke="currentColor" strokeWidth="1.2" viewBox="0 0 24 24">
+  <svg className="w-7 h-7 text-gray-300 group-hover:text-emerald-500 transition-colors duration-300" fill="none" stroke="currentColor" strokeWidth="1.2" viewBox="0 0 24 24">
     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
     <circle cx="12" cy="7" r="4"/>
   </svg>
 );
 
 const IconWishlist = () => (
-  <svg className="w-7 h-7 text-gray-300 group-hover:text-blue-500 transition-colors duration-300" fill="none" stroke="currentColor" strokeWidth="1.2" viewBox="0 0 24 24">
+  <svg className="w-7 h-7 text-gray-300 group-hover:text-emerald-500 transition-colors duration-300" fill="none" stroke="currentColor" strokeWidth="1.2" viewBox="0 0 24 24">
     <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
   </svg>
 );
@@ -49,7 +48,7 @@ const IconLogout = () => (
 );
 
 const IconCart = () => (
-  <svg className="w-7 h-7 text-gray-300 group-hover:text-blue-500 transition-colors duration-300" fill="none" stroke="currentColor" strokeWidth="1.2" viewBox="0 0 24 24">
+  <svg className="w-7 h-7 text-gray-300 group-hover:text-emerald-500 transition-colors duration-300" fill="none" stroke="currentColor" strokeWidth="1.2" viewBox="0 0 24 24">
     <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
     <line x1="3" y1="6" x2="21" y2="6"/>
     <path d="M16 10a4 4 0 0 1-8 0"/>
@@ -57,20 +56,20 @@ const IconCart = () => (
 );
 
 const IconLoyalty = () => (
-  <svg className="w-7 h-7 text-gray-300 group-hover:text-blue-500 transition-colors duration-300" fill="none" stroke="currentColor" strokeWidth="1.2" viewBox="0 0 24 24">
+  <svg className="w-7 h-7 text-gray-300 group-hover:text-emerald-500 transition-colors duration-300" fill="none" stroke="currentColor" strokeWidth="1.2" viewBox="0 0 24 24">
     <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
   </svg>
 );
 
 const IconNotifications = () => (
-  <svg className="w-7 h-7 text-gray-300 group-hover:text-blue-500 transition-colors duration-300" fill="none" stroke="currentColor" strokeWidth="1.2" viewBox="0 0 24 24">
+  <svg className="w-7 h-7 text-gray-300 group-hover:text-emerald-500 transition-colors duration-300" fill="none" stroke="currentColor" strokeWidth="1.2" viewBox="0 0 24 24">
     <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
     <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
   </svg>
 );
 
 const IconMessages = () => (
-  <svg className="w-7 h-7 text-gray-300 group-hover:text-blue-500 transition-colors duration-300" fill="none" stroke="currentColor" strokeWidth="1.2" viewBox="0 0 24 24">
+  <svg className="w-7 h-7 text-gray-300 group-hover:text-emerald-500 transition-colors duration-300" fill="none" stroke="currentColor" strokeWidth="1.2" viewBox="0 0 24 24">
     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
   </svg>
 );
@@ -78,7 +77,7 @@ const IconMessages = () => (
 /* ── Quick Cards Data ─────────────────────────────────────────── */
 const CARDS = [
   { to: '/customer/orders',        label: 'ORDERS',        icon: <IconOrders /> },
-  { to: '/customer/reviews',       label: 'DOWNLOADS',     icon: <IconDownloads /> },
+  { to: '/customer/refunds',       label: 'REFUNDS',       icon: <IconRefunds /> },
   { to: '/customer/addresses',     label: 'ADDRESSES',     icon: <IconAddresses /> },
   { to: '/customer/profile',       label: 'ACCOUNT DETAILS', icon: <IconAccount /> },
   { to: '/customer/wishlist',      label: 'WISHLIST',      icon: <IconWishlist /> },
@@ -224,7 +223,7 @@ const CustomerHome = () => {
           </div>
           <div className="mt-3 pt-3 border-t border-gray-100 flex justify-between items-center text-xs text-gray-500">
             <span>Member Status:</span>
-            <span className="font-black text-blue-600 uppercase tracking-wide">
+            <span className="font-black text-emerald-600 uppercase tracking-wide">
               {loyalty?.points >= 10000 ? '👑 Diamond' : loyalty?.points >= 4000 ? '💎 Platinum' : loyalty?.points >= 1500 ? '🥇 Gold' : loyalty?.points >= 500 ? '🥈 Silver' : '🥉 Bronze'}
             </span>
           </div>
@@ -256,7 +255,7 @@ const CustomerHome = () => {
                   {/* Bar */}
                   <div className="w-full max-w-[48px] bg-gray-50 rounded-t-sm flex items-end h-24 overflow-hidden border border-gray-100/50">
                     <div
-                      className="bg-blue-600 hover:bg-blue-700 w-full transition-all duration-300 rounded-t-sm"
+                      className="bg-emerald-600 hover:bg-emerald-700 w-full transition-all duration-300 rounded-t-sm"
                       style={{ height: `${pct}%` }}
                     />
                   </div>
@@ -291,7 +290,7 @@ const CustomerHome = () => {
               </li>
               <li className="flex justify-between items-center py-1">
                 <span>Next Rewards Target</span>
-                <span className="text-blue-600 font-bold">
+                <span className="text-emerald-600 font-bold">
                   {loyalty?.points >= 1500 ? '4,000 pts' : '1,500 pts'}
                 </span>
               </li>
@@ -325,7 +324,7 @@ const CustomerHome = () => {
               `}
             >
               {card.icon}
-              <span className="text-[8px] font-black tracking-[1px] text-gray-500 group-hover:text-blue-600 transition-colors duration-200 uppercase">
+              <span className="text-[8px] font-black tracking-[1px] text-gray-500 group-hover:text-emerald-600 transition-colors duration-200 uppercase">
                 {card.label}
               </span>
             </Link>
@@ -348,7 +347,7 @@ const CustomerHome = () => {
       <div className="bg-white border border-gray-200 rounded-sm p-4 shadow-sm">
         <div className="flex items-center justify-between pb-2 border-b border-gray-200 mb-3">
           <h2 className="text-[11px] font-black uppercase tracking-wider text-gray-800">Recent Purchase History</h2>
-          <Link to="/customer/orders" className="text-[10px] text-blue-600 hover:underline font-bold uppercase tracking-wider">
+          <Link to="/customer/orders" className="text-[10px] text-emerald-600 hover:underline font-bold uppercase tracking-wider">
             View All →
           </Link>
         </div>
@@ -382,7 +381,7 @@ const CustomerHome = () => {
               <tbody className="divide-y divide-gray-100 bg-white">
                 {orders.slice(0, 5).map(o => (
                   <tr key={o.id} className="hover:bg-gray-50/50 transition-colors">
-                    <td className="py-2.5 pr-3 font-bold text-blue-600">#{o.id}</td>
+                    <td className="py-2.5 pr-3 font-bold text-emerald-600">#{o.id}</td>
                     <td className="py-2.5 px-3 text-gray-500 font-semibold text-[10px]">
                       {o.createdAt ? new Date(o.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
                     </td>
@@ -397,7 +396,7 @@ const CustomerHome = () => {
                     <td className="py-2.5 pl-3 text-right">
                       <button
                         onClick={() => navigate('/customer/orders')}
-                        className="text-[10px] font-black uppercase tracking-wider text-blue-600 hover:text-blue-700"
+                        className="text-[10px] font-black uppercase tracking-wider text-emerald-600 hover:text-emerald-700"
                       >
                         View
                       </button>

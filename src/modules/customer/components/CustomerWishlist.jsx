@@ -104,7 +104,7 @@ const CustomerWishlist = () => {
               <div className="p-2.5 flex-1 flex flex-col justify-between">
                 <div>
                   <Link to={getProductLink(p)} className="block">
-                    <h4 className="text-[10px] font-bold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-2 mb-1 min-h-[26px] leading-tight">
+                    <h4 className="text-[10px] font-bold text-gray-900 group-hover:text-emerald-600 transition-colors line-clamp-2 mb-1 min-h-[26px] leading-tight">
                       {p.name}
                     </h4>
                   </Link>

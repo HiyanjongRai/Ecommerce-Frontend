@@ -60,28 +60,28 @@ export default function CustomerSidebar({ currentPath, darkMode, toggleDarkMode 
   return (
     <nav
       style={{
-        width: 240,
+        width: 208,
         flexShrink: 0,
         display: 'flex',
         flexDirection: 'column',
-        borderRadius: 18,
+        borderRadius: 14,
         overflow: 'hidden',
         background: bg,
         border: `1px solid ${border}`,
         boxShadow: dark ? '0 8px 32px rgba(0,0,0,.45)' : '0 1px 4px rgba(0,0,0,.07)',
-        minHeight: 640,
+        minHeight: 520,
         userSelect: 'none',
       }}
     >
       {/* ── Profile header ─────────────────────────────────── */}
-      <div style={{ padding: '18px 20px', borderBottom: `1px solid ${border}` }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+      <div style={{ padding: '10px 12px', borderBottom: `1px solid ${border}` }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <div style={{ position: 'relative', flexShrink: 0 }}>
             <div style={{
-              width: 40, height: 40, borderRadius: '50%',
+              width: 32, height: 32, borderRadius: '50%',
               background: 'linear-gradient(135deg, #34d399 0%, #0d9488 100%)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: '#fff', fontWeight: 900, fontSize: 15,
+              color: '#fff', fontWeight: 900, fontSize: 13,
               boxShadow: '0 4px 12px rgba(16,185,129,.3)',
             }}>
               {user?.firstName?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'U'}
@@ -89,15 +89,15 @@ export default function CustomerSidebar({ currentPath, darkMode, toggleDarkMode 
             {/* online dot */}
             <div style={{
               position: 'absolute', bottom: -1, right: -1,
-              width: 12, height: 12, borderRadius: '50%',
+              width: 10, height: 10, borderRadius: '50%',
               background: '#10b981', border: '2px solid #fff',
             }} />
           </div>
           <div style={{ minWidth: 0 }}>
-            <p style={{ margin: 0, fontWeight: 800, fontSize: 13, color: dark ? '#fff' : '#111827', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            <p style={{ margin: 0, fontWeight: 800, fontSize: 12, color: dark ? '#fff' : '#111827', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {user?.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : 'My Account'}
             </p>
-            <p style={{ margin: 0, fontSize: 10, fontWeight: 600, color: dark ? '#34d399' : '#059669', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            <p style={{ margin: 0, fontSize: 9, fontWeight: 600, color: dark ? '#34d399' : '#059669', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {user?.email || 'Customer'}
             </p>
           </div>
@@ -105,14 +105,14 @@ export default function CustomerSidebar({ currentPath, darkMode, toggleDarkMode 
       </div>
 
       {/* ── Navigation ─────────────────────────────────────── */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '12px 0' }}>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '8px 0' }}>
         {NAV.map((section) => (
-          <div key={section.group} style={{ marginBottom: 16 }}>
+          <div key={section.group} style={{ marginBottom: 10 }}>
             {/* Section label */}
             <p style={{
               margin: '0 0 4px',
-              padding: '0 20px',
-              fontSize: 9, fontWeight: 800,
+              padding: '0 12px',
+              fontSize: 8, fontWeight: 800,
               letterSpacing: '0.12em',
               textTransform: 'uppercase',
               color: textMuted,
@@ -134,11 +134,11 @@ export default function CustomerSidebar({ currentPath, darkMode, toggleDarkMode 
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    padding: '8px 12px',
-                    margin: '1px 8px',
-                    borderRadius: 10,
+                    padding: '5px 8px',
+                    margin: '1px 6px',
+                    borderRadius: 8,
                     textDecoration: 'none',
-                    fontSize: 13,
+                    fontSize: 11.5,
                     fontWeight: isActive ? 700 : 500,
                     color: isActive ? activeText : textNormal,
                     background: isActive ? activeBg : 'transparent',
@@ -163,15 +163,15 @@ export default function CustomerSidebar({ currentPath, darkMode, toggleDarkMode 
                     <div style={{
                       position: 'absolute', left: 0, top: '50%',
                       transform: 'translateY(-50%)',
-                      width: 3, height: 18, borderRadius: 2,
+                      width: 2.5, height: 14, borderRadius: 1,
                       background: dark ? '#34d399' : '#059669',
                     }} />
                   )}
 
-                  {/* Icon + Label — guaranteed 8px gap via inline style */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  {/* Icon + Label — guaranteed 6px gap via inline style */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     <Icon
-                      size={16}
+                      size={14}
                       style={{
                         flexShrink: 0,
                         color: isActive
@@ -187,15 +187,15 @@ export default function CustomerSidebar({ currentPath, darkMode, toggleDarkMode 
                     {badgeCount > 0 && (
                       <span style={{
                         background: '#ef4444', color: '#fff',
-                        fontSize: 9, fontWeight: 900,
-                        minWidth: 18, height: 18, padding: '0 4px',
-                        borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: 8, fontWeight: 900,
+                        minWidth: 16, height: 16, padding: '0 3px',
+                        borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center',
                       }}>
                         {badgeCount > 99 ? '99+' : badgeCount}
                       </span>
                     )}
                     {isActive && (
-                      <ChevronRight size={12} style={{ color: dark ? '#34d399' : '#059669' }} />
+                      <ChevronRight size={10} style={{ color: dark ? '#34d399' : '#059669' }} />
                     )}
                   </div>
                 </Link>
@@ -206,29 +206,29 @@ export default function CustomerSidebar({ currentPath, darkMode, toggleDarkMode 
       </div>
 
       {/* ── Footer ─────────────────────────────────────────── */}
-      <div style={{ padding: '12px', borderTop: `1px solid ${border}` }}>
+      <div style={{ padding: '8px', borderTop: `1px solid ${border}` }}>
         {/* Sign out */}
         <button
           onClick={handleLogout}
           style={{
-            width: '100%', display: 'flex', alignItems: 'center', gap: 8,
-            padding: '8px 12px', borderRadius: 10, border: 'none', cursor: 'pointer',
-            background: 'transparent', fontSize: 13, fontWeight: 600,
+            width: '100%', display: 'flex', alignItems: 'center', gap: 6,
+            padding: '5px 8px', borderRadius: 8, border: 'none', cursor: 'pointer',
+            background: 'transparent', fontSize: 11.5, fontWeight: 600,
             color: dark ? '#f87171' : '#ef4444',
             transition: 'background 0.15s ease',
           }}
           onMouseEnter={e => { e.currentTarget.style.background = dark ? 'rgba(239,68,68,.1)' : '#fef2f2'; }}
           onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
         >
-          <LogOut size={15} style={{ flexShrink: 0 }} />
+          <LogOut size={13} style={{ flexShrink: 0 }} />
           <span>Sign Out</span>
         </button>
 
         {/* Theme toggle */}
         <div style={{
-          display: 'flex', gap: 4, marginTop: 8,
+          display: 'flex', gap: 4, marginTop: 6,
           background: dark ? 'rgba(255,255,255,.05)' : '#f3f4f6',
-          borderRadius: 10, padding: 4,
+          borderRadius: 8, padding: 3,
         }}>
           {[
             { label: 'Light', icon: Sun,  active: !dark, onClick: () => dark && toggleDarkMode()  },
@@ -239,15 +239,15 @@ export default function CustomerSidebar({ currentPath, darkMode, toggleDarkMode 
               onClick={onClick}
               style={{
                 flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                gap: 6, padding: '6px 0', borderRadius: 7, border: 'none', cursor: 'pointer',
-                fontSize: 11, fontWeight: 700,
+                gap: 5, padding: '4px 0', borderRadius: 6, border: 'none', cursor: 'pointer',
+                fontSize: 10, fontWeight: 700,
                 background: isOn ? (dark ? 'rgba(16,185,129,.2)' : '#fff') : 'transparent',
                 color: isOn ? (dark ? '#34d399' : '#059669') : (dark ? 'rgba(255,255,255,.35)' : '#9ca3af'),
                 boxShadow: isOn ? '0 1px 3px rgba(0,0,0,.1)' : 'none',
                 transition: 'all 0.15s ease',
               }}
             >
-              <Icon2 size={12} />
+              <Icon2 size={10} />
               <span>{label}</span>
             </button>
           ))}

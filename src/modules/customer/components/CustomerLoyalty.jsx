@@ -118,7 +118,7 @@ const CustomerLoyalty = () => {
           <div className="mt-5 space-y-4">
             {[
               ['Earned', earned, 'bg-emerald-600'],
-              ['Redeemed', redeemed, 'bg-blue-600'],
+              ['Redeemed', redeemed, 'bg-emerald-500'],
               ['Expired', expired, 'bg-rose-500']
             ].map(([label, value, color]) => (
               <div key={label}>
@@ -161,7 +161,7 @@ const CustomerLoyalty = () => {
                 key={item}
                 type="button"
                 onClick={() => setFilter(item)}
-                className={`rounded-md border px-3 py-1.5 text-[10px] font-black uppercase tracking-wider ${filter === item ? 'border-gray-900 bg-gray-900 text-white' : 'border-gray-200 text-gray-500 hover:border-gray-400'}`}
+                className={`rounded-md border px-3 py-1.5 text-[10px] font-black uppercase tracking-wider ${filter === item ? 'border-emerald-600 bg-emerald-600 text-white' : 'border-gray-200 text-gray-500 hover:border-gray-400'}`}
               >
                 {item.replace('_', ' ')}
               </button>
