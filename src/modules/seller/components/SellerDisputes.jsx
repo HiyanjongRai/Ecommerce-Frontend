@@ -105,7 +105,7 @@ export default function SellerDisputes() {
 
   const handleSubmitEvidence = async (e) => {
     e.preventDefault();
-    if (!evidenceText.trim()) { alert('Please enter your evidence statement.'); return; }
+    if (!evidenceText.trim()) { setError('Please enter your evidence statement before submitting.'); return; }
     try {
       setSubmittingEvidence(true); setError(''); setEvidenceSuccess('');
       await submitDisputeEvidence(activeDisputeId, { message: evidenceText, attachmentUrl });
@@ -132,7 +132,7 @@ export default function SellerDisputes() {
   if (loading) return <LoadingState label="Loading disputes…" />;
 
   return (
-    <div className="space-y-5 font-sans">
+    <div className="space-y-4 max-w-[1400px] font-sans">
       <SectionHeader
         title="Disputes Desk"
         subtitle="Review claims escalated by customers, submit formal statements, and communicate with moderators."
@@ -147,8 +147,8 @@ export default function SellerDisputes() {
       />
 
       {error && (
-        <div className="p-3 bg-red-50 text-red-700 border border-red-200 text-xs font-bold rounded-xl flex items-center gap-2">
-          <AlertCircle size={15} />
+        <div className="p-3 bg-red-50 text-red-700 border border-red-200 text-xs font-bold rounded-sm flex items-center gap-2">
+          <AlertCircle size={14} />
           {error}
         </div>
       )}
@@ -158,13 +158,13 @@ export default function SellerDisputes() {
         {/* ── Left: Dispute list ── */}
         <div className="space-y-3">
           {/* Tabs with counts */}
-          <div className="bg-white border border-gray-200 rounded-xl p-2 flex gap-1 shadow-sm overflow-x-auto">
+          <div className="bg-white border border-gray-200 rounded-sm p-1.5 flex gap-1 shadow-sm overflow-x-auto">
             {TABS.map(tab => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-1.5 flex-1 justify-center px-2.5 py-1.5 rounded-lg text-[10px] font-black transition-all whitespace-nowrap ${
-                  activeTab === tab.id ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
+                className={`flex items-center gap-1.5 flex-1 justify-center px-2.5 py-1 rounded-sm text-[9px] font-black transition-all whitespace-nowrap ${
+                  activeTab === tab.id ? 'bg-gray-900 text-white' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
                 }`}
               >
                 {tab.label}
@@ -180,7 +180,7 @@ export default function SellerDisputes() {
           {/* List — no fixed max-height, natural scroll inside column */}
           <div className="space-y-2 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 280px)' }}>
             {filtered.length === 0 ? (
-              <div className="text-center py-12 bg-white border border-gray-200 rounded-xl">
+              <div className="text-center py-10 bg-white border border-gray-200 rounded-sm">
                 <ShieldAlert size={28} className="mx-auto mb-2 text-gray-300" />
                 <p className="text-gray-400 text-xs font-semibold">No disputes in this category.</p>
               </div>
@@ -193,10 +193,10 @@ export default function SellerDisputes() {
                   <button
                     key={d.id}
                     onClick={() => handleSelectDispute(d)}
-                    className={`w-full text-left p-4 rounded-xl border transition-all ${
+                    className={`w-full text-left p-3.5 rounded-sm border transition-all ${
                       active
-                        ? 'border-blue-400 bg-blue-50/60 shadow-sm'
-                        : 'border-gray-200 bg-white hover:border-blue-200 hover:shadow-sm'
+                        ? 'border-gray-400 bg-gray-50'
+                        : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
                     }`}
                   >
                     <div className="flex items-start justify-between gap-2">
@@ -227,7 +227,7 @@ export default function SellerDisputes() {
           {selectedDispute ? (
             <div className="space-y-5">
               {/* Metadata card */}
-              <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm space-y-4">
+              <div className="bg-white border border-gray-200 rounded-sm p-4 shadow-sm space-y-4">
                 <div className="flex items-center justify-between pb-3 border-b border-gray-100">
                   <div className="flex items-center gap-2">
                     <Shield size={15} className="text-blue-600" />
@@ -240,7 +240,7 @@ export default function SellerDisputes() {
 
                 {/* SLA banner for open disputes */}
                 {['OPEN', 'PENDING'].includes(selectedDispute.status) && (
-                  <div className="rounded-xl border-2 border-amber-300 bg-amber-50 p-3 flex items-start gap-2.5">
+                  <div className="rounded-sm border-2 border-amber-300 bg-amber-50 p-3 flex items-start gap-2.5">
                     <AlertTriangle size={16} className="text-amber-600 shrink-0 mt-0.5" />
                     <div>
                       <p className="font-bold text-amber-900 text-sm">Response required</p>
@@ -253,7 +253,7 @@ export default function SellerDisputes() {
                 )}
 
                 {['RESOLVED', 'CLOSED'].includes(selectedDispute.status) && (
-                  <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 flex items-center gap-2.5">
+                  <div className="rounded-sm border border-emerald-200 bg-emerald-50 p-3 flex items-center gap-2.5">
                     <CheckCircle size={15} className="text-emerald-600 shrink-0" />
                     <p className="text-sm font-semibold text-emerald-900">This dispute has been resolved by admin.</p>
                   </div>
@@ -282,14 +282,14 @@ export default function SellerDisputes() {
                       <span className="font-semibold text-gray-800">{dateLabel(selectedDispute.resolvedAt)}</span>
                     </div>
                   )}
-                  <div className="col-span-2 bg-gray-50 rounded-xl border border-gray-100 p-3">
+                  <div className="col-span-2 bg-gray-50 rounded-sm border border-gray-100 p-3">
                     <span className="text-[9px] font-black uppercase tracking-widest text-gray-400 block mb-1.5">Customer Complaint</span>
                     <p className="font-medium text-[12px] text-gray-800 leading-relaxed">
                       {selectedDispute.reason || 'No complaint statement provided.'}
                     </p>
                   </div>
                   {selectedDispute.adminNotes && (
-                    <div className="col-span-2 bg-blue-50 rounded-xl border border-blue-200 p-3">
+                    <div className="col-span-2 bg-blue-50 rounded-sm border border-blue-200 p-3">
                       <span className="text-[9px] font-black uppercase tracking-widest text-blue-600 block mb-1.5">Admin Decision</span>
                       <p className="font-medium text-[12px] text-blue-900 leading-relaxed">{selectedDispute.adminNotes}</p>
                       {selectedDispute.outcome && (
@@ -312,14 +312,14 @@ export default function SellerDisputes() {
 
               {/* Formal evidence submission */}
               {!['RESOLVED', 'CLOSED'].includes(selectedDispute.status) && (
-                <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm space-y-4">
+                <div className="bg-white border border-gray-200 rounded-sm p-4 shadow-sm space-y-4">
                   <div className="flex items-center gap-2 border-b border-gray-100 pb-3">
                     <FileText size={15} className="text-blue-600" />
                     <h4 className="text-xs font-black uppercase tracking-wider text-gray-800">Submit Formal Evidence</h4>
                   </div>
 
                   {evidenceSuccess && (
-                    <div className="p-3 bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold rounded-xl flex items-center gap-2">
+                    <div className="p-3 bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold rounded-sm flex items-center gap-2">
                       <CheckCircle size={14} />
                       {evidenceSuccess}
                     </div>
@@ -335,7 +335,7 @@ export default function SellerDisputes() {
                         placeholder="Write your formal statement, explanation, or proof arguments here. Be specific and factual…"
                         value={evidenceText}
                         onChange={e => setEvidenceText(e.target.value)}
-                        className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm font-medium text-gray-700 outline-none h-24 focus:border-blue-500"
+                        className="w-full bg-white border border-gray-200 rounded-sm p-2.5 text-[11px] font-medium text-gray-700 outline-none h-24 focus:border-gray-400"
                       />
                     </div>
                     <div>
@@ -347,14 +347,14 @@ export default function SellerDisputes() {
                         placeholder="https://example.com/delivery-proof.jpg"
                         value={attachmentUrl}
                         onChange={e => setAttachmentUrl(e.target.value)}
-                        className="w-full bg-white border border-gray-200 rounded-xl p-2.5 text-sm font-medium text-gray-700 outline-none focus:border-blue-500"
+                        className="w-full bg-white border border-gray-200 rounded-sm p-2 text-[11px] font-medium text-gray-700 outline-none focus:border-gray-400"
                       />
                     </div>
                     <div className="flex justify-end">
                       <button
                         type="submit"
                         disabled={submittingEvidence}
-                        className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-sm disabled:opacity-50 transition-colors"
+                        className="px-4 py-1.5 bg-gray-900 hover:bg-black text-white font-black text-[10px] uppercase tracking-wider rounded-sm disabled:opacity-50 transition-colors"
                       >
                         {submittingEvidence ? 'Submitting…' : 'Submit Formal Evidence'}
                       </button>
@@ -364,13 +364,13 @@ export default function SellerDisputes() {
               )}
             </div>
           ) : (
-            <div className="h-[420px] bg-white border border-gray-200 rounded-xl flex flex-col justify-center items-center text-center p-6 shadow-sm">
-              <div className="w-14 h-14 bg-gray-50 rounded-2xl flex items-center justify-center mb-4">
-                <ShieldAlert size={26} className="text-gray-300" />
+            <div className="h-[380px] bg-white border border-gray-200 rounded-sm flex flex-col justify-center items-center text-center p-6 shadow-sm">
+              <div className="w-12 h-12 bg-gray-50 rounded-sm flex items-center justify-center mb-3">
+                <ShieldAlert size={24} className="text-gray-300" />
               </div>
-              <h3 className="text-sm font-black text-gray-700 uppercase tracking-wider">Select a Dispute</h3>
-              <p className="text-xs text-gray-400 font-medium mt-2 max-w-[260px] leading-relaxed">
-                Choose a case from the left panel to view customer messages, submit evidence, and respond.
+              <h3 className="text-xs font-black text-gray-600 uppercase tracking-wider">Select a Dispute</h3>
+              <p className="text-[10px] text-gray-400 font-medium mt-1.5 max-w-[240px] leading-relaxed">
+                Choose a case from the left to view messages, submit evidence, and respond.
               </p>
             </div>
           )}

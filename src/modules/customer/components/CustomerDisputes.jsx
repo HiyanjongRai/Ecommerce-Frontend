@@ -104,111 +104,103 @@ export default function CustomerDisputes() {
   }), [disputes]);
 
   if (loading) return (
-    <div className="max-w-5xl mx-auto py-24 text-center">
-      <div className="w-10 h-10 border-2 border-t-red-500 border-gray-200 rounded-full animate-spin mx-auto mb-4" />
-      <p className="text-gray-400 text-xs font-bold uppercase tracking-wider">Loading disputes…</p>
+    <div className="py-16 text-center">
+      <svg className="animate-spin w-6 h-6 text-[#10B981] mx-auto mb-3" fill="none" viewBox="0 0 24 24">
+        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+      </svg>
+      <p className="text-xs font-black uppercase tracking-wider text-gray-400">Loading disputes…</p>
     </div>
   );
 
   /* ── List view ── */
   if (!expandedDisputeId) return (
-    <div className="max-w-5xl mx-auto pb-10">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 bg-red-100 rounded-xl flex items-center justify-center">
-            <ShieldAlert size={18} className="text-red-700" />
-          </div>
-          <div>
-            <h2 className="text-xl font-black text-gray-900">My Disputes</h2>
-            <p className="text-xs text-gray-500 font-medium">{disputes.length} case{disputes.length !== 1 ? 's' : ''} total</p>
-          </div>
+    <div className="pb-6">
+      {/* ── Page Header ── */}
+      <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-200">
+        <div>
+          <h2 className="text-sm font-black text-gray-800">My Disputes</h2>
+          <p className="text-[10px] text-gray-400 font-medium mt-0.5">{disputes.length} case{disputes.length !== 1 ? 's' : ''} total</p>
         </div>
         <button
           onClick={fetchDisputes}
-          className="flex items-center gap-1.5 text-sm font-semibold text-gray-500 hover:text-gray-900 transition-colors px-3 py-1.5 rounded-lg hover:bg-gray-100"
+          className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-gray-400 hover:text-gray-700 transition-colors px-3 py-1.5 border border-gray-200 rounded-sm hover:bg-gray-50"
         >
-          <RefreshCw size={14} />
+          <RefreshCw size={12} />
           Refresh
         </button>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-3 gap-3 mb-6">
+      {/* ── Stats ── */}
+      <div className="grid grid-cols-3 gap-3 mb-4">
         {[
-          { label: 'Open Cases', value: stats.open,     icon: Clock,        bg: 'bg-amber-50',   border: 'border-amber-200',   num: 'text-amber-700'   },
-          { label: 'In Review',  value: stats.review,   icon: Scale,        bg: 'bg-blue-50',    border: 'border-blue-200',    num: 'text-blue-700'    },
-          { label: 'Resolved',   value: stats.resolved, icon: CheckCircle,  bg: 'bg-emerald-50', border: 'border-emerald-200', num: 'text-emerald-700' },
-        ].map(({ label, value, icon: Icon, bg, border, num }) => (
-          <div key={label} className={`rounded-xl border ${bg} ${border} p-4 shadow-sm`}>
+          { label: 'Open Cases', value: stats.open,     icon: Clock,        num: 'text-amber-600',   border: 'border-amber-200'   },
+          { label: 'In Review',  value: stats.review,   icon: Scale,        num: 'text-blue-600',    border: 'border-blue-200'    },
+          { label: 'Resolved',   value: stats.resolved, icon: CheckCircle,  num: 'text-emerald-600', border: 'border-gray-200'    },
+        ].map(({ label, value, icon: Icon, num, border }) => (
+          <div key={label} className={`bg-white border rounded-sm p-4 ${border}`}>
             <div className="flex items-center gap-2 mb-2">
-              <Icon size={14} className={num} />
-              <p className="text-[10px] font-black uppercase tracking-widest text-gray-500">{label}</p>
+              <Icon size={12} className={num} />
+              <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">{label}</p>
             </div>
             <p className={`text-lg font-black ${num}`}>{value}</p>
           </div>
         ))}
       </div>
 
-      {/* List */}
-      <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-100">
-          <h3 className="text-sm font-bold text-gray-900">Case History</h3>
+      {/* ── List ── */}
+      {disputes.length === 0 ? (
+        <div className="text-center py-14 bg-white border border-gray-200 rounded-sm">
+          <ShieldAlert size={28} className="mx-auto mb-3 text-gray-200" />
+          <p className="text-xs font-black text-gray-600 uppercase tracking-wider mb-1">No disputes yet</p>
+          <p className="text-[10px] text-gray-400">Escalated order issues will appear here.</p>
         </div>
-
-        {disputes.length === 0 ? (
-          <div className="px-6 py-16 text-center">
-            <ShieldAlert size={36} className="mx-auto mb-3 text-gray-300" />
-            <p className="font-bold text-gray-600 text-sm">No disputes yet</p>
-            <p className="text-xs text-gray-400 mt-1">Escalated order issues will appear here.</p>
-          </div>
-        ) : (
-          <div className="divide-y divide-gray-100">
-            {disputes.map((dispute) => {
-              const meta    = getStatusMeta(dispute.status);
-              const Icon    = meta.icon;
-              const needsAct = ['OPEN', 'PENDING'].includes(dispute.status);
-              return (
-                <button
-                  key={dispute.id}
-                  onClick={() => setExpandedDisputeId(dispute.id)}
-                  className="w-full text-left px-6 py-4 hover:bg-gray-50 transition-colors flex items-center justify-between gap-4 group"
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="relative shrink-0">
-                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${meta.badge.split(' ').slice(0,2).join(' ')}`}>
-                        <Icon size={16} />
-                      </div>
-                      {needsAct && (
-                        <span className="absolute -top-1 -right-1 w-3 h-3 bg-amber-500 rounded-full border-2 border-white">
-                          <span className="absolute inset-0 rounded-full bg-amber-500 animate-ping opacity-75" />
-                        </span>
-                      )}
+      ) : (
+        <div className="bg-white border border-gray-200 rounded-sm overflow-hidden divide-y divide-gray-100">
+          {disputes.map((dispute) => {
+            const meta    = getStatusMeta(dispute.status);
+            const Icon    = meta.icon;
+            const needsAct = ['OPEN', 'PENDING'].includes(dispute.status);
+            return (
+              <button
+                key={dispute.id}
+                onClick={() => setExpandedDisputeId(dispute.id)}
+                className="w-full text-left px-4 py-3.5 hover:bg-gray-50/60 transition-colors flex items-center justify-between gap-4 group"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="relative shrink-0">
+                    <div className={`w-8 h-8 rounded-sm flex items-center justify-center border ${meta.badge}`}>
+                      <Icon size={14} />
                     </div>
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <p className="font-bold text-gray-900 text-sm font-mono">
-                          {dispute.publicReferenceId || `Dispute #${dispute.id}`}
-                        </p>
-                        <span className={`inline-flex rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider border ${meta.badge}`}>
-                          {meta.label}
-                        </span>
-                      </div>
-                      <p className="text-xs text-gray-500 mt-0.5">
-                        Order #{dispute.orderId} &bull; {dateLabel(dispute.createdAt)}
-                      </p>
-                      {needsAct && <div className="mt-1"><SLALabel createdAt={dispute.createdAt} status={dispute.status} /></div>}
-                    </div>
+                    {needsAct && (
+                      <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-amber-500 rounded-full border-2 border-white">
+                        <span className="absolute inset-0 rounded-full bg-amber-500 animate-ping opacity-75" />
+                      </span>
+                    )}
                   </div>
-                  <svg className="w-4 h-4 text-gray-300 group-hover:text-gray-500 transition-colors shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-                  </svg>
-                </button>
-              );
-            })}
-          </div>
-        )}
-      </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="text-[10px] font-black text-gray-700 font-mono">
+                        {dispute.publicReferenceId || `Dispute #${dispute.id}`}
+                      </p>
+                      <span className={`inline-flex rounded-sm px-2 py-0.5 text-[9px] font-black uppercase tracking-wider border ${meta.badge}`}>
+                        {meta.label}
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-gray-400 font-medium mt-0.5">
+                      Order #{dispute.orderId} · {dateLabel(dispute.createdAt)}
+                    </p>
+                    {needsAct && <div className="mt-1"><SLALabel createdAt={dispute.createdAt} status={dispute.status} /></div>}
+                  </div>
+                </div>
+                <svg className="w-4 h-4 text-gray-300 group-hover:text-gray-500 transition-colors shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                  <path d="M9 18l6-6-6-6"/>
+                </svg>
+              </button>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 

@@ -384,20 +384,18 @@ export default function SellerDiscountSales() {
 
   return (
     <div className="space-y-4 max-w-[1400px]">
-      <div className="rounded-sm border border-gray-100 bg-white p-5 shadow-sm">
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-600">Product Management</p>
-            <h1 className="mt-1 text-xl font-black text-[#222529]">Create Discount & Sale</h1>
-            <p className="mt-1 text-xs font-semibold text-gray-400">
-              Apply product-level discounts, variant overrides, category sales, and visible sale badges.
-            </p>
+      {/* Page header — same height as Commission/Dashboard */}
+      <div className="bg-white rounded-sm border border-gray-200 shadow-sm">
+        <div className="px-4 py-3 flex items-center justify-between gap-4">
+          <div className="shrink-0">
+            <h2 className="text-sm font-black text-gray-900 tracking-tight">Discount & Sales</h2>
+            <p className="text-[11px] text-gray-400 font-medium mt-0.5">Apply product-level discounts, variant overrides, category sales, and visible sale badges.</p>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             <button
               type="button"
               onClick={resetRule}
-              className="h-10 rounded-sm border border-gray-200 bg-white px-4 text-[10px] font-black uppercase tracking-widest text-[#222529] transition hover:border-[#222529]"
+              className="h-8 rounded-sm border border-gray-200 bg-white px-3 text-[10px] font-black uppercase tracking-widest text-gray-700 transition hover:border-gray-400 hover:text-gray-900"
             >
               New Rule
             </button>
@@ -405,24 +403,24 @@ export default function SellerDiscountSales() {
               type="button"
               onClick={applyRule}
               disabled={saving}
-              className="h-10 rounded-sm bg-[#222529] px-5 text-[10px] font-black uppercase tracking-widest text-white transition hover:bg-black disabled:opacity-60"
+              className="h-8 rounded-sm bg-[#10B981] px-4 text-[10px] font-black uppercase tracking-widest text-white transition hover:bg-[#059669] disabled:opacity-60"
             >
               {saving ? 'Applying...' : 'Apply Rule'}
             </button>
           </div>
         </div>
         {message ? (
-          <div className="mt-4 rounded-sm border border-emerald-100 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-700">
+          <div className="border-t border-gray-100 px-4 py-2 text-xs font-bold text-emerald-700 bg-emerald-50">
             {message}
           </div>
         ) : null}
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
-        <section className="rounded-sm border border-gray-100 bg-white p-4 shadow-sm">
+        <section className="rounded-sm border border-gray-200 bg-white p-4 shadow-sm">
           <div className="mb-4 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
             <div>
-              <h2 className="text-sm font-black text-[#222529]">Product selector</h2>
+              <h2 className="text-sm font-black text-gray-800">Product selector</h2>
               <p className="text-[10px] font-semibold text-gray-400">Choose one product, many products, or an entire category.</p>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -470,7 +468,7 @@ export default function SellerDiscountSales() {
           </div>
 
           {filteredProducts.length ? (
-            <div className="max-h-[520px] overflow-auto rounded-sm border border-gray-100">
+            <div className="max-h-[520px] overflow-auto rounded-sm border border-gray-200">
               <table className="w-full text-left">
                 <thead className="sticky top-0 bg-gray-50">
                   <tr>
@@ -487,15 +485,15 @@ export default function SellerDiscountSales() {
                     const id = String(product.id || product.productId);
                     const checked = rule.selectedProductIds.includes(id);
                     return (
-                      <tr key={id} className={checked ? 'bg-emerald-50/50' : 'hover:bg-gray-50/60'}>
+                      <tr key={id} className={`transition-colors ${checked ? 'bg-emerald-50/60' : 'hover:bg-gray-50'}`}>
                         <td className="px-3 py-2">
-                          <input type="checkbox" checked={checked} onChange={() => toggleProduct(product)} className="h-4 w-4 accent-emerald-600" />
+                          <input type="checkbox" checked={checked} onChange={() => toggleProduct(product)} className="h-4 w-4 accent-[#10B981] cursor-pointer" />
                         </td>
                         <td className="px-3 py-2">
                           <div className="flex items-center gap-2">
                             <ProductThumb product={product} />
                             <div className="min-w-0">
-                              <p className="truncate text-xs font-black text-[#222529]">{product.name}</p>
+                              <p className="truncate text-xs font-black text-gray-800">{product.name}</p>
                               <p className="text-[10px] font-semibold text-gray-400">{product.category || 'No category'}</p>
                             </div>
                           </div>
@@ -505,7 +503,7 @@ export default function SellerDiscountSales() {
                             {product.hasVariants ? 'Variant' : 'Non-variant'}
                           </span>
                         </td>
-                        <td className="px-3 py-2 text-xs font-black text-[#222529]">{formatMoney(product.price)}</td>
+                        <td className="px-3 py-2 text-xs font-black text-gray-800">{formatMoney(product.price)}</td>
                         <td className="px-3 py-2">
                           {product.onSale ? (
                             isDiscountDisplayMode(product.saleLabel) ? (
@@ -536,12 +534,12 @@ export default function SellerDiscountSales() {
         </section>
 
         <section className="space-y-4">
-          <div className="rounded-sm border border-gray-100 bg-white p-4 shadow-sm">
-            <h2 className="text-sm font-black text-[#222529]">Discount & sale rule</h2>
+          <div className="rounded-sm border border-gray-200 bg-white p-4 shadow-sm">
+            <h2 className="text-sm font-black text-gray-800">Discount & sale rule</h2>
             <div className="mt-4 space-y-3">
               <label className="flex items-center justify-between rounded-sm border border-gray-100 bg-gray-50 px-3 py-2">
-                <span className="text-xs font-black text-[#222529]">Rule active</span>
-                <input type="checkbox" checked={rule.saleEnabled} onChange={(event) => updateRule('saleEnabled', event.target.checked)} className="h-5 w-5 accent-red-600" />
+                <span className="text-xs font-black text-gray-800">Rule active</span>
+                <input type="checkbox" checked={rule.saleEnabled} onChange={(event) => updateRule('saleEnabled', event.target.checked)} className="h-5 w-5 accent-[#10B981] cursor-pointer" />
               </label>
               <div>
                 <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-gray-400">Badge shown on product card</p>
@@ -557,9 +555,9 @@ export default function SellerDiscountSales() {
                       className={`h-10 rounded-sm border text-[10px] font-black uppercase tracking-widest transition ${
                         rule.promotionMode === option.value
                           ? option.value === 'SALE'
-                            ? 'border-red-600 bg-red-600 text-white'
-                            : 'border-[#222529] bg-[#222529] text-white'
-                          : 'border-gray-200 bg-white text-[#222529] hover:border-emerald-500'
+                            ? 'border-red-500 bg-red-500 text-white'
+                            : 'border-[#10B981] bg-[#10B981] text-white'
+                          : 'border-gray-200 bg-white text-gray-700 hover:border-[#10B981] hover:text-[#10B981]'
                       }`}
                     >
                       {option.label}
@@ -570,14 +568,14 @@ export default function SellerDiscountSales() {
               <div className="grid grid-cols-2 gap-3">
                 <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">
                   Discount type
-                  <select value={rule.discountType} onChange={(event) => updateRule('discountType', event.target.value)} className="mt-1 h-10 w-full rounded-sm border border-gray-200 bg-white px-3 text-xs font-bold text-[#222529]">
+                  <select value={rule.discountType} onChange={(event) => updateRule('discountType', event.target.value)} className="mt-1 h-10 w-full rounded-sm border border-gray-200 bg-white px-3 text-xs font-bold text-gray-800 focus:outline-none focus:border-[#10B981]">
                     <option value="PERCENTAGE">Percentage (%)</option>
                     <option value="FIXED">Fixed selling price</option>
                   </select>
                 </label>
                 <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">
                   {rule.discountType === 'PERCENTAGE' ? 'Discount %' : 'Selling price'}
-                  <input value={rule.discountValue} onChange={(event) => updateRule('discountValue', event.target.value)} type="number" min="0" step="0.01" className="mt-1 h-10 w-full rounded-sm border border-gray-200 bg-white px-3 text-xs font-bold text-[#222529]" />
+                  <input value={rule.discountValue} onChange={(event) => updateRule('discountValue', event.target.value)} type="number" min="0" step="0.01" className="mt-1 h-10 w-full rounded-sm border border-gray-200 bg-white px-3 text-xs font-bold text-gray-800 focus:outline-none focus:border-[#10B981]" />
                 </label>
               </div>
               {rule.promotionMode === 'SALE' ? (
@@ -597,17 +595,17 @@ export default function SellerDiscountSales() {
           </div>
 
           {fullProduct?.hasVariants && rule.target === 'VARIANT' ? (
-            <div className="rounded-sm border border-gray-100 bg-white p-4 shadow-sm">
+            <div className="rounded-sm border border-gray-200 bg-white p-4 shadow-sm">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <h2 className="text-sm font-black text-[#222529]">Variant price overrides</h2>
+                  <h2 className="text-sm font-black text-gray-800">Variant price overrides</h2>
                   <p className="text-[10px] font-semibold text-gray-400">Choose the exact variants that get this discount or sale price.</p>
                 </div>
                 <div className="flex shrink-0 gap-2">
-                  <button type="button" onClick={selectAllVariants} className="rounded-sm bg-[#222529] px-2 py-1 text-[9px] font-black uppercase tracking-widest text-white">
+                  <button type="button" onClick={selectAllVariants} className="rounded-sm bg-[#10B981] px-2 py-1 text-[9px] font-black uppercase tracking-widest text-white hover:bg-[#059669] transition">
                     All
                   </button>
-                  <button type="button" onClick={clearVariants} className="rounded-sm border border-gray-200 px-2 py-1 text-[9px] font-black uppercase tracking-widest text-[#222529]">
+                  <button type="button" onClick={clearVariants} className="rounded-sm border border-gray-200 px-2 py-1 text-[9px] font-black uppercase tracking-widest text-gray-700 hover:border-gray-400 transition">
                     Clear
                   </button>
                 </div>
@@ -623,18 +621,18 @@ export default function SellerDiscountSales() {
                   return (
                     <label key={variant.id} className={`flex items-center justify-between gap-3 rounded-sm border px-3 py-2 ${selected ? 'border-emerald-200 bg-emerald-50/60' : 'border-gray-100'}`}>
                       <div className="min-w-0">
-                        <p className="truncate text-xs font-black text-[#222529]">{variant.variantLabel || variant.sku}</p>
+                        <p className="truncate text-xs font-black text-gray-800">{variant.variantLabel || variant.sku}</p>
                         <p className="text-[10px] font-semibold text-gray-400">Stock {variant.stockQuantity}</p>
                       </div>
                       <div className="ml-auto text-right">
-                        <p className="text-xs font-black text-[#222529]">{formatMoney(selected ? finalPrice : variant.price)}</p>
+                        <p className="text-xs font-black text-gray-800">{formatMoney(selected ? finalPrice : variant.price)}</p>
                         {selected && pct > 0 ? (
                           <p className="text-[10px] font-bold text-gray-400">
                             <span className="line-through">{formatMoney(variant.price)}</span> -{pct}%
                           </p>
                         ) : null}
                       </div>
-                      <input type="checkbox" checked={selected} onChange={() => toggleVariant(variant.id)} className="h-4 w-4 accent-emerald-600" />
+                      <input type="checkbox" checked={selected} onChange={() => toggleVariant(variant.id)} className="h-4 w-4 accent-[#10B981] cursor-pointer" />
                     </label>
                   );
                 })}

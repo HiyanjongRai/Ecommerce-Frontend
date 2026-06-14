@@ -29,37 +29,85 @@ const TIMELINE_STEPS = [
   { key: 'DELIVERED', label: 'Delivered', icon: CheckCircle, color: 'bg-emerald-500' },
 ];
 
+// Status transitions — mirrors backend OrderStatusService.VALID_TRANSITIONS exactly
 const STATUS_TRANSITIONS = {
-  PENDING: ['PROCESSING', 'CANCELLED'],
-  COD_PENDING: ['PROCESSING', 'CANCELLED'],
-  DRAFT: ['PROCESSING', 'CANCELLED'],
-  INITIATED: ['PROCESSING', 'CANCELLED'],
-  PROCESSING: ['PACKED', 'CANCELLED'],
-  PACKED: ['SHIPPED', 'CANCELLED'],
-  SHIPPED: ['OUT_FOR_DELIVERY', 'DELIVERED'],
-  OUT_FOR_DELIVERY: ['DELIVERED'],
-  DELIVERED: [],
-  CANCELLED: [],
-  FAILED: [],
-  RETURNED: [],
-  REFUNDED: [],
-  REFUND_REQUESTED: [],
-  REFUND_APPROVED: [],
-  DISPUTE_OPEN: [],
-  DISPUTE_RESOLVED: [],
+  DRAFT:              ['PROCESSING', 'CANCELLED'],
+  PENDING:            ['PROCESSING', 'PACKED', 'SHIPPED', 'OUT_FOR_DELIVERY', 'CANCELLED'],
+  COD_PENDING:        ['CONFIRMED_BY_CALL', 'PROCESSING', 'PACKED', 'SHIPPED', 'OUT_FOR_DELIVERY', 'CANCELLED'],
+  INITIATED:          ['PROCESSING', 'CANCELLED'],
+  CONFIRMED:          ['PROCESSING', 'PACKED', 'SHIPPED', 'OUT_FOR_DELIVERY', 'CANCELLED'],
+  CONFIRMED_BY_CALL:  ['PROCESSING', 'PACKED', 'SHIPPED', 'CANCELLED'],
+  PROCESSING:         ['PACKED', 'SHIPPED', 'OUT_FOR_DELIVERY', 'CANCELLED'],
+  PACKED:             ['SHIPPED', 'OUT_FOR_DELIVERY', 'CANCELLED'],
+  SHIPPED:            ['OUT_FOR_DELIVERY', 'DELIVERED', 'RETURN_REQUESTED', 'CANCELLED'],
+  OUT_FOR_DELIVERY:   ['DELIVERED', 'RETURN_REQUESTED', 'CANCELLED'],
+  RETURN_REQUESTED:   ['RETURNED'],
+  RETURNED:           [],
+  DELIVERED:          [],
+  CANCELLED:          [],
+  FAILED:             [],
+  REFUNDED:           [],
+  REFUND_REQUESTED:   [],
+  REFUND_APPROVED:    [],
+  DISPUTE_OPEN:       [],
+  DISPUTE_RESOLVED:   [],
 };
 
 // Human-readable labels for terminal state explanations
 const TERMINAL_STATUS_REASONS = {
   REFUNDED: 'This order has been refunded and cannot be updated.',
   CANCELLED: 'This order has been cancelled and cannot be updated.',
-  DELIVERED: 'This order has been delivered and cannot be updated.',
+  DELIVERED: 'This order has been delivered. No further updates needed.',
   RETURNED: 'This order has been returned and cannot be updated.',
   FAILED: 'This order failed and cannot be updated.',
   REFUND_REQUESTED: 'A refund has been requested for this order.',
   REFUND_APPROVED: 'The refund has been approved for this order.',
   DISPUTE_OPEN: 'A dispute is open for this order.',
   DISPUTE_RESOLVED: 'The dispute on this order has been resolved.',
+};
+
+const sanitizeName = (raw) => {
+  if (!raw) return 'N/A';
+  const cleaned = String(raw).replace(/^(admin|customer_user|admincustomer_user|seller_user|user_)/i, '').trim();
+  return cleaned || 'N/A';
+};
+
+const sanitizeEmail = (raw) => {
+  if (!raw) return 'N/A';
+  const cleaned = String(raw).replace(/^(admin|customer_user|admincustomer_user|seller_user|user_)/i, '').trim();
+  return cleaned || 'N/A';
+};
+
+const renderGatewayResponse = (response) => {
+  if (!response) return null;
+  let data = response;
+  if (typeof response === 'string') {
+    try {
+      data = JSON.parse(response);
+    } catch (e) {
+      return <p className="text-[11px] font-mono break-all bg-gray-50 dark:bg-zinc-800/40 p-2 rounded border border-gray-200 dark:border-zinc-700">{response}</p>;
+    }
+  }
+  
+  if (typeof data === 'object' && data !== null) {
+    const entries = Object.entries(data).filter(([key, val]) => {
+      return typeof val !== 'object' && String(key).toLowerCase() !== 'signature';
+    });
+    
+    if (entries.length === 0) return <code className="text-[10px] break-all">{JSON.stringify(data)}</code>;
+    
+    return (
+      <div className="grid grid-cols-2 gap-2 bg-gray-50 dark:bg-zinc-800/40 p-2.5 rounded-lg border border-gray-200 dark:border-zinc-700 text-[11px] font-semibold">
+        {entries.map(([key, val]) => (
+          <div key={key} className="flex flex-col min-w-0">
+            <span className="text-[9px] uppercase tracking-wider text-gray-400 font-bold">{key.replace(/_/g, ' ')}</span>
+            <span className="text-gray-800 dark:text-gray-200 truncate" title={String(val)}>{String(val)}</span>
+          </div>
+        ))}
+      </div>
+    );
+  }
+  return <p className="text-[11px] font-mono break-all bg-gray-50 dark:bg-zinc-800/40 p-2 rounded border border-gray-200 dark:border-zinc-700">{String(response)}</p>;
 };
 
 const SellerOrderDetails = ({ orderId, onClose }) => {
@@ -212,11 +260,11 @@ const SellerOrderDetails = ({ orderId, onClose }) => {
   }
 
   return (
-    <div className={`fixed inset-0 z-50 flex items-center justify-center ${darkMode ? 'bg-black/70' : 'bg-black/50'} backdrop-blur-sm p-4 overflow-y-auto`}>
-      <div className={`${themeClasses.card} rounded-lg shadow-2xl w-full max-w-5xl my-8 border`}>
+    <div className={`fixed inset-0 z-50 flex justify-end ${darkMode ? 'bg-black/70' : 'bg-black/50'} backdrop-blur-sm`}>
+      <div className={`${themeClasses.card} w-full max-w-xl h-full shadow-2xl border-l ${themeClasses.border.primary} flex flex-col animate-slide-in-from-right`}>
         
         {/* Header */}
-        <div className={`${themeClasses.bg.secondary} px-6 py-4 border-b ${themeClasses.border.primary} flex items-center justify-between`}>
+        <div className={`${themeClasses.bg.secondary} px-6 py-4 border-b ${themeClasses.border.primary} flex items-center justify-between flex-shrink-0`}>
           <div>
             <h2 className={`text-lg font-black ${themeClasses.text.primary}`}>Order #{order.customOrderId || order.orderId}</h2>
             <p className={`text-xs ${themeClasses.text.tertiary} mt-1`}>
@@ -232,7 +280,7 @@ const SellerOrderDetails = ({ orderId, onClose }) => {
         </div>
 
         {/* Content */}
-        <div className="p-6 space-y-6 max-h-[calc(100vh-200px)] overflow-y-auto">
+        <div className="p-6 space-y-6 flex-1 overflow-y-auto">
           
           {error && (
             <div className={`p-4 ${themeClasses.bg.danger} border ${themeClasses.border.danger} rounded-lg flex items-start gap-3`}>
@@ -281,399 +329,377 @@ const SellerOrderDetails = ({ orderId, onClose }) => {
             </div>
           </div>
 
-          {/* Main Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            
-            {/* Left Column - Customer & Items */}
-            <div className="lg:col-span-2 space-y-4">
-              
-              {/* Customer */}
-              <div className={`${themeClasses.card} rounded-lg p-4 border ${themeClasses.border.primary}`}>
-                <h4 className={`text-sm font-black ${themeClasses.text.primary} mb-3`}>Customer</h4>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className={themeClasses.text.secondary}>Name</span>
-                    <span className={`font-bold ${themeClasses.text.primary}`}>{order.customerName || 'N/A'}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className={themeClasses.text.secondary}>Phone</span>
-                    <div className="flex items-center gap-2">
-                      <span className={`font-bold ${themeClasses.text.primary}`}>{order.customerPhone || 'N/A'}</span>
-                      {order.customerPhone && (
-                        <button
-                          onClick={() => copyToClipboard(order.customerPhone, 'phone')}
-                          className="p-1"
-                        >
-                          {copied === 'phone' ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4 text-gray-400" />}
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className={themeClasses.text.secondary}>Email</span>
-                    <span className={`font-bold ${themeClasses.text.primary} text-xs`}>{order.customerEmail || 'N/A'}</span>
-                  </div>
-                </div>
-              </div>
+          {/* Stacked Layout for Side Drawer */}
+          <div className="space-y-4">
 
-              {/* Address */}
-              <div className={`${themeClasses.card} rounded-lg p-4 border ${themeClasses.border.primary}`}>
-                <h4 className={`text-sm font-black ${themeClasses.text.primary} mb-3 flex items-center gap-2`}>
-                  <MapPin className="w-4 h-4" /> Address
+            {/* ── Status Actions Panel (PROMINENT — top of details) ── */}
+            <div className={`${themeClasses.card} rounded-lg p-4 border-2 ${
+              getAvailableTransitions().length > 0
+                ? (darkMode ? 'border-emerald-700' : 'border-emerald-300')
+                : (darkMode ? 'border-gray-700' : 'border-gray-200')
+            }`}>
+              <div className="flex items-center gap-2 mb-3">
+                <div className={`w-2 h-2 rounded-full ${
+                  getAvailableTransitions().length > 0 ? 'bg-emerald-500 animate-pulse' : 'bg-gray-400'
+                }`} />
+                <h4 className={`text-sm font-black ${themeClasses.text.primary}`}>
+                  Update Order Status
                 </h4>
-                <p className={`text-sm ${themeClasses.text.secondary} leading-relaxed`}>
-                  {order.shippingAddress || 'No address'}
-                </p>
+                <span className={`ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                  darkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600'
+                }`}>
+                  {order.status}
+                </span>
               </div>
 
-              {/* Items */}
-              <div className={`${themeClasses.card} rounded-lg overflow-hidden border ${themeClasses.border.primary}`}>
-                <div className={`${themeClasses.bg.secondary} px-4 py-3 border-b ${themeClasses.border.primary}`}>
-                  <h4 className={`text-sm font-black ${themeClasses.text.primary}`}>Order Items ({order.items?.length || 0})</h4>
-                </div>
-                <div className="divide-y divide-gray-200">
-                  {order.items && order.items.length > 0 ? (
-                    order.items.map((item, idx) => {
-                      const name = item.productName || item.name || 'Product';
-                      const img = item.productImage || item.imagePath;
-                      const qty = item.quantity || 1;
-                      const price = item.price || item.unitPrice || 0;
-                      const total = item.lineTotal || (price * qty) || 0;
-                      const sku = item.sku || item.SKU || 'N/A';
-                      const discount = item.discount || item.discountAmount || 0;
-                      const variants = item.variants || item.variantAttributes || {};
-                      
-                      return (
-                        <div key={idx} className={`p-4 hover:${themeClasses.bg.secondary} transition-colors`}>
-                          <button
-                            onClick={() => setExpandedItem(expandedItem === idx ? null : idx)}
-                            className="w-full flex items-center justify-between"
-                          >
-                            <div className="flex items-center gap-3 flex-1 text-left">
-                              {img && (
-                                <img
-                                  src={getImgUrl(img)}
-                                  alt={name}
-                                  className="w-12 h-12 rounded object-cover border"
-                                />
-                              )}
-                              <div className="flex-1">
-                                <p className={`font-bold text-sm ${themeClasses.text.primary}`}>{name}</p>
-                                <div className="flex items-center gap-2 mt-1">
-                                  <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded font-bold">SKU: {sku}</span>
-                                  <span className={`text-xs ${themeClasses.text.tertiary}`}>Qty: {qty}</span>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <p className={`font-bold ${themeClasses.text.primary}`}>Rs. {total?.toLocaleString()}</p>
-                              {expandedItem === idx ? <ChevronUp className="w-4 h-4 mt-1" /> : <ChevronDown className="w-4 h-4 mt-1" />}
-                            </div>
-                          </button>
-                          
-                          {expandedItem === idx && (
-                            <div className={`mt-4 pt-4 border-t ${themeClasses.border.primary} space-y-3`}>
-                              {/* Pricing Breakdown */}
-                              <div className={`${themeClasses.bg.secondary} p-3 rounded-lg space-y-2 text-xs`}>
-                                <p className={`font-black ${themeClasses.text.tertiary} uppercase tracking-wider`}>Pricing</p>
-                                <div className="flex justify-between">
-                                  <span className={themeClasses.text.secondary}>Unit Price</span>
-                                  <span className={`font-bold ${themeClasses.text.primary}`}>Rs. {price?.toLocaleString()}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span className={themeClasses.text.secondary}>Quantity</span>
-                                  <span className={`font-bold ${themeClasses.text.primary}`}>{qty}</span>
-                                </div>
-                                {discount > 0 && (
-                                  <div className="flex justify-between text-red-600">
-                                    <span>Discount</span>
-                                    <span className="font-bold">-Rs. {discount?.toLocaleString()}</span>
-                                  </div>
-                                )}
-                                <div className={`border-t ${themeClasses.border.primary} pt-2 flex justify-between font-bold`}>
-                                  <span className={themeClasses.text.primary}>Subtotal</span>
-                                  <span className="text-emerald-600">Rs. {total?.toLocaleString()}</span>
-                                </div>
-                              </div>
-
-                              {/* Variants */}
-                              {variants && Object.keys(variants).length > 0 && (
-                                <div className={`${themeClasses.bg.secondary} p-3 rounded-lg space-y-2 text-xs`}>
-                                  <p className={`font-black ${themeClasses.text.tertiary} uppercase tracking-wider`}>Variants</p>
-                                  <div className="space-y-1">
-                                    {Object.entries(variants).map(([key, value]) => (
-                                      <div key={key} className="flex justify-between">
-                                        <span className={`${themeClasses.text.secondary} capitalize`}>{key}</span>
-                                        <span className={`font-bold ${themeClasses.text.primary} bg-purple-100 text-purple-800 px-2 py-0.5 rounded`}>
-                                          {String(value).toUpperCase()}
-                                        </span>
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
-                              )}
-
-                              {/* Additional Info */}
-                              <div className={`${themeClasses.bg.secondary} p-3 rounded-lg space-y-2 text-xs`}>
-                                <p className={`font-black ${themeClasses.text.tertiary} uppercase tracking-wider`}>Details</p>
-                                <div className="flex justify-between">
-                                  <span className={themeClasses.text.secondary}>SKU</span>
-                                  <code className={`font-mono font-bold ${themeClasses.text.primary}`}>{sku}</code>
-                                </div>
-                                {item.productId && (
-                                  <div className="flex justify-between">
-                                    <span className={themeClasses.text.secondary}>Product ID</span>
-                                    <code className={`font-mono font-bold ${themeClasses.text.primary} text-xs`}>{item.productId}</code>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })
-                  ) : (
-                    <div className={`p-4 text-center ${themeClasses.text.tertiary}`}>No items</div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Right Column - Payment, Summary & Actions */}
-            <div className="space-y-4">
-              
-              {/* Payment */}
-              <div className={`${themeClasses.card} rounded-lg p-4 border ${themeClasses.border.primary}`}>
-                <h4 className={`text-sm font-black ${themeClasses.text.primary} mb-3 flex items-center gap-2`}>
-                  <CreditCard className="w-4 h-4" /> Payment Details
-                </h4>
-                <div className="space-y-3 text-sm">
-                  <div className="flex justify-between items-center">
-                    <span className={themeClasses.text.secondary}>Method</span>
-                    <span className={`font-bold px-3 py-1 rounded-lg text-xs ${
-                      order.paymentMethod === 'ESEWA' ? 'bg-green-100 text-green-800' :
-                      order.paymentMethod === 'KHALTI' ? 'bg-purple-100 text-purple-800' :
-                      order.paymentMethod === 'COD' ? 'bg-blue-100 text-blue-800' :
-                      'bg-gray-100 text-gray-800'
-                    }`}>
-                      {order.paymentMethod || 'COD'}
-                    </span>
-                  </div>
-                  
-                  <div className="flex justify-between items-center">
-                    <span className={themeClasses.text.secondary}>Status</span>
-                    <span className={`font-bold px-3 py-1 rounded-lg text-xs ${
-                      order.paymentStatus === 'COMPLETED' ? 'bg-emerald-100 text-emerald-800' : 
-                      order.paymentStatus === 'PENDING' ? 'bg-amber-100 text-amber-800' :
-                      'bg-gray-100 text-gray-800'
-                    }`}>
-                      {order.paymentStatus || 'PENDING'}
-                    </span>
-                  </div>
-
-                  {/* Reference Number - Try multiple field names */}
-                  {(order.referenceNumber || order.reference || order.paymentReference || order.refNumber) && (
-                    <div className={`pt-2 border-t ${themeClasses.border.primary}`}>
-                      <p className={`text-xs ${themeClasses.text.tertiary} mb-1`}>Reference Number</p>
-                      <div className="flex items-center gap-2">
-                        <code className={`text-xs ${themeClasses.bg.secondary} px-2 py-1 rounded flex-1 truncate font-mono`}>
-                          {order.referenceNumber || order.reference || order.paymentReference || order.refNumber}
-                        </code>
-                        <button
-                          onClick={() => copyToClipboard(order.referenceNumber || order.reference || order.paymentReference || order.refNumber, 'ref')}
-                          className="p-1"
-                        >
-                          {copied === 'ref' ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
-                        </button>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Order ID as Reference */}
-                  {order.orderId && (
-                    <div className={`pt-2 border-t ${themeClasses.border.primary}`}>
-                      <p className={`text-xs ${themeClasses.text.tertiary} mb-1`}>Order ID</p>
-                      <div className="flex items-center gap-2">
-                        <code className={`text-xs ${themeClasses.bg.secondary} px-2 py-1 rounded flex-1 truncate font-mono`}>
-                          {order.orderId}
-                        </code>
-                        <button
-                          onClick={() => copyToClipboard(order.orderId, 'orderId')}
-                          className="p-1"
-                        >
-                          {copied === 'orderId' ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
-                        </button>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Custom Order ID */}
-                  {order.customOrderId && (
-                    <div className={`pt-2 border-t ${themeClasses.border.primary}`}>
-                      <p className={`text-xs ${themeClasses.text.tertiary} mb-1`}>Custom Order ID</p>
-                      <div className="flex items-center gap-2">
-                        <code className={`text-xs ${themeClasses.bg.secondary} px-2 py-1 rounded flex-1 truncate font-mono`}>
-                          {order.customOrderId}
-                        </code>
-                        <button
-                          onClick={() => copyToClipboard(order.customOrderId, 'customId')}
-                          className="p-1"
-                        >
-                          {copied === 'customId' ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                  
-                  {/* Transaction UUID */}
-                  {order.transactionUuid && (
-                    <div className={`pt-2 border-t ${themeClasses.border.primary}`}>
-                      <p className={`text-xs ${themeClasses.text.tertiary} mb-1`}>Transaction ID</p>
-                      <div className="flex items-center gap-2">
-                        <code className={`text-xs ${themeClasses.bg.secondary} px-2 py-1 rounded flex-1 truncate font-mono`}>
-                          {order.transactionUuid}
-                        </code>
-                        <button
-                          onClick={() => copyToClipboard(order.transactionUuid, 'txn')}
-                          className="p-1"
-                        >
-                          {copied === 'txn' ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
-                        </button>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Invoice Number */}
-                  {order.invoiceNumber && (
-                    <div className={`pt-2 border-t ${themeClasses.border.primary}`}>
-                      <p className={`text-xs ${themeClasses.text.tertiary} mb-1`}>Invoice Number</p>
-                      <div className="flex items-center gap-2">
-                        <code className={`text-xs ${themeClasses.bg.secondary} px-2 py-1 rounded flex-1 truncate font-mono`}>
-                          {order.invoiceNumber}
-                        </code>
-                        <button
-                          onClick={() => copyToClipboard(order.invoiceNumber, 'invoice')}
-                          className="p-1"
-                        >
-                          {copied === 'invoice' ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
-                        </button>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Payment Gateway Response */}
-                  {order.paymentGatewayResponse && (
-                    <div className={`pt-2 border-t ${themeClasses.border.primary}`}>
-                      <p className={`text-xs ${themeClasses.text.tertiary} mb-1`}>Gateway Response</p>
-                      <p className={`text-xs ${themeClasses.text.primary} font-mono`}>
-                        {typeof order.paymentGatewayResponse === 'string' 
-                          ? order.paymentGatewayResponse 
-                          : JSON.stringify(order.paymentGatewayResponse).substring(0, 100)}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Summary */}
-              <div className={`${themeClasses.card} rounded-lg p-4 border ${themeClasses.border.primary}`}>
-                <h4 className={`text-sm font-black ${themeClasses.text.primary} mb-3`}>Summary</h4>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className={themeClasses.text.secondary}>Items</span>
-                    <span className={`font-bold ${themeClasses.text.primary}`}>Rs. {(order.itemsTotal || order.totalAmount || 0)?.toLocaleString()}</span>
-                  </div>
-                  {(order.marketplaceCommission || 0) > 0 && (
-                    <div className="flex justify-between text-red-600">
-                      <span>Commission</span>
-                      <span className="font-bold">-Rs. {order.marketplaceCommission?.toLocaleString()}</span>
-                    </div>
-                  )}
-                  {(order.inputVatAmount || 0) > 0 && (
-                    <div className="flex justify-between">
-                      <span className={themeClasses.text.secondary}>VAT</span>
-                      <span className={`font-bold ${themeClasses.text.primary}`}>Rs. {order.inputVatAmount?.toLocaleString()}</span>
-                    </div>
-                  )}
-                  <div className={`border-t ${themeClasses.border.primary} pt-2 flex justify-between`}>
-                    <span className={`font-black ${themeClasses.text.primary}`}>Your Earnings</span>
-                    <span className="font-black text-emerald-600 text-lg">Rs. {(order.sellerNetAmount || 0)?.toLocaleString()}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Status Actions */}
-              <div className={`${themeClasses.card} rounded-lg p-4 border ${themeClasses.border.primary}`}>
-                <h4 className={`text-sm font-black ${themeClasses.text.primary} mb-3`}>Actions</h4>
-                <div className="space-y-2">
-                  {getAvailableTransitions().map((nextStatus) => {
-                    const isCancel = nextStatus === 'CANCELLED';
-                    return (
-                      <button
-                        key={nextStatus}
-                        onClick={() => {
-                          if (isCancel) {
-                            setShowCancelModal(true);
-                          } else {
-                            handleStatusUpdateClick(nextStatus);
-                          }
-                        }}
-                        disabled={actionInProgress}
-                        className={`w-full px-4 py-2.5 rounded-lg font-bold text-sm transition-all disabled:opacity-50 ${
-                          isCancel 
-                            ? 'bg-red-500 hover:bg-red-600 text-white'
-                            : 'bg-emerald-500 hover:bg-emerald-600 text-white'
-                        }`}
-                      >
-                        {isCancel ? '✕ Cancel Order' : `→ Mark as ${nextStatus}`}
-                      </button>
-                    );
-                  })}
-                  {getAvailableTransitions().length === 0 && (
-                    <div className={`rounded-lg p-3 text-center ${
-                      darkMode ? 'bg-gray-800/60 border border-gray-700' : 'bg-gray-50 border border-gray-200'
-                    }`}>
-                      {getTerminalStatusReason() ? (
-                        <>
-                          <div className="flex items-center justify-center gap-2 mb-1">
-                            <AlertCircle className="w-4 h-4 text-amber-500" />
-                            <span className={`text-xs font-bold ${darkMode ? 'text-amber-400' : 'text-amber-700'}`}>
-                              Order Locked
-                            </span>
-                          </div>
-                          <p className={`text-xs ${themeClasses.text.secondary} leading-relaxed`}>
-                            {getTerminalStatusReason()}
-                          </p>
-                        </>
+              <div className="space-y-2">
+                {getAvailableTransitions().map((nextStatus) => {
+                  const isCancel = nextStatus === 'CANCELLED';
+                  const statusLabels = {
+                    CONFIRMED_BY_CALL: '📞 Confirm by Call',
+                    PROCESSING: '⚙️ Mark as Processing',
+                    PACKED: '📦 Mark as Packed',
+                    SHIPPED: '🚚 Mark as Shipped',
+                    OUT_FOR_DELIVERY: '🏍️ Out for Delivery',
+                    DELIVERED: '✅ Mark as Delivered',
+                    RETURN_REQUESTED: '↩️ Mark Return Requested',
+                    RETURNED: '📬 Mark as Returned',
+                    CANCELLED: '✕ Cancel Order',
+                  };
+                  return (
+                    <button
+                      key={nextStatus}
+                      onClick={() => {
+                        if (isCancel) {
+                          setShowCancelModal(true);
+                        } else {
+                          handleStatusUpdateClick(nextStatus);
+                        }
+                      }}
+                      disabled={actionInProgress}
+                      className={`w-full px-4 py-3 rounded-lg font-bold text-sm transition-all disabled:opacity-50 flex items-center justify-center gap-2 ${
+                        isCancel
+                          ? 'bg-red-50 hover:bg-red-500 text-red-600 hover:text-white border border-red-200 hover:border-red-500'
+                          : 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm shadow-emerald-200'
+                      }`}
+                    >
+                      {actionInProgress ? (
+                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent" />
                       ) : (
-                        <p className={`text-xs ${themeClasses.text.tertiary}`}>No actions available</p>
+                        statusLabels[nextStatus] || `→ ${nextStatus}`
                       )}
-                    </div>
-                  )}
-                </div>
-              </div>
+                    </button>
+                  );
+                })}
 
-              {/* Message */}
-              <div className={`${themeClasses.card} rounded-lg p-4 border ${themeClasses.border.primary}`}>
-                <h4 className={`text-sm font-black ${themeClasses.text.primary} mb-3 flex items-center gap-2`}>
-                  <MessageSquare className="w-4 h-4" /> Message
-                </h4>
-                <textarea
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Type message..."
-                  className={`w-full px-3 py-2 ${themeClasses.bg.secondary} ${themeClasses.text.primary} border ${themeClasses.border.primary} rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none`}
-                  rows="3"
-                />
-                <button
-                  onClick={handleSendMessage}
-                  disabled={sendingMessage || !message.trim()}
-                  className={`w-full mt-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg px-4 py-2.5 font-bold text-sm transition-all disabled:opacity-50`}
-                >
-                  {sendingMessage ? 'Sending...' : 'Send'}
-                </button>
+                {getAvailableTransitions().length === 0 && (
+                  <div className={`rounded-lg p-3 text-center ${
+                    darkMode ? 'bg-gray-800/60 border border-gray-700' : 'bg-gray-50 border border-gray-200'
+                  }`}>
+                    {getTerminalStatusReason() ? (
+                      <>
+                        <div className="flex items-center justify-center gap-2 mb-1">
+                          <AlertCircle className="w-4 h-4 text-amber-500" />
+                          <span className={`text-xs font-bold ${darkMode ? 'text-amber-400' : 'text-amber-700'}`}>
+                            Order Locked
+                          </span>
+                        </div>
+                        <p className={`text-xs ${themeClasses.text.secondary} leading-relaxed`}>
+                          {getTerminalStatusReason()}
+                        </p>
+                      </>
+                    ) : (
+                      <p className={`text-xs ${themeClasses.text.tertiary}`}>No status actions available</p>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
+
+            {/* Customer */}
+            <div className={`${themeClasses.card} rounded-lg p-4 border ${themeClasses.border.primary}`}>
+              <h4 className={`text-sm font-black ${themeClasses.text.primary} mb-3`}>Customer</h4>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className={themeClasses.text.secondary}>Name</span>
+                  <span className={`font-bold ${themeClasses.text.primary}`}>{sanitizeName(order.customerName) || 'N/A'}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className={themeClasses.text.secondary}>Phone</span>
+                  <div className="flex items-center gap-2">
+                    <span className={`font-bold ${themeClasses.text.primary}`}>{order.customerPhone || 'N/A'}</span>
+                    {order.customerPhone && (
+                      <button onClick={() => copyToClipboard(order.customerPhone, 'phone')} className="p-1">
+                        {copied === 'phone' ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4 text-gray-400" />}
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <div className="flex justify-between">
+                  <span className={themeClasses.text.secondary}>Email</span>
+                  <span className={`font-bold ${themeClasses.text.primary} text-xs`}>{sanitizeEmail(order.customerEmail) || 'N/A'}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Address */}
+            <div className={`${themeClasses.card} rounded-lg p-4 border ${themeClasses.border.primary}`}>
+              <h4 className={`text-sm font-black ${themeClasses.text.primary} mb-3 flex items-center gap-2`}>
+                <MapPin className="w-4 h-4" /> Address
+              </h4>
+              <p className={`text-sm ${themeClasses.text.secondary} leading-relaxed`}>
+                {order.shippingAddress || 'No address'}
+              </p>
+            </div>
+
+            {/* Items */}
+            <div className={`${themeClasses.card} rounded-lg overflow-hidden border ${themeClasses.border.primary}`}>
+              <div className={`${themeClasses.bg.secondary} px-4 py-3 border-b ${themeClasses.border.primary}`}>
+                <h4 className={`text-sm font-black ${themeClasses.text.primary}`}>Order Items ({order.items?.length || 0})</h4>
+              </div>
+              <div className="divide-y divide-gray-200">
+                {order.items && order.items.length > 0 ? (
+                  order.items.map((item, idx) => {
+                    const name = item.productName || item.name || 'Product';
+                    const img = item.productImage || item.imagePath;
+                    const qty = item.quantity || 1;
+                    const price = item.price || item.unitPrice || 0;
+                    const total = item.lineTotal || (price * qty) || 0;
+                    const sku = item.sku || item.SKU || 'N/A';
+                    const discount = item.discount || item.discountAmount || 0;
+                    const variants = item.variants || item.variantAttributes || {};
+
+                    return (
+                      <div key={idx} className={`p-4 hover:${themeClasses.bg.secondary} transition-colors`}>
+                        <button
+                          onClick={() => setExpandedItem(expandedItem === idx ? null : idx)}
+                          className="w-full flex items-center justify-between"
+                        >
+                          <div className="flex items-center gap-3 flex-1 text-left">
+                            {img && (
+                              <img
+                                src={getImgUrl(img)}
+                                alt={name}
+                                className="w-12 h-12 rounded object-cover border"
+                              />
+                            )}
+                            <div className="flex-1">
+                              <p className={`font-bold text-sm ${themeClasses.text.primary}`}>{name}</p>
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded font-bold">SKU: {sku}</span>
+                                <span className={`text-xs ${themeClasses.text.tertiary}`}>Qty: {qty}</span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className={`font-bold ${themeClasses.text.primary}`}>Rs. {total?.toLocaleString()}</p>
+                            {expandedItem === idx ? <ChevronUp className="w-4 h-4 mt-1" /> : <ChevronDown className="w-4 h-4 mt-1" />}
+                          </div>
+                        </button>
+
+                        {expandedItem === idx && (
+                          <div className={`mt-4 pt-4 border-t ${themeClasses.border.primary} space-y-3`}>
+                            <div className={`${themeClasses.bg.secondary} p-3 rounded-lg space-y-2 text-xs`}>
+                              <p className={`font-black ${themeClasses.text.tertiary} uppercase tracking-wider`}>Pricing</p>
+                              <div className="flex justify-between">
+                                <span className={themeClasses.text.secondary}>Unit Price</span>
+                                <span className={`font-bold ${themeClasses.text.primary}`}>Rs. {price?.toLocaleString()}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className={themeClasses.text.secondary}>Quantity</span>
+                                <span className={`font-bold ${themeClasses.text.primary}`}>{qty}</span>
+                              </div>
+                              {discount > 0 && (
+                                <div className="flex justify-between text-red-600">
+                                  <span>Discount</span>
+                                  <span className="font-bold">-Rs. {discount?.toLocaleString()}</span>
+                                </div>
+                              )}
+                              <div className={`border-t ${themeClasses.border.primary} pt-2 flex justify-between font-bold`}>
+                                <span className={themeClasses.text.primary}>Subtotal</span>
+                                <span className="text-emerald-600">Rs. {total?.toLocaleString()}</span>
+                              </div>
+                            </div>
+                            {variants && Object.keys(variants).length > 0 && (
+                              <div className={`${themeClasses.bg.secondary} p-3 rounded-lg space-y-2 text-xs`}>
+                                <p className={`font-black ${themeClasses.text.tertiary} uppercase tracking-wider`}>Variants</p>
+                                <div className="space-y-1">
+                                  {Object.entries(variants).map(([key, value]) => (
+                                    <div key={key} className="flex justify-between">
+                                      <span className={`${themeClasses.text.secondary} capitalize`}>{key}</span>
+                                      <span className={`font-bold ${themeClasses.text.primary} bg-purple-100 text-purple-800 px-2 py-0.5 rounded`}>
+                                        {String(value).toUpperCase()}
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                            <div className={`${themeClasses.bg.secondary} p-3 rounded-lg space-y-2 text-xs`}>
+                              <p className={`font-black ${themeClasses.text.tertiary} uppercase tracking-wider`}>Details</p>
+                              <div className="flex justify-between">
+                                <span className={themeClasses.text.secondary}>SKU</span>
+                                <code className={`font-mono font-bold ${themeClasses.text.primary}`}>{sku}</code>
+                              </div>
+                              {item.productId && (
+                                <div className="flex justify-between">
+                                  <span className={themeClasses.text.secondary}>Product ID</span>
+                                  <code className={`font-mono font-bold ${themeClasses.text.primary} text-xs`}>{item.productId}</code>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className={`p-4 text-center ${themeClasses.text.tertiary}`}>No items</div>
+                )}
+              </div>
+            </div>
+
+            {/* Payment */}
+            <div className={`${themeClasses.card} rounded-lg p-4 border ${themeClasses.border.primary}`}>
+              <h4 className={`text-sm font-black ${themeClasses.text.primary} mb-3 flex items-center gap-2`}>
+                <CreditCard className="w-4 h-4" /> Payment Details
+              </h4>
+              <div className="space-y-3 text-sm">
+                <div className="flex justify-between items-center">
+                  <span className={themeClasses.text.secondary}>Method</span>
+                  <span className={`font-bold px-3 py-1 rounded-lg text-xs ${
+                    order.paymentMethod === 'ESEWA' ? 'bg-green-100 text-green-800' :
+                    order.paymentMethod === 'KHALTI' ? 'bg-purple-100 text-purple-800' :
+                    order.paymentMethod === 'COD' ? 'bg-blue-100 text-blue-800' :
+                    'bg-gray-100 text-gray-800'
+                  }`}>
+                    {order.paymentMethod || 'COD'}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className={themeClasses.text.secondary}>Status</span>
+                  <span className={`font-bold px-3 py-1 rounded-lg text-xs ${
+                    order.paymentStatus === 'COMPLETED' ? 'bg-emerald-100 text-emerald-800' :
+                    order.paymentStatus === 'PENDING' ? 'bg-amber-100 text-amber-800' :
+                    'bg-gray-100 text-gray-800'
+                  }`}>
+                    {order.paymentStatus || 'PENDING'}
+                  </span>
+                </div>
+                {(order.referenceNumber || order.reference || order.paymentReference || order.refNumber) && (
+                  <div className={`pt-2 border-t ${themeClasses.border.primary}`}>
+                    <p className={`text-xs ${themeClasses.text.tertiary} mb-1`}>Reference Number</p>
+                    <div className="flex items-center gap-2">
+                      <code className={`text-xs ${themeClasses.bg.secondary} px-2 py-1 rounded flex-1 truncate font-mono`}>
+                        {order.referenceNumber || order.reference || order.paymentReference || order.refNumber}
+                      </code>
+                      <button onClick={() => copyToClipboard(order.referenceNumber || order.reference || order.paymentReference || order.refNumber, 'ref')} className="p-1">
+                        {copied === 'ref' ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
+                      </button>
+                    </div>
+                  </div>
+                )}
+                {order.orderId && (
+                  <div className={`pt-2 border-t ${themeClasses.border.primary}`}>
+                    <p className={`text-xs ${themeClasses.text.tertiary} mb-1`}>Order ID</p>
+                    <div className="flex items-center gap-2">
+                      <code className={`text-xs ${themeClasses.bg.secondary} px-2 py-1 rounded flex-1 truncate font-mono`}>{order.orderId}</code>
+                      <button onClick={() => copyToClipboard(order.orderId, 'orderId')} className="p-1">
+                        {copied === 'orderId' ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
+                      </button>
+                    </div>
+                  </div>
+                )}
+                {order.customOrderId && (
+                  <div className={`pt-2 border-t ${themeClasses.border.primary}`}>
+                    <p className={`text-xs ${themeClasses.text.tertiary} mb-1`}>Custom Order ID</p>
+                    <div className="flex items-center gap-2">
+                      <code className={`text-xs ${themeClasses.bg.secondary} px-2 py-1 rounded flex-1 truncate font-mono`}>{order.customOrderId}</code>
+                      <button onClick={() => copyToClipboard(order.customOrderId, 'customId')} className="p-1">
+                        {copied === 'customId' ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
+                      </button>
+                    </div>
+                  </div>
+                )}
+                {order.transactionUuid && (
+                  <div className={`pt-2 border-t ${themeClasses.border.primary}`}>
+                    <p className={`text-xs ${themeClasses.text.tertiary} mb-1`}>Transaction ID</p>
+                    <div className="flex items-center gap-2">
+                      <code className={`text-xs ${themeClasses.bg.secondary} px-2 py-1 rounded flex-1 truncate font-mono`}>{order.transactionUuid}</code>
+                      <button onClick={() => copyToClipboard(order.transactionUuid, 'txn')} className="p-1">
+                        {copied === 'txn' ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
+                      </button>
+                    </div>
+                  </div>
+                )}
+                {order.invoiceNumber && (
+                  <div className={`pt-2 border-t ${themeClasses.border.primary}`}>
+                    <p className={`text-xs ${themeClasses.text.tertiary} mb-1`}>Invoice Number</p>
+                    <div className="flex items-center gap-2">
+                      <code className={`text-xs ${themeClasses.bg.secondary} px-2 py-1 rounded flex-1 truncate font-mono`}>{order.invoiceNumber}</code>
+                      <button onClick={() => copyToClipboard(order.invoiceNumber, 'invoice')} className="p-1">
+                        {copied === 'invoice' ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
+                      </button>
+                    </div>
+                  </div>
+                )}
+                {order.paymentGatewayResponse && (
+                  <div className={`pt-2 border-t ${themeClasses.border.primary}`}>
+                    <p className={`text-xs ${themeClasses.text.tertiary} mb-2`}>Gateway Response</p>
+                    {renderGatewayResponse(order.paymentGatewayResponse)}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Summary */}
+            <div className={`${themeClasses.card} rounded-lg p-4 border ${themeClasses.border.primary}`}>
+              <h4 className={`text-sm font-black ${themeClasses.text.primary} mb-3`}>Summary</h4>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className={themeClasses.text.secondary}>Items</span>
+                  <span className={`font-bold ${themeClasses.text.primary}`}>Rs. {(order.itemsTotal || order.totalAmount || 0)?.toLocaleString()}</span>
+                </div>
+                {(order.marketplaceCommission || 0) > 0 && (
+                  <div className="flex justify-between text-red-600">
+                    <span>Commission</span>
+                    <span className="font-bold">-Rs. {order.marketplaceCommission?.toLocaleString()}</span>
+                  </div>
+                )}
+                {(order.inputVatAmount || 0) > 0 && (
+                  <div className="flex justify-between">
+                    <span className={themeClasses.text.secondary}>VAT</span>
+                    <span className={`font-bold ${themeClasses.text.primary}`}>Rs. {order.inputVatAmount?.toLocaleString()}</span>
+                  </div>
+                )}
+                <div className={`border-t ${themeClasses.border.primary} pt-2 flex justify-between`}>
+                  <span className={`font-black ${themeClasses.text.primary}`}>Your Earnings</span>
+                  <span className="font-black text-emerald-600 text-lg">Rs. {(order.sellerNetAmount || 0)?.toLocaleString()}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Message Customer */}
+            <div className={`${themeClasses.card} rounded-lg p-4 border ${themeClasses.border.primary}`}>
+              <h4 className={`text-sm font-black ${themeClasses.text.primary} mb-3 flex items-center gap-2`}>
+                <MessageSquare className="w-4 h-4" /> Message Customer
+              </h4>
+              <textarea
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                placeholder="Type message to customer..."
+                className={`w-full px-3 py-2 ${themeClasses.bg.secondary} ${themeClasses.text.primary} border ${themeClasses.border.primary} rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none`}
+                rows="3"
+              />
+              <button
+                onClick={handleSendMessage}
+                disabled={sendingMessage || !message.trim()}
+                className={`w-full mt-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg px-4 py-2.5 font-bold text-sm transition-all disabled:opacity-50`}
+              >
+                {sendingMessage ? 'Sending...' : 'Send Message'}
+              </button>
+            </div>
+
           </div>
         </div>
 

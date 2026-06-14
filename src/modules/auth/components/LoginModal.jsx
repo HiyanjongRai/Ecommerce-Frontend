@@ -236,7 +236,6 @@ const LoginModal = ({ isOpen, onClose, initialTab = 'login', initialRole = 'CUST
         borderRadius: 20,
         boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
         overflow: 'hidden',
-        fontFamily: '"Segoe UI", "Roboto", sans-serif',
         animation: 'lm-pop 0.3s cubic-bezier(0.34,1.56,0.64,1) both',
       }}>
         <style>{`
@@ -709,7 +708,8 @@ const LoginModal = ({ isOpen, onClose, initialTab = 'login', initialRole = 'CUST
                       className="lm-input"
                       type="text"
                       required
-                      placeholder="username"
+                      autoComplete="off"
+                      placeholder="Choose a username"
                       value={regData.username}
                       onChange={e => setRegData(p => ({ ...p, username: e.target.value }))}
                     />
@@ -820,8 +820,12 @@ const LoginModal = ({ isOpen, onClose, initialTab = 'login', initialRole = 'CUST
             <>
               {forgotStep === 'email' ? (
                 <>
-                  <div style={{ textAlign: 'center', marginBottom: 18 }}>
-                    <div style={{ fontSize: 40, marginBottom: 10 }}>🔑</div>
+                  <div style={{ marginBottom: 10 }}>
+                    <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10 }}>
+                      <svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="#10b981" strokeWidth="1.5">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                      </svg>
+                    </div>
                     <div style={{ fontSize: 16, fontWeight: 800, color: '#1f2937', marginBottom: 4 }}>Reset Password</div>
                     <div style={{ fontSize: 12, color: '#6b7280', lineHeight: 1.5 }}>
                       Enter your registered email and we'll send you an OTP to reset your password.

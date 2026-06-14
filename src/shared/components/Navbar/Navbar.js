@@ -290,7 +290,7 @@ export default function Navbar() {
         {isAnnouncementVisible && (
           <div className="bg-slate-900 text-white text-[11px] py-1.5 px-4 flex justify-between items-center transition-all duration-300">
             <div className="flex-1 text-center font-medium tracking-wide font-inter">
-              ✨ Free shipping on orders over $50. Special packaging for all premium products.
+              🎁 Free shipping on orders over <strong>Rs. 2,000</strong>. Special packaging for all premium products.
             </div>
             <button 
               onClick={() => setIsAnnouncementVisible(false)}
@@ -307,10 +307,6 @@ export default function Navbar() {
           <div className="max-w-[1440px] mx-auto flex justify-between items-center">
             {/* Left Utility Links */}
             <div className="flex items-center gap-6">
-              <Link to="/product-list" className="hover:text-emerald-600 flex items-center gap-1.5 transition-colors outline-none focus:ring-1 focus:ring-emerald-500/20 rounded-xs">
-                <MapPin className="w-3.5 h-3.5" />
-                <span>Store Locator</span>
-              </Link>
               <Link to="/customer/orders" className="hover:text-emerald-600 flex items-center gap-1.5 transition-colors outline-none focus:ring-1 focus:ring-emerald-500/20 rounded-xs">
                 <Package className="w-3.5 h-3.5" />
                 <span>Track Order</span>
@@ -327,11 +323,21 @@ export default function Navbar() {
                 <HelpCircle className="w-3.5 h-3.5" />
                 <span>Help & FAQs</span>
               </Link>
-              <div className="flex items-center gap-1.5 cursor-pointer hover:text-emerald-600 transition-colors group">
+              <div className="flex items-center gap-1.5 text-gray-400 select-none" title="All prices in Nepali Rupees">
                 <Globe className="w-3.5 h-3.5" />
-                <span className="font-semibold">EN / USD</span>
-                <ChevronDown className="w-3 h-3 group-hover:translate-y-0.5 transition-transform" />
+                <span className="font-semibold">NPR</span>
               </div>
+
+              {!(user?.role === 'SELLER' || user?.role === 'ADMIN') && (
+                <Link
+                  to="/register"
+                  className="flex items-center gap-1 text-amber-600 hover:text-amber-700 font-semibold transition-colors"
+                  title="Start selling on Jhapcham"
+                >
+                  <span>Sell on Jhapcham</span>
+                </Link>
+              )}
+
               <div className="flex items-center gap-3 border-l border-gray-200 pl-6">
                 <a href="https://facebook.com" target="_blank" rel="noreferrer" className="hover:text-emerald-600 transition-colors"><Facebook className="w-3.5 h-3.5" /></a>
                 <a href="https://twitter.com" target="_blank" rel="noreferrer" className="hover:text-emerald-600 transition-colors"><Twitter className="w-3.5 h-3.5" /></a>
@@ -569,15 +575,52 @@ export default function Navbar() {
                       </div>
                     </div>
                     <div className="py-1 text-xs">
-                      <Link to={getDashboardUrl() || '/customer/dashboard'} onClick={() => setIsAccountDropdownOpen(false)} className="block px-4 py-2.5 hover:bg-emerald-50 hover:text-emerald-600 transition-colors">
-                        Dashboard
-                      </Link>
-                      <Link to="/customer/profile" onClick={() => setIsAccountDropdownOpen(false)} className="block px-4 py-2.5 hover:bg-emerald-50 hover:text-emerald-600 transition-colors">
-                        Store Profile
-                      </Link>
-                      <Link to="/customer/orders" onClick={() => setIsAccountDropdownOpen(false)} className="block px-4 py-2.5 hover:bg-emerald-50 hover:text-emerald-600 transition-colors">
-                        My Orders
-                      </Link>
+                      {user?.role === 'SELLER' ? (
+                        <>
+                          <Link to="/seller/dashboard" onClick={() => setIsAccountDropdownOpen(false)} className="block px-4 py-2.5 hover:bg-emerald-50 hover:text-emerald-600 transition-colors">
+                            Seller Dashboard
+                          </Link>
+                          <Link to="/seller/profile" onClick={() => setIsAccountDropdownOpen(false)} className="block px-4 py-2.5 hover:bg-emerald-50 hover:text-emerald-600 transition-colors">
+                            Store Profile
+                          </Link>
+                          <Link to="/seller/products" onClick={() => setIsAccountDropdownOpen(false)} className="block px-4 py-2.5 hover:bg-emerald-50 hover:text-emerald-600 transition-colors">
+                            My Products
+                          </Link>
+                          <Link to="/seller/orders" onClick={() => setIsAccountDropdownOpen(false)} className="block px-4 py-2.5 hover:bg-emerald-50 hover:text-emerald-600 transition-colors">
+                            Manage Orders
+                          </Link>
+                          <Link to="/seller/settings" onClick={() => setIsAccountDropdownOpen(false)} className="block px-4 py-2.5 hover:bg-emerald-50 hover:text-emerald-600 transition-colors">
+                            Store Settings
+                          </Link>
+                        </>
+                      ) : user?.role === 'ADMIN' ? (
+                        <>
+                          <Link to="/admin/dashboard" onClick={() => setIsAccountDropdownOpen(false)} className="block px-4 py-2.5 hover:bg-emerald-50 hover:text-emerald-600 transition-colors">
+                            Admin Dashboard
+                          </Link>
+                          <Link to="/admin/users" onClick={() => setIsAccountDropdownOpen(false)} className="block px-4 py-2.5 hover:bg-emerald-50 hover:text-emerald-600 transition-colors">
+                            Manage Users
+                          </Link>
+                          <Link to="/admin/sellers" onClick={() => setIsAccountDropdownOpen(false)} className="block px-4 py-2.5 hover:bg-emerald-50 hover:text-emerald-600 transition-colors">
+                            Manage Sellers
+                          </Link>
+                          <Link to="/admin/settings" onClick={() => setIsAccountDropdownOpen(false)} className="block px-4 py-2.5 hover:bg-emerald-50 hover:text-emerald-600 transition-colors">
+                            Admin Settings
+                          </Link>
+                        </>
+                      ) : (
+                        <>
+                          <Link to="/customer/dashboard" onClick={() => setIsAccountDropdownOpen(false)} className="block px-4 py-2.5 hover:bg-emerald-50 hover:text-emerald-600 transition-colors">
+                            My Dashboard
+                          </Link>
+                          <Link to="/customer/profile" onClick={() => setIsAccountDropdownOpen(false)} className="block px-4 py-2.5 hover:bg-emerald-50 hover:text-emerald-600 transition-colors">
+                            My Profile
+                          </Link>
+                          <Link to="/customer/orders" onClick={() => setIsAccountDropdownOpen(false)} className="block px-4 py-2.5 hover:bg-emerald-50 hover:text-emerald-600 transition-colors">
+                            My Orders
+                          </Link>
+                        </>
+                      )}
                       <button 
                         onClick={() => { logoutUser(); setIsAccountDropdownOpen(false); }}
                         className="w-full text-left px-4 py-2.5 border-t border-gray-100 hover:bg-slate-900 hover:text-white text-red-600 transition-colors font-semibold"
@@ -588,6 +631,8 @@ export default function Navbar() {
                   </div>
                 )}
               </div>
+
+
 
               {/* Shop Sale Button */}
               <Link 
@@ -685,12 +730,12 @@ export default function Navbar() {
               })}
             </div>
 
-            <div className="flex-shrink-0 flex items-center gap-2 text-slate-800 border-l border-gray-200 pl-6 py-1 text-xs font-bold select-none hidden sm:flex">
-              <span className="text-gray-400 text-[10px] uppercase tracking-wider font-semibold">Site-Wide Sale:</span>
+            <Link to="/product-list?onSale=true" className="flex-shrink-0 flex items-center gap-2 text-slate-800 border-l border-gray-200 pl-6 py-1 text-xs font-bold select-none hidden sm:flex hover:opacity-80 transition-opacity" title="View all sale products">
+              <span className="text-amber-500 text-[10px] uppercase tracking-wider font-black">🔥 Flash Sale Ends In:</span>
               <span className="font-mono bg-slate-900 text-amber-400 px-2.5 py-1 rounded-xs tabular-nums text-xs">
                 {formatCountdown(timeLeft)}
               </span>
-            </div>
+            </Link>
           </div>
         </div>
 
@@ -756,8 +801,16 @@ export default function Navbar() {
                   })}
                 </div>
               ) : (
-                <div className="text-center py-20 text-gray-400 text-xs">
-                  Your wishlist is empty.<br />Explore products and save your favorites!
+                <div className="text-center py-16 text-gray-400 text-xs">
+                  <div className="text-4xl mb-3 select-none">❤️</div>
+                  <p className="font-semibold mb-4">Your wishlist is empty.<br />Save items you love while browsing.</p>
+                  <Link
+                    to="/product-list"
+                    onClick={() => setIsWishlistOpen(false)}
+                    className="inline-block bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-black uppercase tracking-wider px-5 py-2.5 rounded-sm transition-colors"
+                  >
+                    Browse Products →
+                  </Link>
                 </div>
               )}
             </div>
@@ -772,6 +825,8 @@ export default function Navbar() {
             <Link to="/promo/landing" className="block py-2 text-slate-800 hover:text-emerald-600" onClick={() => setIsMobileMenuOpen(false)}>Deals</Link>
             <Link to="/promo" className="block py-2 text-amber-500" onClick={() => setIsMobileMenuOpen(false)}>🎟 Promo Center</Link>
             
+
+
             {/* Search for mobile */}
             <form onSubmit={handleSearch} className="pt-2">
               <div className="flex items-center border border-gray-300 rounded-pill overflow-hidden bg-white">

@@ -275,7 +275,7 @@ const CustomerMessages = () => {
 
   /* ── render ───────────────────────────────────────────────────────────── */
   return (
-    <div style={{ fontFamily: "'Inter', 'Segoe UI', sans-serif" }}>
+    <div>
       {/* Page title */}
       <h2 style={{ fontSize: 22, fontWeight: 800, color: isDarkMode ? '#f0f4ff' : '#111827', marginBottom: 20 }}>
         Inbox

@@ -337,7 +337,6 @@ const ResetPasswordModal = ({ isDarkMode, onClose, userEmail }) => {
         borderRadius: 12,
         boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
         overflow: 'hidden',
-        fontFamily: '"Segoe UI", "Roboto", sans-serif',
       }}
     >
       <div

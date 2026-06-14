@@ -242,6 +242,11 @@ export const escalateRefundToAdmin = (refundId, comment) =>
     params: { status: 'ESCALATED_TO_DISPUTE', comment },
   });
 
+export const cancelRefund = (refundId) =>
+  apiClient.put(`/v1/refunds/${refundId}/status`, null, {
+    params: { status: 'CANCELLED' },
+  });
+
 // ── DISPUTES ──────────────────────────────────────────────────────────────────
 export const openDispute = (data) =>
   apiClient.post('/v1/disputes', data);

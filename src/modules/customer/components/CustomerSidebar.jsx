@@ -2,21 +2,22 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCustomer } from '../contexts/CustomerContext';
 import {
-  LayoutDashboard, ShoppingBag, Package, CreditCard,
+  LayoutDashboard, Package, CreditCard,
   Scale, Heart, Bell, MessageCircle, User, MapPin,
-  Zap, Star, LogOut, Sun, Moon, ChevronRight,
+  Star, Gift, LogOut, Sun, Moon, ChevronRight,
 } from 'lucide-react';
+
 
 const NAV = [
   {
     group: 'Shopping',
     items: [
       { to: '/customer/dashboard',    label: 'Dashboard',      icon: LayoutDashboard },
-      { to: '/',                       label: 'Browse Shop',    icon: ShoppingBag     },
       { to: '/customer/orders',        label: 'My Orders',      icon: Package         },
       { to: '/customer/wishlist',      label: 'Wishlist',       icon: Heart           },
     ],
   },
+
   {
     group: 'Support',
     items: [
@@ -31,7 +32,7 @@ const NAV = [
     items: [
       { to: '/customer/profile',       label: 'Profile',        icon: User            },
       { to: '/customer/addresses',     label: 'Addresses',      icon: MapPin          },
-      { to: '/customer/loyalty',       label: 'Loyalty Points', icon: Zap             },
+      { to: '/customer/loyalty',       label: 'Loyalty Points', icon: Gift             },
       { to: '/customer/reviews',       label: 'My Reviews',     icon: Star            },
     ],
   },

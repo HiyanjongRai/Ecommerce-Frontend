@@ -6,8 +6,8 @@
    JHAPCHAM ECOMMERCE - GLOBAL BASE STYLES
    ========================================== */
 
-/* Google Fonts: Inter & Fraunces */
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+/* Google Fonts: Inter */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
 *, *::before, *::after {
   box-sizing: border-box;
@@ -65,4 +65,17 @@ a, button {
 /* Range input accent color */
 input[type="range"] {
   accent-color: #10b981;
+}
+
+@keyframes slide-in-from-right {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-in-from-right {
+  animation: slide-in-from-right 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }

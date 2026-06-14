@@ -14,8 +14,7 @@ import SellerDiscountSales from './components/SellerDiscountSales';
 import SellerSaleDiscountList from './components/SellerSaleDiscountList';
 import SellerRefunds from './components/SellerRefunds';
 import SellerDisputes from './components/SellerDisputes';
-import SellerNotifications from '../customer/components/CustomerNotifications';
-import Navbar from '../../shared/components/Navbar/Navbar';
+import SellerNotifications from './components/SellerNotifications';
 import { getSellerProfile, getSellerApplicationStatus } from './services/sellerService';
 import { useCustomer } from '../customer/contexts/CustomerContext';
 import SellerOnboarding from './components/SellerOnboarding';
@@ -41,50 +40,7 @@ const BREADCRUMBS = {
   '/seller/notifications': 'Notifications',
 };
 
-const SIDEBAR_SECTIONS = [
-  {
-    title: 'Dashboard',
-    items: [
-      { to: '/seller/dashboard', label: 'Dashboard', icon: 'dashboard' },
-      { to: '/seller/commission', label: 'Earnings', icon: 'earnings' },
-    ]
-  },
-  {
-    title: 'Product Management',
-    items: [
-      { to: '/seller/products', label: 'Add Products', icon: 'products', badge: 12 },
-      { to: '/seller/inventory', label: 'Inventory', icon: 'inventory' },
-      { to: '/seller/discount-sales', label: 'Discount & Sales', icon: 'discounts' },
-      { to: '/seller/sale-discount-list', label: 'Sale List', icon: 'discounts' },
-      { to: '/seller/campaigns', label: 'Campaigns', icon: 'campaigns' },
-      { to: '/seller/promos', label: 'Promo Codes', icon: 'promos' },
-    ]
-  },
-  {
-    title: 'Order Management',
-    items: [
-      { to: '/seller/orders', label: 'Orders', icon: 'analytics' },
-      { to: '/seller/refunds', label: 'Refunds', icon: 'refunds' },
-      { to: '/seller/disputes', label: 'Disputes', icon: 'disputes' },
-      { to: '/seller/inbox', label: 'Inbox', icon: 'inbox', badge: 4 },
-    ]
-  },
-  {
-    title: 'Store Operations',
-    items: [
-      { to: '/seller/notifications', label: 'Notifications', icon: 'notifications' },
-      { to: '/seller/profile', label: 'Store Profile', icon: 'profile' },
-    ]
-  },
-  {
-    title: 'Other',
-    items: [
-      { to: '#helps', label: 'Helps', icon: 'helps' },
-      { to: '/seller/settings', label: 'Settings', icon: 'settings' },
-      { to: '#logout', label: 'Logout', icon: 'logout' },
-    ]
-  }
-];
+// SIDEBAR_SECTIONS removed — navigation is handled by SellerSidebar.jsx
 
 const renderIcon = (type, isActive) => {
   const activeColor = "text-[#10B981] theme-dark:text-[#34D399]";
@@ -308,11 +264,10 @@ const SellerLayout = () => {
 
   return (
     <>
-      <Navbar />
-      <div className={`seller-page min-h-screen bg-white text-gray-900 font-sans transition-colors duration-250 ${darkMode ? 'theme-dark' : ''}`}>
+      <div className={`seller-page min-h-screen bg-gray-50 text-gray-900 font-sans transition-colors duration-250 flex flex-col ${darkMode ? 'theme-dark' : ''}`}>
         <style>{`
         .seller-page {
-          background-color: #FFFFFF !important;
+          background-color: #F9FAFB !important;
           color: #111827 !important;
         }
         .seller-page .text-blue-600,
@@ -374,33 +329,34 @@ const SellerLayout = () => {
 
         /* ── Dark Mode Matrix Black & Neon Green ── */
         .theme-dark {
-          background-color: #000000 !important;
+          background-color: #0d0d0d !important;
           color: #FFFFFF !important;
         }
-        .theme-dark .bg-gray-50 {
-          background-color: #000000 !important;
+        .theme-dark .bg-gray-50,
+        .theme-dark .bg-gray-100 {
+          background-color: #111111 !important;
         }
         
         /* Layout elements & cards */
         .theme-dark aside,
         .theme-dark main,
         .theme-dark [class*="bg-white"] {
-          background-color: #000000 !important;
+          background-color: #111111 !important;
           color: #FFFFFF !important;
         }
         
         .theme-dark nav,
         .theme-dark header {
-          background-color: #000000 !important;
+          background-color: #0d0d0d !important;
           color: #FFFFFF !important;
         }
         
         /* CRISP WHITE LINES (BORDERS) */
         .theme-dark [class*="border"] {
-          border-color: rgba(255, 255, 255, 0.45) !important;
+          border-color: rgba(255, 255, 255, 0.12) !important;
         }
         .theme-dark [class*="divide-"] > * {
-          border-color: rgba(255, 255, 255, 0.3) !important;
+          border-color: rgba(255, 255, 255, 0.08) !important;
         }
          /* Text Color Adaptations */
         .theme-dark h1,
@@ -450,13 +406,9 @@ const SellerLayout = () => {
         .theme-dark .text-gray-400,
         .theme-dark .text-gray-500,
         .theme-dark [class*="text-[#A3AED0]"] {
-          color: #9CA3AF !important;
+          color: #6B7280 !important;
         }
         
-        /* Inactive menu items */
-        .theme-dark .text-gray-400 {
-          color: #9CA3AF !important;
-        }
         .theme-dark .hover:text-blue-600:hover {
           color: #10B981 !important;
         }
@@ -464,16 +416,15 @@ const SellerLayout = () => {
         /* Input & Search Adaptations */
         .theme-dark .bg-gray-50,
         .theme-dark .bg-[#F4F7FE] {
-          background-color: #111827 !important;
+          background-color: #1a1a1a !important;
           color: #FFFFFF !important;
-          border-color: rgba(255, 255, 255, 0.4) !important;
+          border-color: rgba(255, 255, 255, 0.15) !important;
         }
         .theme-dark input {
           color: #FFFFFF !important;
         }
         
         /* ACCENT NEON GREEN OVERRIDES */
-        /* Active links, active dots, active icons */
         .theme-dark [class*="text-blue-600"],
         .theme-dark [class*="text-blue-500"],
         .theme-dark [class*="text-[#5c4ce3]"] {
@@ -489,7 +440,7 @@ const SellerLayout = () => {
         /* Active items on list (like Active Inbox chat selection card) */
         .theme-dark .bg-blue-50,
         .theme-dark [class*="bg-blue-50"] {
-          background-color: rgba(16, 185, 129, 0.15) !important;
+          background-color: rgba(16, 185, 129, 0.1) !important;
           border-color: #10B981 !important;
           color: #FFFFFF !important;
         }
@@ -509,11 +460,6 @@ const SellerLayout = () => {
           color: #000000 !important;
         }
         
-        /* Active dot */
-        .theme-dark .bg-blue-600 {
-          background-color: #10B981 !important;
-        }
-        
         /* Stat trends */
         .theme-dark [class*="text-green-600"],
         .theme-dark [class*="text-emerald-600"] {
@@ -524,13 +470,13 @@ const SellerLayout = () => {
         }
         
         /* Badges & Pill backgrounds */
-        .theme-dark .bg-blue-600/5 {
-          background-color: rgba(16, 185, 129, 0.15) !important;
+        .theme-dark .bg-blue-600\/5 {
+          background-color: rgba(16, 185, 129, 0.1) !important;
           color: #10B981 !important;
           border: 1px solid rgba(16, 185, 129, 0.3) !important;
         }
         .theme-dark .bg-emerald-50 {
-          background-color: rgba(52, 211, 153, 0.15) !important;
+          background-color: rgba(52, 211, 153, 0.1) !important;
           color: #34D399 !important;
           border: 1px solid rgba(52, 211, 153, 0.3) !important;
         }
@@ -540,58 +486,52 @@ const SellerLayout = () => {
           background-color: rgba(0, 0, 0, 0.85) !important;
         }
         .theme-dark [class*="bg-[#FAF7F2]"] {
-          background-color: #000000 !important;
-          border-color: rgba(255, 255, 255, 0.45) !important;
+          background-color: #111111 !important;
+          border-color: rgba(255, 255, 255, 0.15) !important;
         }
         
         /* Subtle Inner Dashed/Dotted Borders */
         .theme-dark [class*="border-dashed"],
         .theme-dark [class*="border-dotted"],
         .theme-dark [class*="divide-dashed"] > * {
-          border-color: rgba(255, 255, 255, 0.15) !important;
+          border-color: rgba(255, 255, 255, 0.08) !important;
         }
 
         /* ── Order Modal: specific hex badge backgrounds ── */
-        /* Delivery Slot (pinkish-red) */
         .theme-dark [class*="bg-[#fce8e6]"] {
           background-color: rgba(239, 68, 68, 0.12) !important;
           color: #F87171 !important;
           border-color: rgba(239, 68, 68, 0.25) !important;
         }
-        /* eSewa "Prepaid" green badge */
         .theme-dark [class*="bg-[#e6f4ea]"] {
           background-color: rgba(16, 185, 129, 0.12) !important;
           color: #34D399 !important;
           border-color: rgba(16, 185, 129, 0.25) !important;
         }
-        /* COD blue-gray badge */
         .theme-dark [class*="bg-[#edf2f6]"] {
           background-color: rgba(148, 163, 184, 0.12) !important;
           color: #CBD5E1 !important;
           border-color: rgba(148, 163, 184, 0.25) !important;
         }
-        /* Yellow/amber variant badges (SKU COLOR, MODEL) */
         .theme-dark [class*="bg-[#fef9c3]"] {
           background-color: rgba(245, 158, 11, 0.12) !important;
           color: #FCD34D !important;
           border-color: rgba(245, 158, 11, 0.25) !important;
         }
-        /* Orange variant badges (STORAGE) */
         .theme-dark [class*="bg-[#ffedd5]"] {
           background-color: rgba(249, 115, 22, 0.12) !important;
           color: #FB923C !important;
           border-color: rgba(249, 115, 22, 0.25) !important;
         }
-        /* Commission link button & any residual bg-white */
         .theme-dark a[class*="bg-white"],
         .theme-dark button[class*="bg-white"] {
-          background-color: #111111 !important;
+          background-color: #1a1a1a !important;
           color: #FFFFFF !important;
-          border-color: rgba(255, 255, 255, 0.2) !important;
+          border-color: rgba(255, 255, 255, 0.12) !important;
         }
         .theme-dark a[class*="bg-white"]:hover,
         .theme-dark button[class*="bg-white"]:hover {
-          background-color: #1a1a1a !important;
+          background-color: #222222 !important;
         }
 
         /* ── Sidebar Modern Premium styles ── */
@@ -600,14 +540,14 @@ const SellerLayout = () => {
         }
         .theme-dark .theme-dark-sidebar {
           background-color: #0b0c10 !important;
-          border-color: rgba(255, 255, 255, 0.1) !important;
+          border-color: rgba(255, 255, 255, 0.08) !important;
           box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important;
         }
         .sidebar-section-title {
           color: #9CA3AF !important;
         }
         .theme-dark .sidebar-section-title {
-          color: rgba(255, 255, 255, 0.4) !important;
+          color: rgba(255, 255, 255, 0.35) !important;
         }
         .theme-active-pill {
           background-color: rgba(16, 185, 129, 0.08) !important;
@@ -618,7 +558,7 @@ const SellerLayout = () => {
           color: #34D399 !important;
         }
         .theme-dark .theme-dark-sidebar a:hover:not(.theme-active-pill) {
-          background-color: rgba(255, 255, 255, 0.05) !important;
+          background-color: rgba(255, 255, 255, 0.04) !important;
           color: #10B981 !important;
         }
         @keyframes slideIn {
@@ -628,54 +568,90 @@ const SellerLayout = () => {
         .animate-slide-in {
           animation: slideIn 0.25s ease-out forwards;
         }
+        /* Seller top bar */
+        .seller-topbar {
+          background: #ffffff;
+          border-bottom: 1px solid #E5E7EB;
+        }
+        .theme-dark .seller-topbar {
+          background: #0b0c10 !important;
+          border-bottom-color: rgba(255,255,255,0.08) !important;
+        }
       `}</style>
-      
-      {/* Breadcrumb Banner */}
-      <div className="bg-white border-b border-gray-250 shadow-sm transition-colors duration-250">
-        <div className="max-w-[1440px] mx-auto px-6 py-2.5">
-          <nav className="flex items-center gap-2 text-xs text-gray-400 mb-1 uppercase tracking-wider font-semibold select-none">
-            <Link to="/" className="hover:text-[#10B981] transition-colors">Home</Link>
-            <span>›</span>
-            <span className="hover:text-[#10B981] cursor-pointer transition-colors">Seller Studio</span>
-            <span>›</span>
-            <span className="text-gray-600">{currentLabel}</span>
+
+      {/* ── Seller Top Bar (replaces customer Navbar) ── */}
+      <header className="seller-topbar sticky top-0 z-50 shadow-sm">
+        <div className="max-w-[1600px] mx-auto px-6 h-14 flex items-center justify-between gap-4">
+          {/* Left: Logo + brand */}
+          <div className="flex items-center gap-3 shrink-0">
+            <Link to="/" className="flex items-center gap-2 group" title="Back to storefront">
+              <span className="text-xl font-black text-gray-900 tracking-tight group-hover:text-[#10B981] transition-colors">
+                Jhapcham<span className="text-[#10B981]">.</span>
+              </span>
+            </Link>
+            <div className="w-px h-5 bg-gray-200 mx-1" />
+            <span className="text-[11px] font-black uppercase tracking-widest text-gray-400 select-none">Seller Studio</span>
+          </div>
+
+          {/* Center: Breadcrumb */}
+          <nav className="hidden md:flex items-center gap-1.5 text-[11px] font-semibold text-gray-400 select-none">
+            <Link to="/seller/dashboard" className="hover:text-[#10B981] transition-colors">Dashboard</Link>
+            {currentLabel !== 'Dashboard Overview' && (
+              <>
+                <svg className="w-3 h-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7"/></svg>
+                <span className="text-gray-600 font-bold">{currentLabel}</span>
+              </>
+            )}
           </nav>
-          
-          <div className="flex justify-between items-center gap-4 mt-2">
-            <h1 className="text-2xl font-black text-gray-800 tracking-tight flex items-center gap-2.5">
+
+          {/* Right: Store info + actions */}
+          <div className="flex items-center gap-3 shrink-0">
+            {/* Dark mode toggle */}
+            <button
+              onClick={toggleDarkMode}
+              className="p-2 rounded-lg border border-gray-200 hover:border-[#10B981] hover:bg-emerald-50 transition-all text-gray-500 hover:text-[#10B981]"
+              title={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            >
+              {darkMode ? (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+              ) : (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+              )}
+            </button>
+
+            {/* Store identity */}
+            <div className="flex items-center gap-2.5 pl-3 border-l border-gray-200">
               {profile?.logoImagePath ? (
                 <img
-                  src={profile?.logoImagePath?.startsWith('http') ? profile.logoImagePath : `${BASE_URL}${profile?.logoImagePath?.startsWith('/') ? '' : '/'}${profile.logoImagePath}`}
-                  alt={profile?.storeName || 'Store Logo'}
-                  className="w-8 h-8 rounded-full object-cover border border-gray-200 select-none theme-dark-store-logo"
+                  src={profile.logoImagePath.startsWith('http') ? profile.logoImagePath : `${BASE_URL}${profile.logoImagePath.startsWith('/') ? '' : '/'}${profile.logoImagePath}`}
+                  alt={profile?.storeName || 'Store'}
+                  className="w-7 h-7 rounded-full object-cover border border-gray-200"
                 />
               ) : (
-                <span className="w-8 h-8 rounded-full bg-[#10B981] text-white flex items-center justify-center font-bold text-xs select-none theme-dark-store-logo">
+                <span className="w-7 h-7 rounded-full bg-[#10B981] text-white flex items-center justify-center font-black text-xs">
                   {profile?.storeName ? profile.storeName.charAt(0).toUpperCase() : 'S'}
                 </span>
               )}
-              <span>{profile?.storeName || 'Seller Studio'}</span>
-            </h1>
-            
-            <div className="flex items-center gap-3">
-              {/* Simple Dark Mode Switch */}
-              <button 
-                onClick={toggleDarkMode}
-                className="px-3.5 py-1.5 border border-gray-200 bg-gray-50 hover:bg-gray-100 rounded-sm text-[9px] font-black uppercase tracking-wider transition-colors duration-150 text-gray-700"
-              >
-                {darkMode ? '☀️ Light' : '🌙 Dark'}
-              </button>
-
-              <span className="text-[10px] bg-[#10B981]/10 text-[#10B981] px-3 py-1 rounded-full font-black uppercase tracking-widest border border-[#10B981]/10 active-store-panel-tag">
-                Active Store Panel
-              </span>
+              <div className="hidden sm:block">
+                <p className="text-xs font-black text-gray-800 leading-none">{profile?.storeName || 'Seller Studio'}</p>
+                <p className="text-[10px] text-[#10B981] font-bold mt-0.5">Active Store</p>
+              </div>
             </div>
+
+            {/* Back to store link */}
+            <Link
+              to="/"
+              className="hidden lg:flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wider text-gray-500 hover:text-[#10B981] transition-colors border border-gray-200 hover:border-[#10B981] px-3 py-1.5 rounded-sm"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+              Storefront
+            </Link>
           </div>
         </div>
-      </div>
+      </header>
 
-      {/* Main Container Layout */}
-      <div className="max-w-[1440px] mx-auto px-6 py-4">
+      {/* Main Content Area */}
+      <div className="flex-1 max-w-[1600px] w-full mx-auto px-5 pt-3 pb-4">
         {checkingApp ? (
           <div className="flex flex-col items-center justify-center min-h-[400px] text-white">
             <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-[#10B981] mb-4" />
@@ -684,7 +660,7 @@ const SellerLayout = () => {
         ) : appStatus !== 'APPROVED' ? (
           <SellerOnboarding onApproved={fetchProfileAndStatus} />
         ) : (
-          <div className="flex gap-8 items-start">
+          <div className="flex gap-4 items-start">
             {/* Seller Sidebar */}
             <SellerSidebar
               currentPath={location.pathname}

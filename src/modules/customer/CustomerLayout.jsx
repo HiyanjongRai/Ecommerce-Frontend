@@ -406,7 +406,7 @@ const CustomerLayout = () => {
           </nav>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center gap-3">
-              <h1 className="text-xl font-black text-gray-800 tracking-tight">My Account</h1>
+              <h1 className="text-xl font-black text-gray-800 tracking-tight">{currentLabel}</h1>
               <NotificationButton
                 count={unreadNotifs}
                 onClick={() => navigate('/customer/notifications')}

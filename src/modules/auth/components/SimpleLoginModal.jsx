@@ -186,7 +186,6 @@ const SimpleLoginModal = ({ isOpen, onClose }) => {
         borderRadius: 16,
         boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
         overflow: 'hidden',
-        fontFamily: '"Segoe UI", "Roboto", sans-serif',
       }}>
         <style>{`
           .login-input {

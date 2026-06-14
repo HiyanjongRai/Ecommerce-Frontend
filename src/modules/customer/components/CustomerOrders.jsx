@@ -11,42 +11,58 @@ const getImgUrl = (path) => {
   return `${BASE_URL}${path.startsWith('/') ? '' : '/'}${path}`;
 };
 
+const STATUS_BORDER = {
+  DRAFT:      '#f59e0b',
+  PENDING:    '#f59e0b',
+  CONFIRMED:  '#3b82f6',
+  PROCESSING: '#6366f1',
+  PACKED:     '#8b5cf6',
+  SHIPPED:    '#0ea5e9',
+  DELIVERED:  '#10b981',
+  CANCELLED:  '#ef4444',
+  REFUNDED:   '#f97316',
+  FAILED:     '#ef4444',
+};
+
 const STATUS_CLASS = {
-  DRAFT:      'bg-orange-600 text-white font-semibold',
-  PENDING:    'bg-amber-500 text-white font-semibold',
-  PROCESSING: 'bg-blue-600 text-white font-semibold',
-  SHIPPED:    'bg-indigo-600 text-white font-semibold',
-  DELIVERED:  'bg-emerald-600 text-white font-semibold',
-  CANCELLED:  'bg-rose-600 text-white font-semibold',
-  PAID:       'bg-teal-600 text-white font-semibold',
-  FAILED:     'bg-red-600 text-white font-semibold',
+  DRAFT:      'bg-amber-50 text-amber-700 border-amber-200',
+  PENDING:    'bg-amber-50 text-amber-700 border-amber-200',
+  CONFIRMED:  'bg-blue-50 text-blue-700 border-blue-200',
+  PROCESSING: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+  PACKED:     'bg-violet-50 text-violet-700 border-violet-200',
+  SHIPPED:    'bg-sky-50 text-sky-700 border-sky-200',
+  DELIVERED:  'bg-emerald-50 text-emerald-700 border-emerald-200',
+  CANCELLED:  'bg-red-50 text-red-600 border-red-200',
+  REFUNDED:   'bg-orange-50 text-orange-600 border-orange-200',
+  PAID:       'bg-emerald-50 text-emerald-700 border-emerald-200',
+  FAILED:     'bg-red-50 text-red-600 border-red-200',
 };
 
 const STATUS_LABELS = {
-  DRAFT: 'Draft',
-  PENDING: 'Pending',
-  PROCESSING: 'Processing',
+  DRAFT: 'Awaiting Payment',
+  PENDING: 'Order Placed',
+  PROCESSING: 'Processing Order',
   SHIPPED: 'Out for Delivery',
   DELIVERED: 'Delivered',
   CANCELLED: 'Cancelled',
   PAID: 'Paid',
   FAILED: 'Failed',
-  COD_PENDING: 'Pending (COD)',
+  COD_PENDING: 'Pay on Delivery',
 };
 
 
 const PAYMENT_LABELS = {
   PAID:              'Paid',
-  COD_PENDING:       'COD Pending',
-  PENDING_COD:       'COD Pending',
-  REQUIRES_PAYMENT:  'Awaiting Payment',
-  PAYMENT_INITIATED: 'Payment Initiated',
-  REFUND_PENDING:    'Refund Pending',
+  COD_PENDING:       'Pay on Delivery',
+  PENDING_COD:       'Pay on Delivery',
+  REQUIRES_PAYMENT:  'Payment Required',
+  PAYMENT_INITIATED: 'Processing Payment',
+  REFUND_PENDING:    'Refund Processing',
   REFUNDED:          'Refunded',
   CANCELLED:         'Cancelled',
-  FAILED:            'Failed',
-  COD_REMITTED:      'COD Collected',
-  COD_FAILED:        'COD Failed',
+  FAILED:            'Payment Failed',
+  COD_REMITTED:      'Collected (Cash)',
+  COD_FAILED:        'COD Collection Failed',
 };
 
 const TABS = [
@@ -178,18 +194,29 @@ const CustomerOrders = () => {
 
   if (loading) {
     return (
-      <div className="max-w-5xl mx-auto py-24 text-center">
-        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-green-600 mx-auto mb-4" />
-        <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">Fetching your orders...</p>
+      <div className="py-16 text-center">
+        <svg className="animate-spin w-6 h-6 text-[#10B981] mx-auto mb-3" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+        </svg>
+        <p className="text-xs font-black uppercase tracking-wider text-gray-400">Fetching your orders…</p>
       </div>
     );
   }
 
+  // ── count per tab ──
+  const allCount       = orders.length;
+  const ongoingCount   = orders.filter(o => ['DRAFT','PENDING','CONFIRMED','PROCESSING','PACKED','SHIPPED'].includes(o.status)).length;
+  const completedCount = orders.filter(o => o.status === 'DELIVERED').length;
+  const cancelledCount = orders.filter(o => ['CANCELLED','FAILED'].includes(o.status)).length;
+
+  const TAB_COUNTS = { ALL: allCount, ONGOING: ongoingCount, COMPLETED: completedCount, CANCELLED: cancelledCount };
+
   return (
-    <div className="max-w-5xl mx-auto pb-10">
+    <div className="pb-6">
       {expanded ? (
-        <OrderDetailView 
-          order={orders.find(o => o.orderId === expanded)} 
+        <OrderDetailView
+          order={orders.find(o => o.orderId === expanded)}
           onBack={() => setExpanded(null)}
           busyId={busyId}
           onCancel={handleCancel}
@@ -198,111 +225,129 @@ const CustomerOrders = () => {
         />
       ) : (
         <>
-          {/* Header */}
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">My Orders</h2>
-            <button className="flex items-center gap-1.5 text-sm font-semibold text-gray-600 hover:text-gray-900 transition-colors">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L21 21M15.536 8.464a5 5 0 010 7.072m0 0l-2.829-2.829m-4.243 2.829a4.978 4.978 0 01-1.414-2.83m-1.414 5.658a9 9 0 01-2.167-9.238m7.824 2.167a1 1 0 111.414 1.414m-1.414-1.414L3 3m8.293 8.293l1.414 1.414" /></svg>
-              Help
-            </button>
+          {/* ── Page Header ── */}
+          <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-200">
+            <div>
+              <h2 className="text-sm font-black text-gray-800">My Orders</h2>
+              <p className="text-[10px] text-gray-400 font-medium mt-0.5">{allCount} total order{allCount !== 1 ? 's' : ''}</p>
+            </div>
           </div>
 
-          {/* Tabs */}
-          <div className="flex items-center gap-8 border-b border-gray-100 mb-6 bg-white px-4 rounded-xl shadow-sm overflow-x-auto hide-scrollbar">
-            {TABS.map(tab => (
-              <button
-                key={tab.id}
-                onClick={() => setFilter(tab.id)}
-                className={`py-4 text-sm font-semibold transition-colors relative whitespace-nowrap ${filter === tab.id ? 'text-green-600' : 'text-gray-500 hover:text-gray-800'}`}
-              >
-                {tab.label}
-                {filter === tab.id && (
-                  <span className="absolute bottom-0 left-0 w-full h-0.5 bg-green-500 rounded-t-full" />
-                )}
-              </button>
-            ))}
+          {/* ── Tabs ── */}
+          <div className="flex items-center gap-1 mb-4 bg-gray-50 border border-gray-200 rounded-sm p-1">
+            {TABS.map(tab => {
+              const count = TAB_COUNTS[tab.id];
+              const isActive = filter === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setFilter(tab.id)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-sm text-[10px] font-black uppercase tracking-wider transition-all ${
+                    isActive
+                      ? 'bg-white text-gray-800 shadow-sm border border-gray-200'
+                      : 'text-gray-400 hover:text-gray-600'
+                  }`}
+                >
+                  {tab.label}
+                  {count > 0 && (
+                    <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-sm ${
+                      isActive ? 'bg-[#10B981] text-white' : 'bg-gray-200 text-gray-500'
+                    }`}>
+                      {count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
 
+          {/* ── Order List ── */}
           {filtered.length === 0 ? (
-            <div className="text-center py-16 bg-white border border-gray-100 rounded-2xl shadow-sm">
-              <div className="text-5xl mb-4 opacity-50">📭</div>
-              <p className="text-sm font-semibold text-gray-500 mb-4">No orders found</p>
+            <div className="text-center py-14 bg-white border border-gray-200 rounded-sm">
+              <div className="w-12 h-12 bg-gray-50 border border-gray-200 rounded-sm flex items-center justify-center mx-auto mb-3">
+                <svg className="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                  <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                </svg>
+              </div>
+              <p className="text-xs font-black text-gray-600 uppercase tracking-wider mb-1">No orders found</p>
+              <p className="text-[10px] text-gray-400">Try a different filter or place a new order.</p>
               <Link
                 to="/"
-                className="inline-block bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black uppercase tracking-wider px-6 py-2.5 rounded-sm transition-colors duration-150"
+                className="inline-block mt-4 bg-[#10B981] hover:bg-[#059669] text-white text-[10px] font-black uppercase tracking-wider px-5 py-2 rounded-sm transition-colors"
               >
-                Explore Storefront
+                Explore Storefront →
               </Link>
             </div>
           ) : (
-            <div className="space-y-4">
-              {filtered.map(order => (
-                <div key={order.orderId} className="bg-white border border-gray-200 rounded-xl p-5 hover:border-gray-300 transition-colors">
-                  <div className="flex flex-col md:flex-row justify-between items-start gap-4">
-                    <div className="flex items-start gap-4 flex-1">
-                      <div className="w-16 h-16 rounded-lg bg-gray-50 border border-gray-100 flex-shrink-0 flex items-center justify-center text-xl text-gray-400">
-                        {order.items && order.items.length > 0 && order.items[0].imagePath ? (
-                           <img src={getImgUrl(order.items[0].imagePath)} className="w-full h-full object-cover rounded-lg" alt="" />
-                        ) : (
-                           "📦"
-                        )}
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="font-bold text-gray-900">{order.customOrderId || `#${order.orderId}`}</span>
-                          <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${STATUS_CLASS[order.status] || 'bg-gray-100 text-gray-600'}`}>
-                            {STATUS_LABELS[order.status] || order.status}
-                          </span>
-                        </div>
-                        <p className="font-medium text-gray-900 mb-1 text-sm md:text-base">
-                          {order.items && order.items.length > 0 
-                            ? (order.items.length === 1 ? order.items[0].name : `${order.items[0].name} + ${order.items.length - 1} more`) 
-                            : 'Order Products'}
-                        </p>
-                        <p className="text-sm text-gray-500">
-                          {order.createdAt ? new Date(order.createdAt).toLocaleDateString() : '—'} • Rs. {(order.grandTotal ?? 0).toLocaleString()}
-                        </p>
-                      </div>
+            <div className="bg-white border border-gray-200 rounded-sm overflow-hidden divide-y divide-gray-100">
+              {filtered.map(order => {
+                const statusCls  = STATUS_CLASS[order.status]  || 'bg-gray-50 text-gray-500 border-gray-200';
+                const borderColor = STATUS_BORDER[order.status] || '#e5e7eb';
+                const label      = STATUS_LABELS[order.status]  || order.status;
+                const productLine = order.items?.length > 0
+                  ? (order.items.length === 1
+                    ? order.items[0].name
+                    : `${order.items[0].name} +${order.items.length - 1} more`)
+                  : 'Order Products';
+                return (
+                  <div
+                    key={order.orderId}
+                    className="flex items-center gap-4 px-4 py-3.5 hover:bg-gray-50/60 transition-colors cursor-pointer"
+                    style={{ borderLeft: `3px solid ${borderColor}` }}
+                    onClick={() => setExpanded(order.orderId)}
+                  >
+                    {/* Product image */}
+                    <div className="w-11 h-11 rounded-sm bg-gray-50 border border-gray-200 flex-shrink-0 overflow-hidden flex items-center justify-center">
+                      {order.items?.[0]?.imagePath ? (
+                        <img src={getImgUrl(order.items[0].imagePath)} className="w-full h-full object-cover" alt="" />
+                      ) : (
+                        <svg className="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                          <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                        </svg>
+                      )}
                     </div>
-                    
-                    <div className="flex gap-2 w-full md:w-auto mt-4 md:mt-0 justify-end flex-wrap">
-                      {CANCELLABLE.includes(order.status) && (
-                        <button 
-                          disabled={!!busyId}
-                          onClick={() => handleCancel(order.orderId)}
-                          className="px-4 py-2 border border-red-200 text-red-600 hover:bg-red-50 rounded-lg text-sm font-medium transition-colors"
+
+                    {/* Info */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                        <span className="text-[10px] font-black text-gray-700 font-mono">
+                          {order.customOrderId || `#${order.orderId}`}
+                        </span>
+                        <span className={`inline-flex text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-sm border ${statusCls}`}>
+                          {label}
+                        </span>
+                      </div>
+                      <p className="text-xs font-semibold text-gray-700 truncate">{productLine}</p>
+                      <p className="text-[10px] text-gray-400 font-medium mt-0.5">
+                        {order.createdAt ? new Date(order.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
+                      </p>
+                    </div>
+
+                    {/* Amount + action */}
+                    <div className="flex items-center gap-3 flex-shrink-0">
+                      <div className="text-right">
+                        <p className="text-sm font-black text-gray-900">Rs. {(order.grandTotal ?? 0).toLocaleString()}</p>
+                        <p className="text-[10px] text-gray-400 font-medium">
+                          {order.items?.length ?? 0} item{(order.items?.length ?? 0) !== 1 ? 's' : ''}
+                        </p>
+                      </div>
+                      {/* Action button for DRAFT / pay-pending */}
+                      {order.status === 'DRAFT' && order.paymentStatus !== 'PAID' ? (
+                        <button
+                          onClick={e => { e.stopPropagation(); setExpanded(order.orderId); }}
+                          className="px-3 py-1.5 bg-[#10B981] hover:bg-[#059669] text-white rounded-sm text-[10px] font-black uppercase tracking-wider transition-colors"
                         >
-                          Cancel
+                          Pay Now
                         </button>
+                      ) : (
+                        <svg className="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                          <path d="M9 18l6-6-6-6"/>
+                        </svg>
                       )}
-                      {order.status === 'DRAFT' && order.paymentStatus !== 'PAID' && (
-                        <>
-                          <button
-                            disabled={!!busyId}
-                            onClick={() => handleRetry(order, 'ESEWA')}
-                            className="px-3 py-2 rounded-lg text-xs font-bold text-white bg-[#60bb46] hover:bg-[#4da038] transition-colors flex items-center gap-1"
-                          >
-                            {busyId === `${order.orderId}-ESEWA` ? '...' : '⚡ eSewa'}
-                          </button>
-                          <button
-                            disabled={!!busyId}
-                            onClick={() => handleRetry(order, 'KHALTI')}
-                            className="px-3 py-2 rounded-lg text-xs font-bold text-white bg-[#5c2d91] hover:bg-[#4a2275] transition-colors flex items-center gap-1"
-                          >
-                            {busyId === `${order.orderId}-KHALTI` ? '...' : '⚡ Khalti'}
-                          </button>
-                        </>
-                      )}
-                      <button 
-                        onClick={() => setExpanded(order.orderId)}
-                        className="px-4 py-2 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 transition-colors"
-                      >
-                        View Details
-                      </button>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </>
@@ -328,6 +373,87 @@ const CustomerOrders = () => {
   );
 };
 
+// Tracker Steps mapping
+const getStatusStep = (status) => {
+  switch (status) {
+    case 'DRAFT':
+    case 'PENDING':
+      return 0;
+    case 'PROCESSING':
+      return 1;
+    case 'SHIPPED':
+      return 2;
+    case 'DELIVERED':
+      return 3;
+    default:
+      return -1;
+  }
+};
+
+// Sleek Order Tracker Component
+const OrderTracker = ({ status }) => {
+  const currentStep = getStatusStep(status);
+  
+  if (currentStep === -1) {
+    if (status === 'CANCELLED') {
+      return (
+        <div className="bg-red-50 border border-red-150 rounded-sm p-4 text-center text-red-600 text-xs font-black uppercase tracking-wider mb-6">
+          🚫 This order has been cancelled.
+        </div>
+      );
+    }
+    return (
+      <div className="bg-red-50 border border-red-150 rounded-sm p-4 text-center text-red-600 text-xs font-black uppercase tracking-wider mb-6">
+        ⚠️ Order status: {status}
+      </div>
+    );
+  }
+
+  const steps = [
+    { label: 'Placed', desc: 'Awaiting confirmation' },
+    { label: 'Processing', desc: 'Preparing package' },
+    { label: 'In Transit', desc: 'On its way to you' },
+    { label: 'Delivered', desc: 'Package received' },
+  ];
+
+  return (
+    <div className="mb-6 bg-white border border-gray-200 rounded-sm p-5 shadow-2xs">
+      <div className="relative flex justify-between items-start">
+        {/* Progress bar line */}
+        <div className="absolute top-4 left-6 right-6 h-0.5 bg-gray-100 -z-0" />
+        <div 
+          className="absolute top-4 left-6 h-0.5 bg-emerald-500 transition-all duration-500 -z-0" 
+          style={{ width: `${(currentStep / (steps.length - 1)) * 100}%` }}
+        />
+
+        {steps.map((step, idx) => {
+          const isCompleted = idx <= currentStep;
+          const isActive = idx === currentStep;
+          return (
+            <div key={idx} className="flex flex-col items-center flex-1 text-center z-10 relative">
+              <div 
+                className={`w-9 h-9 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${
+                  isCompleted 
+                    ? 'bg-emerald-500 border-emerald-500 text-white font-bold' 
+                    : 'bg-white border-gray-300 text-gray-400 font-bold'
+                } ${isActive ? 'ring-4 ring-emerald-100 scale-105' : ''}`}
+              >
+                {isCompleted ? '✓' : idx + 1}
+              </div>
+              <span className={`text-[10px] font-black uppercase tracking-wider mt-3 ${isCompleted ? 'text-[#222529]' : 'text-gray-450'}`}>
+                {step.label}
+              </span>
+              <span className="text-[9px] text-gray-400 mt-0.5 font-semibold hidden md:block">
+                {step.desc}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
 // Extracted OrderDetailView component
 const OrderDetailView = ({ order, onBack, busyId, onCancel, onRetry, onRefundRequested }) => {
   const [refundOpen, setRefundOpen] = useState(false);
@@ -336,6 +462,7 @@ const OrderDetailView = ({ order, onBack, busyId, onCancel, onRetry, onRefundReq
   const [refundEvidence, setRefundEvidence] = useState(null);
   const [refundSubmitting, setRefundSubmitting] = useState(false);
   const [refundError, setRefundError] = useState('');
+  const [refundSpreadSheetLabel, setRefundSpreadSheetLabel] = useState('');
   const [refundSuccess, setRefundSuccess] = useState('');
 
   const [disputeOpen, setDisputeOpen] = useState(false);
@@ -426,6 +553,9 @@ const OrderDetailView = ({ order, onBack, busyId, onCancel, onRetry, onRefundReq
         </button>
         <h2 className="text-2xl font-bold text-gray-900">Order Details</h2>
       </div>
+
+      {/* Visual Tracking Stepper */}
+      <OrderTracker status={order.status} />
 
       <div className="bg-white border border-gray-200 rounded-xl p-6 mb-6">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 pb-6 border-b border-gray-100">

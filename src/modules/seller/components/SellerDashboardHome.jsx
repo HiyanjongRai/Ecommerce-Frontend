@@ -1,8 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { getSellerDashboardStats, getSellerIncome, getSellerProfile, getSellerOrders, getSellerInventory } from '../services/sellerService';
-import { resolveImageUrl } from './SellerSectionUtils';
+import { resolveImageUrl, SectionHeader } from './SellerSectionUtils';
 import { useSellerTheme } from '../hooks/useSellerTheme';
+
+// Strip backend role prefixes from customer names (server-side concat bug)
+// e.g. "admincustomer_userJohn Doe" → "John Doe"
+const sanitizeName = (raw) => {
+  if (!raw) return 'Customer';
+  // IMPORTANT: longer patterns must come BEFORE shorter ones (admincustomer_user before admin)
+  const cleaned = String(raw).replace(/^(admincustomer_user|customer_user|admin|seller_user|user_)/i, '').trim();
+  return cleaned || 'Customer';
+};
 
 const SellerDashboardHome = () => {
   const { darkMode, themeClasses } = useSellerTheme();
@@ -65,8 +74,8 @@ const SellerDashboardHome = () => {
           product: o.productNames || 'Ordered Items',
           status: o.status || 'Pending',
           date: o.createdAt ? new Date(o.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A',
-          customer: o.customerName || o.userName || 'Customer',
-          image: o.productImage ? resolveImageUrl(o.productImage) : '📦'
+          customer: sanitizeName(o.customerName || o.userName),
+          image: o.productImage ? resolveImageUrl(o.productImage) : null
         }));
 
         // 100% Dynamic Monthly Sales Data
@@ -222,10 +231,10 @@ const SellerDashboardHome = () => {
   }, []);
 
   const displayStats = [
-    { title: 'Net Revenue', value: `Rs. ${stats.totalRevenue.toLocaleString()}`, trend: '+9.82%', isPositive: true },
-    { title: 'Total Cost', value: `Rs. ${stats.totalCost?.toLocaleString() || '0'}`, trend: '-2.1%', isPositive: false },
-    { title: 'Net Profit', value: `Rs. ${stats.netProfit?.toLocaleString() || '0'}`, trend: '+5.0%', isPositive: true },
-    { title: 'Profit Margin', value: `${stats.profitMargin || '0'}%`, trend: '+1.2%', isPositive: true },
+    { title: 'Net Revenue', value: `Rs. ${stats.totalRevenue.toLocaleString()}`, isPositive: true },
+    { title: 'Total Cost', value: `Rs. ${stats.totalCost?.toLocaleString() || '0'}`, isPositive: false },
+    { title: 'Net Profit', value: `Rs. ${stats.netProfit?.toLocaleString() || '0'}`, isPositive: true },
+    { title: 'Profit Margin', value: `${stats.profitMargin || '0'}%`, isPositive: true },
   ];
 
   // Pick active array depending on current selection
@@ -333,7 +342,7 @@ const SellerDashboardHome = () => {
     : 'bg-white border-gray-200 text-gray-400 hover:text-gray-600 briefing-link-btn';
 
   return (
-    <div className={`space-y-6 animate-in fade-in-50 duration-200 font-sans ${themeClasses.bg.primary}`}>
+    <div className={`space-y-4 max-w-[1400px] animate-in fade-in-50 duration-200 font-sans ${themeClasses.bg.primary}`}>
       <style>{`
         /* Custom briefing overrides for Jhapcham matrix dark mode */
         .theme-dark .briefing-card-optimal {
@@ -378,139 +387,139 @@ const SellerDashboardHome = () => {
         }
       `}</style>
 
-      {/* Global Search Bar */}
-      <div className={`${themeClasses.card} rounded-lg p-4 border ${themeClasses.border.primary} shadow-sm`}>
-        <div className="relative">
-          <div className="flex items-center gap-2">
-            <svg className="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-            </svg>
-            <input
-              type="text"
-              placeholder="Search orders, products, customers, SKU..."
-              value={searchQuery}
-              onChange={(e) => handleSearch(e.target.value)}
-              onFocus={() => searchQuery && setShowSearchResults(true)}
-              className={`flex-1 ${themeClasses.bg.primary} ${themeClasses.text.primary} border-0 outline-none text-sm font-semibold placeholder-gray-400`}
-            />
-            {searchQuery && (
-              <button
-                onClick={() => {
-                  setSearchQuery('');
-                  setSearchResults([]);
-                  setShowSearchResults(false);
-                }}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                ✕
-              </button>
+      {/* Header — single row matching Commission header height */}
+      <div className="bg-white rounded-sm border border-gray-200 shadow-sm">
+        <div className="px-4 py-3 flex items-center gap-4">
+
+          {/* Left: title + subtitle */}
+          <div className="shrink-0">
+            <h2 className="text-sm font-black text-gray-900 tracking-tight">Dashboard</h2>
+            <p className="text-[11px] text-gray-400 font-medium mt-0.5">Live store performance, order overview, and key metrics.</p>
+          </div>
+
+          {/* Center: search bar */}
+          <div className="flex-1 relative">
+            <div className="flex items-center gap-2 border border-gray-200 rounded-sm px-3 py-1.5 bg-gray-50 hover:bg-white hover:border-gray-300 transition-colors">
+              <svg className="w-3.5 h-3.5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+              </svg>
+              <input
+                type="text"
+                placeholder="Search orders, products, customers, SKU..."
+                value={searchQuery}
+                onChange={(e) => handleSearch(e.target.value)}
+                onFocus={() => searchQuery && setShowSearchResults(true)}
+                className={`flex-1 bg-transparent ${themeClasses.text.primary} border-0 outline-none text-[11px] font-semibold placeholder-gray-400`}
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => { setSearchQuery(''); setSearchResults([]); setShowSearchResults(false); }}
+                  className="text-gray-400 hover:text-gray-600 text-xs"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+
+            {/* Search Results Dropdown */}
+            {showSearchResults && searchResults.length > 0 && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setShowSearchResults(false)}></div>
+                <div className={`absolute top-full left-0 right-0 mt-1 ${themeClasses.card} border ${themeClasses.border.primary} rounded-sm shadow-xl z-50 max-h-96 overflow-y-auto`}>
+                  {searchResults.map((result, idx) => (
+                    <div
+                      key={idx}
+                      onClick={() => {
+                        if (result.type === 'order') {
+                          navigate(`/seller/orders?orderId=${result.id}`);
+                        } else {
+                          navigate(`/seller/products?productId=${result.id}`);
+                        }
+                        setShowSearchResults(false);
+                      }}
+                      className={`p-4 border-b ${themeClasses.border.primary} hover:${themeClasses.bg.secondary} cursor-pointer transition-colors last:border-b-0`}
+                    >
+                      {result.type === 'order' ? (
+                        <div className="flex items-start gap-3">
+                          <div className="flex-shrink-0 w-8 h-8 rounded-sm bg-blue-100 flex items-center justify-center">
+                            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <p className={`font-bold ${themeClasses.text.primary} truncate`}>{result.title}</p>
+                              <span className="text-[9px] bg-blue-100 text-blue-800 px-2 py-0.5 rounded-sm font-black whitespace-nowrap uppercase tracking-wider">ORDER</span>
+                            </div>
+                            <p className={`text-xs ${themeClasses.text.secondary} truncate`}>{result.subtitle}</p>
+                            <div className="flex items-center gap-2 mt-2 flex-wrap">
+                              <span className={`text-[9px] px-2 py-1 rounded-sm font-black uppercase tracking-wider ${
+                                result.status === 'DELIVERED' ? 'bg-emerald-100 text-emerald-800' :
+                                result.status === 'PENDING' || result.status === 'COD_PENDING' ? 'bg-amber-100 text-amber-800' :
+                                result.status === 'PROCESSING' || result.status === 'PACKED' ? 'bg-blue-100 text-blue-800' :
+                                result.status === 'SHIPPED' ? 'bg-purple-100 text-purple-800' :
+                                'bg-gray-100 text-gray-800'
+                              }`}>
+                                {result.status}
+                              </span>
+                              <span className={`text-xs font-black ${themeClasses.text.primary}`}>Rs. {result.amount?.toLocaleString()}</span>
+                            </div>
+                          </div>
+                          <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-4">
+                          <div className="flex-shrink-0">
+                            {result.image ? (
+                              <img
+                                src={resolveImageUrl(result.image)}
+                                alt={result.title}
+                                className="w-16 h-16 rounded-sm object-cover border border-gray-200"
+                                onError={(e) => { e.target.style.display = 'none'; }}
+                              />
+                            ) : (
+                              <div className="w-16 h-16 rounded-sm bg-gray-100 flex items-center justify-center border border-gray-200">
+                                <svg className="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" strokeWidth="1" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <p className={`font-black ${themeClasses.text.primary} truncate text-xs`}>{result.title}</p>
+                              <span className="text-[9px] bg-gray-100 text-gray-700 px-2 py-0.5 rounded-sm font-black whitespace-nowrap uppercase tracking-wider">PRODUCT</span>
+                            </div>
+                            <p className={`text-[10px] ${themeClasses.text.secondary} truncate`}>{result.subtitle}</p>
+                            <div className="flex items-center gap-2 mt-2 flex-wrap">
+                              <span className="text-[9px] px-2 py-1 rounded-sm font-black uppercase tracking-wider bg-gray-100 text-gray-800">
+                                Rs. {result.price?.toLocaleString()}
+                              </span>
+                              <span className={`text-[9px] font-black ${result.stock < 5 ? 'text-red-600 bg-red-50 px-2 py-1 rounded-sm' : themeClasses.text.primary}`}>
+                                Stock: {result.stock}
+                              </span>
+                            </div>
+                          </div>
+                          <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+
+            {showSearchResults && searchResults.length === 0 && searchQuery && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setShowSearchResults(false)}></div>
+                <div className={`absolute top-full left-0 right-0 mt-1 ${themeClasses.card} border ${themeClasses.border.primary} rounded-sm shadow-xl z-50 p-4 text-center`}>
+                  <p className={`text-[11px] font-bold ${themeClasses.text.secondary}`}>No results found for "{searchQuery}"</p>
+                </div>
+              </>
             )}
           </div>
 
-          {/* Search Results Dropdown */}
-          {showSearchResults && searchResults.length > 0 && (
-            <>
-              <div className="fixed inset-0 z-40" onClick={() => setShowSearchResults(false)}></div>
-              <div className={`absolute top-full left-0 right-0 mt-2 ${themeClasses.card} border ${themeClasses.border.primary} rounded-lg shadow-xl z-50 max-h-96 overflow-y-auto`}>
-                {searchResults.map((result, idx) => (
-                  <div
-                    key={idx}
-                    onClick={() => {
-                      if (result.type === 'order') {
-                        // Redirect to orders page with order ID
-                        navigate(`/seller/orders?orderId=${result.id}`);
-                      } else {
-                        // Redirect to products page with product ID
-                        navigate(`/seller/products?productId=${result.id}`);
-                      }
-                      setShowSearchResults(false);
-                    }}
-                    className={`p-4 border-b ${themeClasses.border.primary} hover:${themeClasses.bg.secondary} cursor-pointer transition-colors last:border-b-0`}
-                  >
-                    {result.type === 'order' ? (
-                      // Order Result - Blue theme
-                      <div className="flex items-start gap-3">
-                        <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
-                          <span className="text-lg">📦</span>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <p className={`font-bold ${themeClasses.text.primary} truncate`}>{result.title}</p>
-                            <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded font-bold whitespace-nowrap">ORDER</span>
-                          </div>
-                          <p className={`text-xs ${themeClasses.text.secondary} truncate`}>{result.subtitle}</p>
-                          <div className="flex items-center gap-2 mt-2 flex-wrap">
-                            <span className={`text-xs px-2 py-1 rounded font-bold ${
-                              result.status === 'DELIVERED' ? 'bg-emerald-100 text-emerald-800' :
-                              result.status === 'PENDING' || result.status === 'COD_PENDING' ? 'bg-amber-100 text-amber-800' :
-                              result.status === 'PROCESSING' || result.status === 'PACKED' ? 'bg-blue-100 text-blue-800' :
-                              result.status === 'SHIPPED' ? 'bg-purple-100 text-purple-800' :
-                              'bg-gray-100 text-gray-800'
-                            }`}>
-                              {result.status}
-                            </span>
-                            <span className={`text-xs font-bold ${themeClasses.text.primary}`}>Rs. {result.amount?.toLocaleString()}</span>
-                          </div>
-                        </div>
-                        <svg className="w-5 h-5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
-                        </svg>
-                      </div>
-                    ) : (
-                      // Product Result - Green theme with large image
-                      <div className="flex items-center gap-4">
-                        <div className="flex-shrink-0">
-                          {result.image ? (
-                            <img 
-                              src={resolveImageUrl(result.image)} 
-                              alt={result.title} 
-                              className="w-20 h-20 rounded-lg object-cover border border-gray-200"
-                              onError={(e) => {
-                                console.log('Image failed to load:', result.image);
-                                e.target.style.display = 'none';
-                              }}
-                            />
-                          ) : null}
-                          {!result.image || (result.image && !result.image.trim()) ? (
-                            <div className="w-20 h-20 rounded-lg bg-emerald-100 flex items-center justify-center border border-emerald-200">
-                              <span className="text-4xl">🛍️</span>
-                            </div>
-                          ) : null}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <p className={`font-bold ${themeClasses.text.primary} truncate`}>{result.title}</p>
-                            <span className="text-xs bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-bold whitespace-nowrap">PRODUCT</span>
-                          </div>
-                          <p className={`text-xs ${themeClasses.text.secondary} truncate`}>{result.subtitle}</p>
-                          <div className="flex items-center gap-2 mt-2 flex-wrap">
-                            <span className={`text-xs px-2 py-1 rounded font-bold bg-emerald-100 text-emerald-800`}>
-                              Rs. {result.price?.toLocaleString()}
-                            </span>
-                            <span className={`text-xs font-bold ${result.stock < 5 ? 'text-red-600 bg-red-50 px-2 py-1 rounded' : themeClasses.text.primary}`}>
-                              Stock: {result.stock}
-                            </span>
-                          </div>
-                        </div>
-                        <svg className="w-5 h-5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
-                        </svg>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </>
-          )}
+          {/* Right: date badge */}
+          <span className="shrink-0 text-[9px] font-black uppercase tracking-wider text-gray-400 bg-gray-50 border border-gray-200 px-2.5 py-1 rounded-sm">
+            {new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
+          </span>
 
-          {showSearchResults && searchResults.length === 0 && searchQuery && (
-            <>
-              <div className="fixed inset-0 z-40" onClick={() => setShowSearchResults(false)}></div>
-              <div className={`absolute top-full left-0 right-0 mt-2 ${themeClasses.card} border ${themeClasses.border.primary} rounded-lg shadow-xl z-50 p-4 text-center`}>
-                <p className={`text-sm ${themeClasses.text.secondary}`}>No results found for "{searchQuery}"</p>
-              </div>
-            </>
-          )}
         </div>
       </div>
 
@@ -531,7 +540,11 @@ const SellerDashboardHome = () => {
                   ? 'bg-amber-500/10 text-amber-500 border border-amber-500/25' 
                   : 'bg-[#10B981]/10 text-[#10B981] border border-[#10B981]/25'
             }`}>
-              {briefing.type === 'critical' ? '🚨' : briefing.type === 'warning' ? '⚠️' : '⚡'}
+              {briefing.type === 'critical' 
+                ? <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/></svg>
+                : briefing.type === 'warning' 
+                  ? <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/></svg>
+                  : <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"/></svg>}
             </div>
             {/* Pulsing halo */}
             <span className={`absolute inset-0 rounded-full animate-ping opacity-25 ${
@@ -541,7 +554,7 @@ const SellerDashboardHome = () => {
 
           <div className="space-y-1.5 flex-1 min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <span className={`text-[8.5px] font-black uppercase tracking-widest px-2 py-0.5 rounded border leading-none ${
+              <span className={`text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded border leading-none ${
                 briefing.type === 'critical' 
                   ? 'bg-red-500/10 text-red-500 border border-red-500/25' 
                   : briefing.type === 'warning' 
@@ -550,7 +563,7 @@ const SellerDashboardHome = () => {
               }`}>
                 {briefing.status}
               </span>
-              <span className="text-[9px] text-gray-400 font-bold uppercase tracking-wider">
+              <span className="text-[11px] text-gray-400 font-bold uppercase tracking-wider">
                 Live Store Briefing • {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
               </span>
             </div>
@@ -561,8 +574,7 @@ const SellerDashboardHome = () => {
                 return storeLabel ? `${storeLabel} • ` : '';
               })()}{briefing.title}
             </h4>
-            
-            <p className="text-[11px] text-gray-600 dark:text-zinc-350 leading-relaxed font-semibold pr-4 font-sans">
+            <p className="text-[13px] text-gray-600 dark:text-zinc-350 leading-relaxed font-semibold pr-4 font-sans">
               {briefing.message}
             </p>
           </div>
@@ -570,46 +582,34 @@ const SellerDashboardHome = () => {
 
         {/* Telemetry Dashboard Quick Actions grid */}
         <div className="grid grid-cols-2 gap-2 shrink-0 w-full lg:w-auto z-10">
-<Link 
-            to="/seller/inventory" 
-            className={`flex flex-col items-center justify-center p-3 rounded border transition-all text-center min-w-[95px] select-none hover:scale-[1.03] ${stockLinkClass}`}
+          <Link
+            to="/seller/inventory"
+            className={`flex flex-col items-center justify-center p-3 rounded-sm border transition-all text-center min-w-[95px] select-none hover:scale-[1.02] ${stockLinkClass}`}
           >
-            <span className="text-sm">⚠️</span>
-            <span className="text-[14px] font-black mt-1 leading-none">
-              {briefing.lowStock}
-            </span>
-            <span className="text-[7.5px] font-black uppercase tracking-wider text-gray-400 mt-1">
-              Low Stock
-            </span>
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+            <span className="text-[14px] font-black mt-1 leading-none">{briefing.lowStock}</span>
+            <span className="text-[9px] font-black uppercase tracking-wider text-gray-400 mt-1">Low Stock</span>
           </Link>
 
-          <Link 
-            to="/seller/orders" 
-            className={`flex flex-col items-center justify-center p-3 rounded border transition-all text-center min-w-[95px] select-none hover:scale-[1.03] ${ordersLinkClass}`}
+          <Link
+            to="/seller/orders"
+            className={`flex flex-col items-center justify-center p-3 rounded-sm border transition-all text-center min-w-[95px] select-none hover:scale-[1.02] ${ordersLinkClass}`}
           >
-            <span className="text-sm">📦</span>
-            <span className="text-[14px] font-black mt-1 leading-none">
-              {briefing.pendingOrders}
-            </span>
-            <span className="text-[7.5px] font-black uppercase tracking-wider text-gray-400 mt-1">
-              Dispatch
-            </span>
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z"/></svg>
+            <span className="text-[14px] font-black mt-1 leading-none">{briefing.pendingOrders}</span>
+            <span className="text-[9px] font-black uppercase tracking-wider text-gray-400 mt-1">Dispatch</span>
           </Link>
-
         </div>
       </div>
       
       {/* Stats Cards Row */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
         {displayStats.map((stat, idx) => (
-          <div key={idx} className={`${themeClasses.card} rounded-lg p-4 shadow-sm flex items-center justify-between transition-colors duration-250 border`}>
+          <div key={idx} className={`${themeClasses.card} rounded-sm p-3.5 shadow-sm flex items-center justify-between transition-colors duration-250 border border-gray-200`}>
             <div>
-              <h3 className={`text-[10px] font-black uppercase tracking-wider ${themeClasses.text.tertiary} mb-1`}>{stat.title}</h3>
-              <div className={`text-xl font-black ${themeClasses.text.primary} leading-none mb-1.5`}>
+              <h3 className={`text-[9px] font-black uppercase tracking-wider ${themeClasses.text.tertiary} mb-1`}>{stat.title}</h3>
+              <div className={`text-base font-black ${themeClasses.text.primary} leading-none mb-1.5`}>
                 {loading ? '...' : stat.value}
-              </div>
-              <div className={`flex items-center gap-0.5 text-[9px] font-black uppercase tracking-wider ${stat.isPositive ? 'text-emerald-600' : 'text-red-500'}`}>
-                {stat.isPositive ? '↑' : '↓'} {stat.trend}
               </div>
             </div>
             {/* Mock Sparkline SVG */}
@@ -644,8 +644,8 @@ const SellerDashboardHome = () => {
       <div className="bg-white border border-gray-200 rounded-sm p-4 shadow-sm transition-colors duration-250">
         <div className="flex justify-between items-center pb-2 border-b border-gray-200 mb-3 relative">
           <div>
-            <h3 className="text-[11px] font-black uppercase tracking-wider text-gray-800">Overview Order</h3>
-            <div className="flex gap-3 mt-1.5 text-[9px] font-black uppercase tracking-wider text-gray-400">
+            <h3 className="text-[11px] font-black uppercase tracking-wider text-gray-800">Order Overview</h3>
+            <div className="flex gap-3 mt-1.5 text-[11px] font-black uppercase tracking-wider text-gray-400">
               <div className="flex items-center gap-1.5">
                 <div className="w-1.5 h-1.5 rounded-full bg-[#10B981]"></div>
                 <span>Completed</span>
@@ -659,49 +659,38 @@ const SellerDashboardHome = () => {
           
           {/* Header Metric Overlay */}
           {selectedMonthIndex !== null && activeChartData[selectedMonthIndex] && (
-            <div className="px-3.5 py-1.5 rounded-xl bg-[#10B981]/10 border border-[#10B981]/25 text-[10px] font-black uppercase tracking-wider text-[#10B981] flex items-center gap-3 animate-in fade-in slide-in-from-top-2 duration-200 select-none">
-              <span>📅 {activeChartData[selectedMonthIndex].label || activeChartData[selectedMonthIndex].month}</span>
-              <span>🟢 {activeChartData[selectedMonthIndex].completed} Completed</span>
-              <span>⚪ {activeChartData[selectedMonthIndex].canceled} Canceled</span>
+            <div className="px-3 py-1.5 rounded-sm bg-gray-50 border border-gray-200 text-[10px] font-black uppercase tracking-wider text-gray-700 flex items-center gap-3 animate-in fade-in slide-in-from-top-2 duration-200 select-none">
+              <span>{activeChartData[selectedMonthIndex].label || activeChartData[selectedMonthIndex].month}</span>
+              <span className="text-emerald-600">✓ {activeChartData[selectedMonthIndex].completed} Completed</span>
+              <span className="text-gray-400">✕ {activeChartData[selectedMonthIndex].canceled} Canceled</span>
             </div>
           )}
 
           {/* Interactive Mode Dropdown Selector */}
           <div className="relative">
-            <button 
+            <button
               onClick={() => setDropdownOpen(!dropdownOpen)}
-              className="flex items-center gap-1 text-[#10B981] bg-[#10B981]/5 border border-[#10B981]/20 px-3.5 py-1.5 rounded-sm text-[9px] font-black uppercase tracking-wider transition-all hover:bg-[#10B981]/10 shadow-[0_1px_2px_rgba(0,0,0,0.02)] select-none"
+              className="flex items-center gap-1.5 text-gray-700 bg-white border border-gray-200 px-3 py-1.5 rounded-sm text-[9px] font-black uppercase tracking-wider transition-colors hover:bg-gray-50 select-none"
             >
-              <span>{viewType === 'monthly' ? '📅 Monthly' : '📆 Weekly'}</span>
+              <span>{viewType === 'monthly' ? 'Monthly' : 'Weekly'}</span>
               <svg className={`w-2.5 h-2.5 transition-transform duration-200 ${dropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7"></path></svg>
             </button>
 
             {dropdownOpen && (
               <>
-                {/* Backdrop closer */}
                 <div className="fixed inset-0 z-40" onClick={() => setDropdownOpen(false)}></div>
-                
-                {/* Glassmorphic Dropdown Box */}
-                <div className="absolute right-0 mt-1.5 w-32 bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700/60 rounded-md shadow-xl z-50 py-1 text-[9px] font-black uppercase tracking-wider animate-in fade-in zoom-in-95 duration-100 select-none">
-                  <button 
-                    onClick={() => {
-                      setViewType('monthly');
-                      setSelectedMonthIndex(null);
-                      setDropdownOpen(false);
-                    }}
-                    className={`w-full text-left px-3 py-2 hover:bg-gray-50 dark:hover:bg-zinc-700/50 flex items-center gap-2 ${viewType === 'monthly' ? 'text-[#10B981]' : 'text-gray-600 dark:text-gray-300'}`}
+                <div className="absolute right-0 mt-1 w-32 bg-white border border-gray-200 rounded-sm shadow-lg z-50 py-1 text-[9px] font-black uppercase tracking-wider animate-in fade-in zoom-in-95 duration-100 select-none overflow-hidden">
+                  <button
+                    onClick={() => { setViewType('monthly'); setSelectedMonthIndex(null); setDropdownOpen(false); }}
+                    className={`w-full text-left px-3 py-2 hover:bg-gray-50 transition-colors ${viewType === 'monthly' ? 'text-gray-900' : 'text-gray-500'}`}
                   >
-                    <span>📅 Monthly View</span>
+                    Monthly View
                   </button>
-                  <button 
-                    onClick={() => {
-                      setViewType('weekly');
-                      setSelectedMonthIndex(null);
-                      setDropdownOpen(false);
-                    }}
-                    className={`w-full text-left px-3 py-2 hover:bg-gray-50 dark:hover:bg-zinc-700/50 flex items-center gap-2 ${viewType === 'weekly' ? 'text-[#10B981]' : 'text-gray-600 dark:text-gray-300'}`}
+                  <button
+                    onClick={() => { setViewType('weekly'); setSelectedMonthIndex(null); setDropdownOpen(false); }}
+                    className={`w-full text-left px-3 py-2 hover:bg-gray-50 transition-colors ${viewType === 'weekly' ? 'text-gray-900' : 'text-gray-500'}`}
                   >
-                    <span>📆 Weekly View</span>
+                    Weekly View
                   </button>
                 </div>
               </>
@@ -738,12 +727,12 @@ const SellerDashboardHome = () => {
                     isSelected ? 'bg-[#10B981]/5 rounded-sm border border-dashed border-[#10B981]/20 scale-105' : ''
                   }`}
                 >
-                  {/* Floating glassmorphic tooltip directly above bar */}
+                  {/* Tooltip */}
                   {isSelected && (
-                    <div className="absolute -top-12 z-50 bg-[#111111]/95 dark:bg-zinc-800/95 text-white px-2.5 py-1.5 rounded-lg shadow-xl text-[9px] font-black uppercase tracking-widest border border-zinc-700/60 dark:border-zinc-700/80 flex flex-col gap-0.5 min-w-[95px] text-center pointer-events-none animate-in fade-in zoom-in-95 duration-150">
-                      <span className="text-[#10B981]">{data.label || data.month} Details</span>
-                      <span>🟢 {data.completed} Done</span>
-                      <span>⚪ {data.canceled} Fail</span>
+                    <div className="absolute -top-12 z-50 bg-gray-900 text-white px-2.5 py-1.5 rounded-sm shadow-xl text-[9px] font-black uppercase tracking-wider border border-gray-700 flex flex-col gap-0.5 min-w-[80px] text-center pointer-events-none animate-in fade-in zoom-in-95 duration-150">
+                      <span className="text-emerald-400">{data.label || data.month}</span>
+                      <span>✓ {data.completed} Done</span>
+                      <span className="text-gray-400">✕ {data.canceled} Fail</span>
                     </div>
                   )}
 
@@ -759,7 +748,7 @@ const SellerDashboardHome = () => {
                       style={{ height: `${hCanceled}%` }}
                     ></div>
                   </div>
-                  <span className={`text-[8.5px] font-black uppercase tracking-wider transition-colors ${isSelected ? 'text-[#10B981]' : 'text-gray-400'}`}>
+                  <span className={`text-[10.5px] font-black uppercase tracking-wider transition-colors ${isSelected ? 'text-[#10B981]' : 'text-gray-400'}`}>
                     {data.label || data.month}
                   </span>
                 </div>
@@ -772,23 +761,24 @@ const SellerDashboardHome = () => {
       {/* Orders Table */}
       <div className="bg-white border border-gray-200 rounded-sm p-4 shadow-sm transition-colors duration-250">
         <div className="flex justify-between items-center pb-2 border-b border-gray-200 mb-3">
-          <h3 className="text-[11px] font-black uppercase tracking-wider text-gray-800">Recent Purchase History</h3>
-          <button className="flex items-center gap-1 text-blue-600 bg-gray-50 border border-gray-200 px-3 py-1 rounded-sm text-[9px] font-black uppercase tracking-wider transition-colors hover:bg-gray-100">
-            Sort <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20"><path d="M3 3a1 1 0 000 2h11a1 1 0 100-2H3zM3 7a1 1 0 000 2h7a1 1 0 100-2H3zM3 11a1 1 0 100 2h4a1 1 0 100-2H3z"></path></svg>
-          </button>
+          <h3 className="text-[9px] font-black uppercase tracking-wider text-gray-400">Recent Purchase History</h3>
+          <Link to="/seller/orders" className="flex items-center gap-1.5 text-gray-700 bg-white border border-gray-200 px-2.5 py-1.5 rounded-sm text-[9px] font-black uppercase tracking-wider transition-colors hover:bg-gray-50">
+            View All
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/></svg>
+          </Link>
         </div>
         
         <div className="overflow-x-auto">
           {loading ? (
-            <div className="text-center py-10 text-[10px] font-bold text-gray-400">Loading purchase history...</div>
+            <div className="text-center py-10 text-[12px] font-bold text-gray-400">Loading purchase history...</div>
           ) : recentOrdersList.length === 0 ? (
-            <div className="text-center py-10 text-[10px] font-bold text-gray-400">No purchase history found.</div>
+            <div className="text-center py-10 text-[12px] font-bold text-gray-400">No purchase history found.</div>
           ) : (
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-gray-200 text-[9px] font-black uppercase tracking-wider text-gray-400">
+                <tr className="border-b border-gray-200 text-[11px] font-black uppercase tracking-wider text-gray-400">
                   <th className="py-2.5 pr-2">No</th>
-                  <th className="py-2.5 px-2">Services name</th>
+                  <th className="py-2.5 px-2">Product Name</th>
                   <th className="py-2.5 px-2">Status</th>
                   <th className="py-2.5 px-2">Date</th>
                   <th className="py-2.5 px-2 text-right">Buyer</th>
@@ -797,28 +787,28 @@ const SellerDashboardHome = () => {
               <tbody className="divide-y divide-gray-100 text-[11px] font-bold text-gray-700">
                 {recentOrdersList.map((order, index) => (
                   <tr key={order.id} className="hover:bg-gray-50/50 transition-colors">
-                    <td className="py-3 pr-2 font-bold text-blue-600">#{order.customOrderId || order.id}</td>
+                    <td className="py-3 pr-2 font-black text-gray-800 text-[10px]">#{order.customOrderId || order.id}</td>
                     <td className="py-3 px-2">
                       <div className="flex items-center gap-2.5">
-                        <div className="w-7 h-7 rounded bg-gray-50 border border-gray-200 flex items-center justify-center text-sm shadow-sm overflow-hidden shrink-0">
-                          {order.image && order.image.startsWith('http') ? (
-                            <img src={order.image} alt="" className="w-full h-full object-contain" />
+                        <div className="w-6 h-6 rounded-sm bg-gray-50 border border-gray-200 flex items-center justify-center shadow-sm overflow-hidden shrink-0">
+                          {order.image ? (
+                            <img src={order.image} alt="" className="w-full h-full object-contain" onError={(e) => { e.target.style.display='none'; }}/>
                           ) : (
-                            order.image || '📦'
+                            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
                           )}
                         </div>
-                        <span className="font-black text-gray-800 max-w-[250px] truncate uppercase tracking-wide text-[10px]">{order.product}</span>
+                        <span className="font-black text-gray-800 max-w-[250px] truncate uppercase tracking-wide text-[11.5px]">{order.product}</span>
                       </div>
                     </td>
                     <td className="py-3 px-2">
-                      <span className={`px-2 py-0.5 text-[8px] font-black uppercase tracking-wider rounded-sm border inline-block ${getStatusStyle(order.status)}`}>
+                      <span className={`px-2 py-0.5 text-[10px] font-black uppercase tracking-wider rounded-sm border inline-block ${getStatusStyle(order.status)}`}>
                         {order.status}
                       </span>
                     </td>
-                    <td className="py-3 px-2 text-gray-400 font-bold text-[10px] uppercase tracking-wider">{order.date}</td>
+                    <td className="py-3 px-2 text-gray-400 font-bold text-[11px] uppercase tracking-wider">{order.date}</td>
                     <td className="py-3 px-2 text-right">
                       <div className="flex items-center gap-1.5 justify-end">
-                        <span className="font-black text-gray-800 text-[10px]">{order.customer}</span>
+                        <span className="font-black text-gray-800 text-[11.5px]">{order.customer}</span>
                       </div>
                     </td>
                   </tr>

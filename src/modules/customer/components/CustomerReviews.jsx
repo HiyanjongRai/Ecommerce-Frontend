@@ -1,7 +1,9 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import { getMyReviews, deleteReview, updateReview } from '../../../shared/api/customerApi';
 import { BASE_URL } from '../../../shared/api/apiClient';
 import { useCustomer } from '../contexts/CustomerContext';
+
 
 const Stars = ({ rating }) => (
   <span className="text-yellow-500 tracking-wider font-semibold select-none">
@@ -74,16 +76,27 @@ const CustomerReviews = () => {
 
   if (reviews.length === 0) return (
     <div className="text-center py-16 bg-white border border-gray-200 rounded-sm">
-      <div className="text-5xl mb-4 select-none">⭐</div>
+      <div className="flex items-center justify-center w-12 h-12 bg-amber-50 border border-amber-100 rounded-sm mx-auto mb-4">
+        <svg className="w-6 h-6 text-amber-400" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+      </div>
       <h3 className="text-sm font-black text-gray-800 uppercase tracking-wider mb-2">No reviews yet</h3>
-      <p className="text-xs text-gray-400">After receiving orders, you can leave product reviews.</p>
+      <p className="text-xs text-gray-400 mb-5">After receiving an order, you can leave a product review.</p>
+      <Link
+        to="/account/orders"
+        className="inline-block bg-[#10B981] hover:bg-[#059669] text-white text-xs font-black uppercase tracking-wider px-6 py-2.5 rounded-sm transition-colors duration-150"
+      >
+        View My Orders →
+      </Link>
     </div>
   );
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-200">
-        <h2 className="text-sm font-black uppercase tracking-wider text-gray-800">My Reviews</h2>
+      <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-200">
+        <div>
+          <h2 className="text-sm font-black text-gray-800">My Reviews</h2>
+          <p className="text-[10px] text-gray-400 font-medium mt-0.5">{reviews.length} review{reviews.length !== 1 ? 's' : ''}</p>
+        </div>
       </div>
 
       <div className="space-y-4">
@@ -147,7 +160,7 @@ const CustomerReviews = () => {
       {/* Edit Review Modal */}
       {editingReview && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="w-full max-w-md bg-white rounded-lg border border-gray-200 shadow-2xl overflow-hidden">
+          <div className="w-full max-w-md bg-white rounded-sm border border-gray-200 shadow-2xl overflow-hidden">
             <div className="flex justify-between items-center bg-emerald-50 px-5 py-4 border-b border-gray-100">
               <div>
                 <h3 className="text-sm font-black text-gray-900 uppercase tracking-wider">Edit Product Review</h3>

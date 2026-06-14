@@ -127,7 +127,7 @@ const SellerCommission = () => {
         setEsewaData({
           amount, tax_amount: '0.00', total_amount: amount, transaction_uuid: uuid,
           product_code: sig.productCode, product_service_charge: '0.00', product_delivery_charge: '0.00',
-          success_url: 'http://localhost:3000/payment/success', failure_url: 'http://localhost:3000/payment/failure',
+          success_url: `${window.location.origin}/payment/success`, failure_url: `${window.location.origin}/payment/failure`,
           signed_field_names: 'total_amount,transaction_uuid,product_code', signature: sig.signature,
           paymentUrl: sig.paymentUrl,
         });

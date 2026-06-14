@@ -10,6 +10,7 @@ const SellerInbox = () => {
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [sendError, setSendError] = useState('');
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -133,7 +134,8 @@ const SellerInbox = () => {
         setSelected(match);
       }
     } catch {
-      window.alert('Message send failed.');
+      setSendError('Failed to send message. Please try again.');
+      setTimeout(() => setSendError(''), 4000);
     } finally {
       setSending(false);
     }
@@ -158,7 +160,7 @@ const SellerInbox = () => {
         <EmptyState title="No conversations" text="Customer messages will appear here." />
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-3.5 h-[calc(100vh-320px)] min-h-[460px]">
-          <div className="bg-white border border-gray-100 rounded-xl overflow-hidden shadow-[0_2px_8px_-3px_rgba(6,81,237,0.08)] flex flex-col">
+          <div className="bg-white border border-gray-200 rounded-sm overflow-hidden shadow-sm flex flex-col">
             <div className="p-3 border-b border-gray-100">
               <h3 className="text-[10px] font-black uppercase tracking-widest text-gray-700">Conversations</h3>
             </div>
@@ -183,7 +185,7 @@ const SellerInbox = () => {
             </div>
           </div>
 
-          <div className="lg:col-span-2 bg-white border border-gray-100 rounded-xl overflow-hidden shadow-[0_2px_8px_-3px_rgba(6,81,237,0.08)] flex flex-col">
+          <div className="lg:col-span-2 bg-white border border-gray-200 rounded-sm overflow-hidden shadow-sm flex flex-col">
             <div className="p-3 border-b border-gray-100">
               <h3 className="text-[10px] font-black uppercase tracking-widest text-gray-700">{selected?.participantName || `Customer #${selected?.participantId}`}</h3>
             </div>
@@ -192,9 +194,9 @@ const SellerInbox = () => {
                 const mine = sellerUserId != null && String(item.senderId) === String(sellerUserId);
                 return (
                   <div key={index} className={`flex ${mine ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-[75%] px-4 py-3 rounded-3xl text-xs leading-relaxed shadow-sm ${mine ? 'bg-emerald-600 text-white rounded-tr-none' : 'bg-white text-gray-800 border border-gray-100 rounded-tl-none'}`}>
+                    <div className={`max-w-[75%] px-3.5 py-2.5 rounded-sm text-[11px] leading-relaxed shadow-sm ${mine ? 'bg-gray-900 text-white' : 'bg-white text-gray-800 border border-gray-100'}`}>
                       {item.productName && (
-                        <div className={`mb-2 p-2 rounded-lg border flex items-center gap-2 text-[10px] font-semibold ${mine ? 'bg-emerald-700/50 border-emerald-500 text-white' : 'bg-gray-50 border-gray-200 text-gray-800'}`}>
+                        <div className={`mb-2 p-1.5 rounded-sm border flex items-center gap-2 text-[10px] font-semibold ${mine ? 'bg-white/10 border-white/20 text-white' : 'bg-gray-50 border-gray-200 text-gray-800'}`}>
                           {item.productImage && (
                             <img
                               src={item.productImage.startsWith('http') ? item.productImage : `${BASE_URL}${item.productImage.startsWith('/') ? '' : '/'}${item.productImage}`}
@@ -217,11 +219,19 @@ const SellerInbox = () => {
                 );
               })}
             </div>
-            <form onSubmit={handleSubmit} className="p-2.5 border-t border-gray-100 flex gap-2">
-              <input value={message} onChange={(event) => setMessage(event.target.value)} placeholder="Type a reply..." className="flex-1 bg-gray-50 border border-gray-200 rounded-2xl px-3 py-2 text-xs font-semibold outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-colors" />
-              <button disabled={sending || !message.trim()} className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white text-[9px] font-black uppercase tracking-widest px-4 py-2 rounded-2xl">
-                {sending ? 'Sending...' : 'Send'}
-              </button>
+            <form onSubmit={handleSubmit} className="p-2.5 border-t border-gray-100 flex flex-col gap-2">
+              {sendError && (
+                <div className="px-3 py-2 bg-red-50 border border-red-200 rounded-sm text-xs font-bold text-red-700 flex items-center gap-1.5">
+                  <svg className="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
+                  {sendError}
+                </div>
+              )}
+              <div className="flex gap-2">
+                <input value={message} onChange={(event) => setMessage(event.target.value)} placeholder="Type a reply..." className="flex-1 bg-gray-50 border border-gray-200 rounded-sm px-3 py-1.5 text-xs font-semibold outline-none focus:border-gray-400 transition-colors" />
+                <button disabled={sending || !message.trim()} className="bg-gray-900 hover:bg-black disabled:opacity-60 text-white text-[9px] font-black uppercase tracking-wider px-3.5 py-1.5 rounded-sm">
+                  {sending ? 'Sending...' : 'Send'}
+                </button>
+              </div>
             </form>
           </div>
         </div>

@@ -54,7 +54,13 @@ const CustomerWishlist = () => {
     <div className="text-center py-12 bg-white border border-gray-200 rounded-sm">
       <div className="text-4xl mb-3 select-none">❤️</div>
       <h3 className="text-xs font-black text-gray-800 uppercase tracking-wider mb-1">Your wishlist is empty</h3>
-      <p className="text-[10px] text-gray-400">Save items you love while browsing.</p>
+      <p className="text-[10px] text-gray-400 mb-5">Save items you love while browsing the store.</p>
+      <Link
+        to="/product-list"
+        className="inline-block bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-black uppercase tracking-wider px-6 py-2.5 rounded-sm transition-colors duration-150"
+      >
+        Browse Products →
+      </Link>
     </div>
   );
 

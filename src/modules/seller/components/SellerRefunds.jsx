@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import {
   confirmSellerRefundCompletion, getSellerProfile, getSellerRefundRequests,
   inspectRefundReturn, requestRefundEvidence, requestRefundReturn, updateRefundStatus,
+  respondToRefund,
 } from '../services/sellerService';
 import EvidencePreviewModal from '../../dispute/components/EvidencePreviewModal';
 import {
@@ -103,6 +104,24 @@ const orderRef   = (r) => r.customOrderId || r.orderReferenceId || (r.orderId ? 
 const displayDate = (v) => { if (!v) return '—'; const d = new Date(v); return isNaN(d) ? '—' : d.toLocaleDateString(); };
 const displayDT   = (v) => { if (!v) return ''; const d = new Date(v); return isNaN(d) ? '' : d.toLocaleString(); };
 
+// Convert ALL_CAPS_SNAKE reason codes to human-readable labels
+// e.g. "DAMAGED_ITEM" → "Damaged Item", "WRONG_SIZE" → "Wrong Size"
+const formatReason = (raw) => {
+  if (!raw) return 'No reason provided.';
+  return String(raw)
+    .replace(/_/g, ' ')
+    .toLowerCase()
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+};
+
+// Strip backend role-prefix concat from customer names
+// e.g. "admincustomer_userJohn Doe" → "John Doe"
+const sanitizeName = (raw) => {
+  if (!raw) return 'Customer';
+  const cleaned = String(raw).replace(/^(admin|customer_user|admincustomer_user|seller_user|user_)/i, '').trim();
+  return cleaned || 'Customer';
+};
+
 /* ─── Horizontal Stepper ──────────────────────────────────────────  */
 const STEPPER_FLOW = [
   { key: 'received', label: 'Received',  statuses: ['REQUESTED', 'PENDING', 'PENDING_SELLER', 'VIEWED'] },
@@ -115,6 +134,20 @@ function RefundStepper({ status }) {
   const norm     = normalizeStatus(status);
   const isReject = ['REJECTED', 'CANCELLED', 'ESCALATED_TO_DISPUTE'].includes(norm);
   const activeIdx = STEPPER_FLOW.findIndex(s => s.statuses.includes(norm));
+
+  // Determine active stage colors
+  const getActiveColors = () => {
+    if (isReject) return { border: 'border-red-400 bg-red-400', text: 'text-red-500' };
+    if (['APPROVED', 'REFUNDED', 'PARTIALLY_REFUNDED', 'PROCESSING_REFUND', 'GATEWAY_PENDING', 'WEBHOOK_RECEIVED', 'PENDING_ADMIN_VERIFICATION'].includes(norm)) {
+      return { border: 'border-emerald-500 bg-emerald-500', text: 'text-emerald-600 dark:text-emerald-400' };
+    }
+    if (['WAITING_FOR_CUSTOMER', 'WAITING_FOR_RETURN', 'RETURN_IN_TRANSIT', 'RETURN_RECEIVED', 'INSPECTION_PENDING'].includes(norm)) {
+      return { border: 'border-amber-500 bg-amber-500', text: 'text-amber-500 dark:text-amber-400' };
+    }
+    return { border: 'border-blue-500 bg-blue-500', text: 'text-blue-600 dark:text-blue-400' };
+  };
+
+  const activeColors = getActiveColors();
 
   return (
     <div className="flex items-center w-full">
@@ -129,7 +162,7 @@ function RefundStepper({ status }) {
               <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all ${
                 isFailStep ? 'border-red-400 bg-red-400'
                   : done    ? 'border-emerald-500 bg-emerald-500'
-                  : current ? 'border-[#10B981] bg-[#10B981] shadow-md shadow-emerald-250 dark:shadow-none'
+                  : current ? `${activeColors.border} shadow-md`
                   : 'border-gray-250 bg-gray-55 dark:border-gray-700 dark:bg-gray-800'
               }`}>
                 {isFailStep
@@ -144,7 +177,7 @@ function RefundStepper({ status }) {
               <span className={`text-[10px] font-black uppercase tracking-wider ${
                 isFailStep ? 'text-red-500'
                   : done ? 'text-emerald-600 dark:text-emerald-400'
-                  : current ? 'text-[#10B981]'
+                  : current ? activeColors.text
                   : 'text-gray-400 dark:text-gray-500'
               }`}>
                 {step.label}
@@ -170,7 +203,7 @@ function EvidenceGallery({ evidence, evidenceImagePath, onPreview }) {
   if (!items.length) return null;
 
   return (
-    <div className="rounded-xl border border-gray-100 dark:border-gray-800 bg-gray-55 dark:bg-gray-950 p-4">
+    <div className="rounded-sm border border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-950 p-3.5">
       <div className="flex items-center justify-between mb-3">
         <p className="text-[9px] font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">
           Customer Evidence ({items.length} file{items.length !== 1 ? 's' : ''})
@@ -184,35 +217,45 @@ function EvidenceGallery({ evidence, evidenceImagePath, onPreview }) {
           const url = resolveImageUrl(item.filePath);
           const img = isImg(item.filePath);
           return (
-            <button
-              key={item.id || item.filePath || idx}
-              type="button"
-              onClick={() => onPreview(url)}
-              className="group relative rounded-xl border border-gray-255 bg-white dark:bg-gray-900 dark:border-gray-800 overflow-hidden
-                         hover:border-emerald-500 hover:shadow-md transition-all w-20 h-20 shrink-0"
-            >
-              {img && url ? (
-                <>
-                  <img
-                    src={url}
-                    alt={`Evidence ${idx + 1}`}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                    onError={e => { e.currentTarget.style.display = 'none'; e.currentTarget.nextSibling.style.display = 'flex'; }}
-                  />
-                  <div className="absolute inset-0 bg-black/45 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                    <Eye size={16} className="text-white" />
+            <div key={item.id || item.filePath || idx} className="group relative">
+              <button
+                type="button"
+                onClick={() => onPreview(url)}
+                className="relative rounded-sm border border-gray-200 bg-white dark:bg-gray-900 dark:border-gray-800 overflow-hidden
+                           hover:border-emerald-500 hover:shadow-md transition-all w-16 h-16 shrink-0 block"
+              >
+                {img && url ? (
+                  <>
+                    <img
+                      src={url}
+                      alt={`Evidence ${idx + 1}`}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                      onError={e => { e.currentTarget.style.display = 'none'; e.currentTarget.nextSibling.style.display = 'flex'; }}
+                    />
+                    <div className="absolute inset-0 bg-black/45 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                      <Eye size={16} className="text-white" />
+                    </div>
+                  </>
+                ) : null}
+                <div className="w-full h-full items-center justify-center flex-col gap-1"
+                     style={{ display: img && url ? 'none' : 'flex' }}>
+                  <ImageIcon size={20} className="text-gray-300 dark:text-gray-700" />
+                  <span className="text-[8px] font-bold text-gray-400 dark:text-gray-500">File {idx + 1}</span>
+                </div>
+                <div className="absolute bottom-0 left-0 right-0 bg-black/60 px-1.5 py-0.5">
+                  <p className="text-[7px] font-black text-white truncate uppercase tracking-wider">{item.uploadedBy || 'Customer'}</p>
+                </div>
+              </button>
+              {/* Hover Preview Panel */}
+              {img && url && (
+                <div className="hidden group-hover:block absolute bottom-full left-1/2 -translate-x-1/2 mb-3 z-[100] pointer-events-none transition-all duration-200">
+                  <div className="bg-white dark:bg-zinc-900 border-2 border-emerald-500 rounded-xl p-1.5 shadow-2xl w-48 h-48 flex items-center justify-center relative">
+                    <img src={url} alt="Preview" className="w-full h-full object-cover rounded-lg" />
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-emerald-500" />
                   </div>
-                </>
-              ) : null}
-              <div className="w-full h-full items-center justify-center flex-col gap-1"
-                   style={{ display: img && url ? 'none' : 'flex' }}>
-                <ImageIcon size={20} className="text-gray-300 dark:text-gray-700" />
-                <span className="text-[8px] font-bold text-gray-400 dark:text-gray-500">File {idx + 1}</span>
-              </div>
-              <div className="absolute bottom-0 left-0 right-0 bg-black/60 px-1.5 py-0.5">
-                <p className="text-[7px] font-black text-white truncate uppercase tracking-wider">{item.uploadedBy || 'Customer'}</p>
-              </div>
-            </button>
+                </div>
+              )}
+            </div>
           );
         })}
       </div>
@@ -225,8 +268,8 @@ function ActionBanner({ status }) {
   const norm = normalizeStatus(status);
   if (['REQUESTED', 'PENDING', 'PENDING_SELLER'].includes(norm))
     return (
-      <div className="rounded-xl border border-amber-300 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-805/40 p-3.5 flex items-center gap-3">
-        <div className="p-1.5 bg-amber-100 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 rounded-lg shrink-0">
+      <div className="rounded-sm border border-amber-300 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-805/40 p-3 flex items-center gap-3">
+        <div className="p-1 bg-amber-100 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 rounded-sm shrink-0">
           <AlertTriangle size={15} />
         </div>
         <div>
@@ -237,8 +280,8 @@ function ActionBanner({ status }) {
     );
   if (norm === 'RETURN_RECEIVED' || norm === 'INSPECTION_PENDING')
     return (
-      <div className="rounded-xl border border-violet-300 bg-violet-50 dark:bg-violet-950/20 dark:border-violet-805/40 p-3.5 flex items-center gap-3">
-        <div className="p-1.5 bg-violet-100 dark:bg-violet-900/20 text-violet-700 dark:text-violet-400 rounded-lg shrink-0">
+      <div className="rounded-sm border border-violet-300 bg-violet-50 dark:bg-violet-950/20 dark:border-violet-805/40 p-3 flex items-center gap-3">
+        <div className="p-1 bg-violet-100 dark:bg-violet-900/20 text-violet-700 dark:text-violet-400 rounded-sm shrink-0">
           <Package size={15} />
         </div>
         <div>
@@ -249,8 +292,8 @@ function ActionBanner({ status }) {
     );
   if (norm === 'PROCESSING_REFUND')
     return (
-      <div className="rounded-xl border border-emerald-300 bg-emerald-50 dark:bg-emerald-950/20 dark:border-emerald-805/40 p-3.5 flex items-center gap-3">
-        <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 rounded-lg shrink-0">
+      <div className="rounded-sm border border-emerald-300 bg-emerald-50 dark:bg-emerald-950/20 dark:border-emerald-805/40 p-3 flex items-center gap-3">
+        <div className="p-1 bg-emerald-100 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 rounded-sm shrink-0">
           <CheckCircle size={15} />
         </div>
         <div>
@@ -274,7 +317,7 @@ const INFO_TONES = {
 
 function InfoPanel({ tone = 'gray', label, children }) {
   return (
-    <div className={`rounded-xl border p-3.5 transition-all shadow-sm ${INFO_TONES[tone] || INFO_TONES.gray}`}>
+    <div className={`rounded-sm border p-3 transition-all shadow-sm ${INFO_TONES[tone] || INFO_TONES.gray}`}>
       <span className="block text-[9px] font-black uppercase tracking-widest opacity-60 mb-1.5">{label}</span>
       <div className="text-[11px] font-semibold leading-relaxed">{children}</div>
     </div>
@@ -285,24 +328,40 @@ function InfoPanel({ tone = 'gray', label, children }) {
 function RefundTimelineList({ entries }) {
   if (!entries?.length) return null;
   return (
-    <div className="rounded-xl border border-gray-150 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 shadow-sm">
+    <div className="rounded-sm border border-gray-150 dark:border-gray-800 bg-white dark:bg-gray-900 p-3.5 shadow-sm">
       <div className="flex items-center justify-between mb-4 border-b border-gray-100 dark:border-gray-800 pb-2">
         <span className="text-[9px] font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Activity Timeline</span>
-        <span className="text-[9px] font-black text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/20 px-2 py-0.5 rounded-full">{entries.length} Events</span>
+        <span className="text-[9px] font-black text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/20 px-2 py-0.5 rounded-sm">{entries.length} Events</span>
       </div>
       <div className="max-h-52 space-y-3.5 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-gray-200">
         {entries.slice().reverse().map((entry) => {
           const actor = String(entry.performedBy || 'SYSTEM').toUpperCase();
+          const act = String(entry.action || '').toUpperCase();
           const badgeColor = 
             actor === 'SELLER' ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/20 dark:text-emerald-400 border-emerald-100 dark:border-emerald-900/30' :
             actor === 'CUSTOMER' ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/20 dark:text-blue-400 border-blue-100 dark:border-blue-900/30' :
             actor === 'ADMIN' ? 'bg-purple-50 text-purple-700 dark:bg-purple-950/20 dark:text-purple-400 border-purple-100 dark:border-purple-900/30' :
             'bg-gray-55 text-gray-500 dark:bg-gray-800/30 dark:text-gray-400 border-gray-200 dark:border-gray-700/30';
 
+          let eventDotColor = 'bg-gray-400 dark:bg-gray-550 ring-gray-100 dark:ring-gray-800/40';
+          if (act.includes('APPROVE') || act.includes('COMPLETE') || act.includes('RESOLVE') || act.includes('RECEIVE')) {
+            eventDotColor = 'bg-emerald-500 dark:bg-emerald-450 ring-emerald-50 dark:ring-emerald-950/40';
+          } else if (act.includes('REJECT') || act.includes('DISPUTE') || act.includes('CANCEL') || act.includes('FAIL') || act.includes('DENY')) {
+            eventDotColor = 'bg-red-500 dark:bg-red-450 ring-red-50 dark:ring-red-950/40';
+          } else if (act.includes('WAIT') || act.includes('EVIDENCE') || act.includes('INSPECT') || act.includes('UPLOAD')) {
+            eventDotColor = 'bg-amber-500 dark:bg-amber-450 ring-amber-50 dark:ring-amber-950/30';
+          } else if (actor === 'SELLER') {
+            eventDotColor = 'bg-emerald-500 dark:bg-emerald-450 ring-emerald-50 dark:ring-emerald-950/40';
+          } else if (actor === 'CUSTOMER') {
+            eventDotColor = 'bg-blue-500 dark:bg-blue-450 ring-blue-50 dark:ring-blue-950/40';
+          } else if (actor === 'ADMIN') {
+            eventDotColor = 'bg-purple-500 dark:bg-purple-450 ring-purple-50 dark:ring-purple-950/40';
+          }
+
           return (
             <div key={entry.id || `${entry.action}-${entry.timestamp}`} className="flex gap-3">
               <div className="flex flex-col items-center shrink-0">
-                <div className="w-2.5 h-2.5 bg-emerald-500 dark:bg-emerald-400 rounded-full ring-4 ring-emerald-50 dark:ring-emerald-950/40 mt-1" />
+                <div className={`w-2.5 h-2.5 rounded-full ring-4 mt-1 ${eventDotColor}`} />
                 <div className="w-0.5 flex-1 bg-gray-100 dark:bg-gray-800 mt-2" />
               </div>
               <div className="flex-1 pb-1">
@@ -318,7 +377,7 @@ function RefundTimelineList({ entries }) {
                   {displayDT(entry.timestamp)}
                 </p>
                 {entry.comment && (
-                  <div className="mt-1.5 p-2 bg-gray-55 dark:bg-gray-955 rounded-xl border border-gray-100 dark:border-gray-800 text-[10px] font-semibold text-gray-600 dark:text-gray-300 leading-relaxed shadow-sm">
+                  <div className="mt-1.5 p-2 bg-gray-50 dark:bg-gray-955 rounded-sm border border-gray-100 dark:border-gray-800 text-[10px] font-semibold text-gray-600 dark:text-gray-300 leading-relaxed shadow-sm">
                     {entry.comment}
                   </div>
                 )}
@@ -416,17 +475,25 @@ export default function SellerRefunds() {
   };
 
   const handleStatusUpdate = async (refundId) => {
-    if (!nextStatus) { alert('Select next status.'); return; }
+    if (!nextStatus) { setError('Please select a next status before updating.'); return; }
     try {
       setSubmitting(true); setError('');
-      await updateRefundStatus(refundId, nextStatus, comment);
+      // APPROVED/REJECTED must use the dedicated seller-response endpoint so that
+      // backend seller-specific state guards and notification logic fire correctly.
+      if (nextStatus === 'APPROVED') {
+        await respondToRefund(refundId, 'ACCEPT', comment);
+      } else if (nextStatus === 'REJECTED') {
+        await respondToRefund(refundId, 'REJECT', comment);
+      } else {
+        await updateRefundStatus(refundId, nextStatus, comment);
+      }
       cancelAction(); await refreshRefunds();
     } catch (err) { setError(err.response?.data?.message || 'Failed to update status.'); }
     finally { setSubmitting(false); }
   };
 
   const handleEvidenceRequest = async (refundId) => {
-    if (!comment.trim()) { alert('Please tell the customer what evidence is needed.'); return; }
+    if (!comment.trim()) { setError('Please tell the customer what evidence is needed.'); return; }
     try {
       setSubmitting(true); setError('');
       await requestRefundEvidence(refundId, comment);
@@ -436,7 +503,7 @@ export default function SellerRefunds() {
   };
 
   const handleReturnRequest = async (refundId) => {
-    if (!returnForm.returnInstructions?.trim()) { alert('Please add return instructions.'); return; }
+    if (!returnForm.returnInstructions?.trim()) { setError('Please add return instructions before requesting a return.'); return; }
     try {
       setSubmitting(true); setError('');
       await requestRefundReturn(refundId, { ...returnForm, comment });
@@ -466,7 +533,7 @@ export default function SellerRefunds() {
 
   const handlePaymentSubmit = async (refund) => {
     const form = paymentForms[refund.id] || {};
-    if (!form.providerReference?.trim()) { alert('Please enter the payment transaction ID.'); return; }
+    if (!form.providerReference?.trim()) { setError('Please enter the payment transaction ID before submitting.'); return; }
     try {
       setSubmitting(true); setError('');
       await confirmSellerRefundCompletion(refund.id, {
@@ -613,12 +680,12 @@ export default function SellerRefunds() {
     const canAct  = !TERMINAL.includes(norm) && nextStatusOptions(refund.status).length > 0;
 
     return (
-      <div className="space-y-5 font-sans animate-in fade-in duration-200">
+      <div className="space-y-4 max-w-[1400px] font-sans animate-in fade-in duration-200">
         {/* Back navigation bar */}
         <div className="flex items-center gap-3">
           <button
             onClick={() => { setExpandedRefundId(null); cancelAction(); }}
-            className="flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors px-3.5 py-2 rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm hover:scale-103 cursor-pointer"
+            className="flex items-center gap-2 text-xs font-black text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors px-3 py-1.5 rounded-sm bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm"
           >
             <ArrowLeft size={16} />
             Back to Requests List
@@ -626,13 +693,13 @@ export default function SellerRefunds() {
         </div>
 
         {/* Detailed Card */}
-        <div className="bg-white dark:bg-gray-900 border border-gray-250 dark:border-gray-800 rounded-xl shadow-sm overflow-hidden">
+        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-sm shadow-sm overflow-hidden">
           {/* Card header */}
           <div className="px-6 py-5 border-b border-gray-150 dark:border-gray-800/60 bg-gray-50/50 dark:bg-gray-950/20">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="space-y-1">
                 <div className="flex items-center gap-2.5 flex-wrap">
-                  <div className="flex items-center gap-1.5 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-2 py-0.5 rounded-lg select-none">
+                  <div className="flex items-center gap-1.5 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-2 py-0.5 rounded-sm select-none">
                     <span className="font-mono text-[11px] font-black text-gray-700 dark:text-gray-300">{refundRef(refund)}</span>
                     <button
                       onClick={(e) => handleCopy(e, refund.id, refundRef(refund))}
@@ -679,7 +746,7 @@ export default function SellerRefunds() {
             <ActionBanner status={refund.status} />
 
             {/* Stepper */}
-            <div className="bg-gray-55 dark:bg-gray-955/40 rounded-xl border border-gray-150 dark:border-gray-800 p-4 shadow-inner">
+            <div className="bg-gray-50 dark:bg-gray-955/40 rounded-sm border border-gray-150 dark:border-gray-800 p-3.5 shadow-inner">
               <p className="text-[9px] font-black uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-3">Claim Stage Process</p>
               <RefundStepper status={refund.status} />
             </div>
@@ -688,7 +755,7 @@ export default function SellerRefunds() {
             <div className="grid gap-6 xl:grid-cols-[1fr_360px]">
               <div className="space-y-5">
                 <InfoPanel label="Customer Claim Reason">
-                  <p className="text-gray-700 dark:text-gray-300">{refund.reason || 'No details provided.'}</p>
+                  <p className="text-gray-700 dark:text-gray-300">{formatReason(refund.reason)}</p>
                 </InfoPanel>
 
                 <EvidenceGallery
@@ -735,7 +802,7 @@ export default function SellerRefunds() {
               {/* Right column: Unified audit panel */}
               <div className="space-y-5">
                 {(refund.riskLevel || refund.paymentStage || refund.inspectionCondition) && (
-                  <div className="rounded-xl border border-gray-200 dark:border-gray-850 bg-gray-55/50 dark:bg-gray-955/20 p-5 space-y-5 shadow-sm">
+                  <div className="rounded-sm border border-gray-200 dark:border-gray-850 bg-gray-50 dark:bg-gray-955/20 p-4 space-y-4 shadow-sm">
                     <span className="block text-[9px] font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Security & Quality Audit</span>
                     
                     <div className="space-y-3">
@@ -1180,14 +1247,14 @@ export default function SellerRefunds() {
 
   // ── DEFAULT LIST VIEW ──
   return (
-    <div className="space-y-5 font-sans">
+    <div className="space-y-4 max-w-[1400px] font-sans">
       <SectionHeader
         title="Refund Requests Console"
         subtitle="Track customer refund disputes, review return packages, inspect product condition, and handle payouts."
         action={
           <button
             onClick={loadAll}
-            className="p-2 text-gray-400 hover:text-[#10B981] transition-all bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 hover:scale-105"
+            className="p-1.5 text-gray-400 hover:text-gray-700 transition-all bg-white rounded-sm border border-gray-200 hover:border-gray-400"
           >
             <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
           </button>
@@ -1195,7 +1262,7 @@ export default function SellerRefunds() {
       />
 
       {error && (
-        <div className="p-3 bg-red-50 text-red-700 dark:bg-red-955/20 dark:text-red-400 border border-red-200 dark:border-red-900/50 text-xs font-bold rounded-xl flex items-center gap-2">
+        <div className="p-3 bg-red-50 text-red-700 dark:bg-red-955/20 dark:text-red-400 border border-red-200 dark:border-red-900/50 text-xs font-bold rounded-sm flex items-center gap-2">
           <AlertCircle size={15} />
           {error}
         </div>
@@ -1204,15 +1271,15 @@ export default function SellerRefunds() {
       {/* Telemetry Dashboard */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Needs Action */}
-        <div className={`p-4 rounded-xl border transition-all duration-300 shadow-sm ${
+        <div className={`p-3.5 rounded-sm border-l-4 border border-gray-200 transition-all duration-300 shadow-sm ${
           stats.needsAction > 0 
-            ? 'bg-amber-50/50 border-amber-200 dark:bg-amber-955/10 dark:border-amber-900/30' 
-            : 'bg-white border-gray-200 dark:bg-gray-900 dark:border-gray-800'
+            ? 'border-l-amber-400 bg-amber-50/50' 
+            : 'bg-white border-l-gray-300'
         }`}>
           <div className="flex justify-between items-start">
             <div>
               <span className="text-[9px] font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Needs Action</span>
-              <p className="text-2xl font-black mt-1.5 flex items-center gap-2 text-gray-900 dark:text-white">
+              <p className="text-base font-black mt-1 flex items-center gap-2 text-gray-900 dark:text-white">
                 {stats.needsAction}
                 {stats.needsAction > 0 && (
                   <span className="relative flex h-2.5 w-2.5">
@@ -1222,7 +1289,7 @@ export default function SellerRefunds() {
                 )}
               </p>
             </div>
-            <div className={`p-2 rounded-lg ${stats.needsAction > 0 ? 'bg-amber-100/60 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' : 'bg-gray-100 text-gray-400 dark:bg-gray-800 dark:text-gray-650'}`}>
+            <div className={`p-1.5 rounded-sm ${stats.needsAction > 0 ? 'bg-amber-100/60 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' : 'bg-gray-100 text-gray-400 dark:bg-gray-800 dark:text-gray-650'}`}>
               <Clock size={16} />
             </div>
           </div>
@@ -1230,13 +1297,13 @@ export default function SellerRefunds() {
         </div>
 
         {/* Claim Exposure */}
-        <div className="p-4 bg-white border border-gray-200 dark:bg-gray-900 dark:border-gray-800 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+        <div className="p-3.5 bg-white border border-gray-200 border-l-4 border-l-blue-400 dark:bg-gray-900 dark:border-gray-800 rounded-sm shadow-sm">
           <div className="flex justify-between items-start">
             <div>
               <span className="text-[9px] font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Active Exposure</span>
-              <p className="text-2xl font-black mt-1.5 text-gray-900 dark:text-white">{formatMoney(stats.activeExposure)}</p>
+              <p className="text-base font-black mt-1 text-gray-900 dark:text-white">{formatMoney(stats.activeExposure)}</p>
             </div>
-            <div className="p-2 bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 rounded-lg">
+            <div className="p-1.5 bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 rounded-sm">
               <Coins size={16} />
             </div>
           </div>
@@ -1244,13 +1311,13 @@ export default function SellerRefunds() {
         </div>
 
         {/* Completed Payouts */}
-        <div className="p-4 bg-white border border-gray-200 dark:bg-gray-900 dark:border-gray-800 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+        <div className="p-3.5 bg-white border border-gray-200 border-l-4 border-l-emerald-400 dark:bg-gray-900 dark:border-gray-800 rounded-sm shadow-sm">
           <div className="flex justify-between items-start">
             <div>
               <span className="text-[9px] font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Total Payouts Done</span>
-              <p className="text-2xl font-black mt-1.5 text-gray-900 dark:text-white">{formatMoney(stats.completedPayouts)}</p>
+              <p className="text-base font-black mt-1 text-gray-900 dark:text-white">{formatMoney(stats.completedPayouts)}</p>
             </div>
-            <div className="p-2 bg-emerald-55 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 rounded-lg">
+            <div className="p-1.5 bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 rounded-sm">
               <CheckCircle size={16} />
             </div>
           </div>
@@ -1258,17 +1325,17 @@ export default function SellerRefunds() {
         </div>
 
         {/* Disputes / Escalations */}
-        <div className={`p-4 rounded-xl border transition-all duration-300 shadow-sm ${
+        <div className={`p-3.5 rounded-sm border-l-4 border border-gray-200 transition-all duration-300 shadow-sm ${
           stats.escalatedDisputes > 0 
-            ? 'bg-red-50/50 border-red-200 dark:bg-red-955/10 dark:border-red-900/30' 
-            : 'bg-white border-gray-200 dark:bg-gray-900 dark:border-gray-800'
+            ? 'border-l-red-400 bg-red-50/50' 
+            : 'bg-white border-l-gray-300'
         }`}>
           <div className="flex justify-between items-start">
             <div>
               <span className="text-[9px] font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Escalated Disputes</span>
-              <p className="text-2xl font-black mt-1.5 text-gray-900 dark:text-white">{stats.escalatedDisputes}</p>
+              <p className="text-base font-black mt-1 text-gray-900 dark:text-white">{stats.escalatedDisputes}</p>
             </div>
-            <div className={`p-2 rounded-lg ${stats.escalatedDisputes > 0 ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' : 'bg-gray-100 text-gray-400 dark:bg-gray-800 dark:text-gray-650'}`}>
+            <div className={`p-1.5 rounded-sm ${stats.escalatedDisputes > 0 ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' : 'bg-gray-100 text-gray-400 dark:bg-gray-800 dark:text-gray-650'}`}>
               <AlertCircle size={16} />
             </div>
           </div>
@@ -1277,44 +1344,46 @@ export default function SellerRefunds() {
       </div>
 
       {/* Tabs & Search controls */}
-      <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-3 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3">
-        {/* Tab buttons */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-2 md:pb-0 scrollbar-none">
-          {TABS.map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
-                activeTab === tab.id
-                  ? 'bg-[#10B981] text-white shadow-sm'
-                  : 'text-gray-500 hover:bg-gray-55 hover:text-gray-900 dark:hover:bg-gray-800 dark:hover:text-white'
-              }`}
-            >
-              {tab.label}
-              <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full ${
-                activeTab === tab.id ? 'bg-white/25 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
-              }`}>
-                {tabCounts[tab.id]}
-              </span>
-            </button>
-          ))}
-        </div>
+      <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-sm shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 px-4 pt-3 pb-2.5 border-b border-gray-100">
+          {/* Tab buttons */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-2 md:pb-0 scrollbar-none">
+            {TABS.map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-sm text-[9px] font-black transition-all whitespace-nowrap uppercase tracking-wider ${
+                  activeTab === tab.id
+                    ? 'bg-gray-900 text-white'
+                    : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900 dark:hover:bg-gray-800 dark:hover:text-white'
+                }`}
+              >
+                {tab.label}
+                <span className={`text-[8px] font-black px-1 py-0.5 rounded-sm ${
+                  activeTab === tab.id ? 'bg-white/20 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
+                }`}>
+                  {tabCounts[tab.id]}
+                </span>
+              </button>
+            ))}
+          </div>
 
-        {/* Search Input */}
-        <div className="flex items-center bg-gray-50 dark:bg-gray-850 border border-gray-200 dark:border-gray-700 px-3 py-2 rounded-xl w-full md:w-72 shadow-inner">
-          <svg className="w-3.5 h-3.5 text-gray-400 mr-2 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-          <input
-            type="text"
-            placeholder="Search REF ID, Order ID..."
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            className="bg-transparent border-none outline-none text-xs w-full text-gray-800 dark:text-white placeholder-gray-400 font-semibold"
-          />
-          {searchQuery && (
-            <button onClick={() => setSearchQuery('')} className="text-gray-400 hover:text-gray-600 text-sm pl-1">✕</button>
-          )}
+          {/* Search Input */}
+          <div className="flex items-center border border-gray-200 dark:border-gray-700 px-2.5 py-1.5 rounded-sm w-full md:w-60">
+            <svg className="w-3 h-3 text-gray-400 mr-2 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input
+              type="text"
+              placeholder="Search REF ID, Order ID..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              className="bg-transparent border-none outline-none text-xs w-full text-gray-800 dark:text-white placeholder-gray-400 font-semibold"
+            />
+            {searchQuery && (
+              <button onClick={() => setSearchQuery('')} className="text-gray-400 hover:text-gray-600 text-sm pl-1">✕</button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -1322,18 +1391,18 @@ export default function SellerRefunds() {
       {filteredRefunds.length === 0 ? (
         <EmptyState title="No Refund Requests" text="No refund requests match your current filters." />
       ) : (
-        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm overflow-hidden">
+        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-sm shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
-              <thead className="bg-gray-55 dark:bg-gray-955 border-b border-gray-150 dark:border-gray-800">
+              <thead className="bg-gray-50 dark:bg-gray-955 border-b border-gray-100 dark:border-gray-800">
                 <tr>
-                  <th className="px-5 py-4 text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Refund reference</th>
-                  <th className="px-5 py-4 text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Order details</th>
-                  <th className="px-5 py-4 text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Requested date</th>
-                  <th className="px-5 py-4 text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Reason / Details</th>
-                  <th className="px-5 py-4 text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Status</th>
-                  <th className="px-5 py-4 text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Refund claimed</th>
-                  <th className="px-5 py-4 text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500 text-right">Actions</th>
+                  <th className="px-3 py-2.5 text-[9px] font-black uppercase tracking-wider text-gray-400 dark:text-gray-500">Refund reference</th>
+                  <th className="px-3 py-2.5 text-[9px] font-black uppercase tracking-wider text-gray-400 dark:text-gray-500">Order details</th>
+                  <th className="px-3 py-2.5 text-[9px] font-black uppercase tracking-wider text-gray-400 dark:text-gray-500">Requested date</th>
+                  <th className="px-3 py-2.5 text-[9px] font-black uppercase tracking-wider text-gray-400 dark:text-gray-500">Reason</th>
+                  <th className="px-3 py-2.5 text-[9px] font-black uppercase tracking-wider text-gray-400 dark:text-gray-500">Status</th>
+                  <th className="px-3 py-2.5 text-[9px] font-black uppercase tracking-wider text-gray-400 dark:text-gray-500">Claimed</th>
+                  <th className="px-3 py-2.5 text-[9px] font-black uppercase tracking-wider text-gray-400 dark:text-gray-500 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-gray-800/60">
@@ -1347,7 +1416,7 @@ export default function SellerRefunds() {
                       className="hover:bg-gray-55/40 dark:hover:bg-gray-850/40 transition-colors cursor-pointer group"
                     >
                       {/* ID reference */}
-                      <td className="px-5 py-4">
+                      <td className="px-3 py-2.5">
                         <div className="flex items-center gap-1.5">
                           <button
                             onClick={(e) => { e.stopPropagation(); setExpandedRefundId(refund.id); }}
@@ -1366,50 +1435,50 @@ export default function SellerRefunds() {
                       </td>
 
                       {/* Order info */}
-                      <td className="px-5 py-4">
-                        <span className="text-xs font-semibold text-gray-800 dark:text-gray-200">
+                      <td className="px-3 py-2.5">
+                        <span className="text-[11px] font-semibold text-gray-800 dark:text-gray-200">
                           {orderRef(refund)}
                         </span>
                       </td>
 
                       {/* Created date */}
-                      <td className="px-5 py-4">
-                        <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">
+                      <td className="px-3 py-2.5">
+                        <span className="text-[11px] font-semibold text-gray-500 dark:text-gray-400">
                           {displayDate(refund.createdAt)}
                         </span>
                       </td>
 
                       {/* Reason */}
-                      <td className="px-5 py-4 max-w-xs truncate">
-                        <span className="text-xs font-semibold text-gray-600 dark:text-gray-400" title={refund.reason}>
-                          {refund.reason || 'No details provided.'}
+                      <td className="px-3 py-2.5 max-w-[120px] truncate">
+                        <span className="text-[11px] font-semibold text-gray-600 dark:text-gray-400" title={refund.reason}>
+                          {refund.reason || 'No details.'}
                         </span>
                       </td>
 
                       {/* Status Badge */}
-                      <td className="px-5 py-4">
-                        <div className="flex items-center gap-2">
-                          <span className={`px-2 py-0.5 rounded border text-[9px] font-black uppercase tracking-wider ${badgeClass(refund.status)}`}>
+                      <td className="px-3 py-2.5">
+                        <div className="flex items-center gap-1.5">
+                          <span className={`px-1.5 py-0.5 rounded border text-[8px] font-black uppercase tracking-wider ${badgeClass(refund.status)}`}>
                             {statusLabel(refund.status)}
                           </span>
                           {needsAct && (
-                            <span className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" title="Action required" />
+                            <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse" title="Action required" />
                           )}
                         </div>
                       </td>
 
                       {/* Claimed Amount */}
-                      <td className="px-5 py-4">
-                        <span className="text-xs font-black text-gray-800 dark:text-white">
+                      <td className="px-3 py-2.5">
+                        <span className="text-[11px] font-black text-gray-800 dark:text-white">
                           {formatMoney(refund.refundAmount)}
                         </span>
                       </td>
 
                       {/* Action trigger button */}
-                      <td className="px-5 py-4 text-right">
+                      <td className="px-3 py-2.5 text-right">
                         <button
                           onClick={(e) => { e.stopPropagation(); setExpandedRefundId(refund.id); }}
-                          className="px-3.5 py-1.5 bg-[#10B981] hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-all shadow-sm group-hover:scale-105"
+                          className="px-2.5 py-1 bg-gray-900 hover:bg-black text-white rounded-sm text-[9px] font-black uppercase tracking-wider transition-colors"
                         >
                           Manage
                         </button>

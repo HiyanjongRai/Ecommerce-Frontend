@@ -1,11 +1,13 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { getUnreadMessageCount } from '../services/sellerService';
 import {
   LayoutDashboard, DollarSign, Package, Boxes, Tag, Megaphone,
   Ticket, ShoppingCart, RefreshCw, Scale, Inbox, Bell,
   Store, Settings, HelpCircle, LogOut, Sun, Moon, ChevronRight,
   TrendingUp,
 } from 'lucide-react';
+import { toast } from '../../../shared/contexts/ToastContext';
 
 const NAV = [
   {
@@ -18,7 +20,7 @@ const NAV = [
   {
     group: 'Products',
     items: [
-      { to: '/seller/products',           label: 'Add Products',    icon: Package         },
+      { to: '/seller/products',           label: 'Products',        icon: Package         },
       { to: '/seller/inventory',          label: 'Inventory',       icon: Boxes           },
       { to: '/seller/discount-sales',     label: 'Discounts & Sales', icon: Tag           },
       { to: '/seller/sale-discount-list', label: 'Sale List',       icon: TrendingUp      },
@@ -32,7 +34,7 @@ const NAV = [
       { to: '/seller/orders',             label: 'Orders',          icon: ShoppingCart    },
       { to: '/seller/refunds',            label: 'Refunds',         icon: RefreshCw       },
       { to: '/seller/disputes',           label: 'Disputes',        icon: Scale           },
-      { to: '/seller/inbox',              label: 'Inbox',           icon: Inbox, badge: 4 },
+      { to: '/seller/inbox',              label: 'Inbox',           icon: Inbox, badgeKey: 'inbox' },
     ],
   },
   {
@@ -49,6 +51,20 @@ const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
 
 export default function SellerSidebar({ currentPath, darkMode, toggleDarkMode, profile, onLogout }) {
   const dark = darkMode;
+  const [badges, setBadges] = useState({ inbox: 0 });
+
+  useEffect(() => {
+    const fetchBadges = async () => {
+      try {
+        const res = await getUnreadMessageCount();
+        const count = typeof res.data === 'number' ? res.data : (res.data?.count ?? 0);
+        setBadges(prev => ({ ...prev, inbox: count }));
+      } catch { /* silent */ }
+    };
+    fetchBadges();
+    const interval = setInterval(fetchBadges, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   const isActive = (to) => currentPath.startsWith(to);
 
@@ -68,45 +84,45 @@ export default function SellerSidebar({ currentPath, darkMode, toggleDarkMode, p
   return (
     <nav
       style={{
-        width: 240, flexShrink: 0, display: 'flex', flexDirection: 'column',
-        borderRadius: 18, overflow: 'hidden',
+        width: 220, flexShrink: 0, display: 'flex', flexDirection: 'column',
+        borderRadius: 4, overflow: 'hidden',
         background: bg, border: `1px solid ${border}`,
-        boxShadow: dark ? '0 8px 32px rgba(0,0,0,.5)' : '0 1px 4px rgba(0,0,0,.07)',
+        boxShadow: dark ? '0 4px 24px rgba(0,0,0,.4)' : '0 1px 3px rgba(0,0,0,.06)',
         minHeight: 640, userSelect: 'none',
       }}
     >
-      {/* ── Store header ───────────────────────────────────── */}
-      <div style={{ padding: '18px 20px', borderBottom: `1px solid ${border}` }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+      {/* ── Store header ─────────────────────────────────────── */}
+      <div style={{ padding: '12px 14px', borderBottom: `1px solid ${border}` }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
           <div style={{ position: 'relative', flexShrink: 0 }}>
             {logoSrc ? (
               <img src={logoSrc} alt={profile.storeName}
-                   style={{ width: 40, height: 40, borderRadius: 10, objectFit: 'cover', border: `1px solid ${border}` }} />
+                   style={{ width: 32, height: 32, borderRadius: 4, objectFit: 'cover', border: `1px solid ${border}` }} />
             ) : (
               <div style={{
-                width: 40, height: 40, borderRadius: 10,
+                width: 32, height: 32, borderRadius: 4,
                 background: 'linear-gradient(135deg, #10b981 0%, #0d9488 100%)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: '#fff', fontWeight: 900, fontSize: 15,
-                boxShadow: '0 4px 12px rgba(16,185,129,.3)',
+                color: '#fff', fontWeight: 900, fontSize: 13,
+                boxShadow: '0 2px 8px rgba(16,185,129,.3)',
               }}>
                 {profile?.storeName?.charAt(0)?.toUpperCase() || 'S'}
               </div>
             )}
             <div style={{
               position: 'absolute', bottom: -1, right: -1,
-              width: 12, height: 12, borderRadius: '50%',
+              width: 9, height: 9, borderRadius: '50%',
               background: '#10b981', border: '2px solid #fff',
             }} />
           </div>
           <div style={{ minWidth: 0 }}>
-            <p style={{ margin: 0, fontWeight: 800, fontSize: 13, color: dark ? '#fff' : '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <p style={{ margin: 0, fontWeight: 800, fontSize: 11, color: dark ? '#fff' : '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {profile?.storeName || 'My Store'}
             </p>
             <span style={{
               display: 'inline-flex', alignItems: 'center',
-              fontSize: 9, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase',
-              padding: '2px 8px', borderRadius: 20,
+              fontSize: 9, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase',
+              padding: '1px 6px', borderRadius: 3,
               background: dark ? 'rgba(16,185,129,.15)' : '#ecfdf5',
               color: dark ? '#34d399' : '#047857',
             }}>
@@ -117,10 +133,10 @@ export default function SellerSidebar({ currentPath, darkMode, toggleDarkMode, p
       </div>
 
       {/* ── Navigation ─────────────────────────────────────── */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '12px 0' }}>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '8px 0' }}>
         {NAV.map((section) => (
-          <div key={section.group} style={{ marginBottom: 14 }}>
-            <p style={{ margin: '0 0 4px', padding: '0 20px', fontSize: 9, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: textMuted }}>
+          <div key={section.group} style={{ marginBottom: 10 }}>
+            <p style={{ margin: '0 0 2px', padding: '0 14px', fontSize: 9, fontWeight: 900, letterSpacing: '0.13em', textTransform: 'uppercase', color: textMuted }}>
               {section.group}
             </p>
             {section.items.map((item) => {
@@ -132,9 +148,9 @@ export default function SellerSidebar({ currentPath, darkMode, toggleDarkMode, p
                   to={item.to}
                   style={{
                     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                    padding: '8px 12px', margin: '1px 8px', borderRadius: 10,
-                    textDecoration: 'none', fontSize: 13,
-                    fontWeight: active ? 700 : 500,
+                    padding: '5px 10px', margin: '1px 6px', borderRadius: 3,
+                    textDecoration: 'none', fontSize: 11,
+                    fontWeight: active ? 800 : 600,
                     color: active ? activeText : textNormal,
                     background: active ? activeBg : 'transparent',
                     transition: 'background 0.15s ease, color 0.15s ease',
@@ -154,21 +170,26 @@ export default function SellerSidebar({ currentPath, darkMode, toggleDarkMode, p
                   }}
                 >
                   {active && (
-                    <div style={{ position: 'absolute', left: 0, top: '50%', transform: 'translateY(-50%)', width: 3, height: 18, borderRadius: 2, background: dark ? '#34d399' : '#059669' }} />
+                    <div style={{ position: 'absolute', left: 0, top: '50%', transform: 'translateY(-50%)', width: 2, height: 14, borderRadius: 2, background: dark ? '#34d399' : '#059669' }} />
                   )}
-                  {/* Icon + label — guaranteed gap via inline style */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <Icon size={16} style={{ flexShrink: 0, color: active ? (dark ? '#34d399' : '#059669') : (dark ? 'rgba(255,255,255,.4)' : '#9ca3af') }} />
+                  {/* Icon + label */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                    <Icon size={13} style={{ flexShrink: 0, color: active ? (dark ? '#34d399' : '#059669') : (dark ? 'rgba(255,255,255,.4)' : '#9ca3af') }} />
                     <span>{item.label}</span>
                   </div>
                   {/* Badge or chevron */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                    {item.badge > 0 && (
-                      <span style={{ background: '#ef4444', color: '#fff', fontSize: 9, fontWeight: 900, minWidth: 18, height: 18, padding: '0 4px', borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {item.badgeKey && badges[item.badgeKey] > 0 && (
+                      <span style={{ background: '#ef4444', color: '#fff', fontSize: 9, fontWeight: 900, minWidth: 15, height: 15, padding: '0 3px', borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        {badges[item.badgeKey]}
+                      </span>
+                    )}
+                    {!item.badgeKey && item.badge > 0 && (
+                      <span style={{ background: '#ef4444', color: '#fff', fontSize: 9, fontWeight: 900, minWidth: 15, height: 15, padding: '0 3px', borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         {item.badge}
                       </span>
                     )}
-                    {active && <ChevronRight size={12} style={{ color: dark ? '#34d399' : '#059669' }} />}
+                    {active && <ChevronRight size={10} style={{ color: dark ? '#34d399' : '#059669' }} />}
                   </div>
                 </Link>
               );
@@ -177,58 +198,58 @@ export default function SellerSidebar({ currentPath, darkMode, toggleDarkMode, p
         ))}
 
         {/* Help */}
-        <div style={{ marginBottom: 14 }}>
-          <p style={{ margin: '0 0 4px', padding: '0 20px', fontSize: 9, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: textMuted }}>
+        <div style={{ marginBottom: 10 }}>
+          <p style={{ margin: '0 0 2px', padding: '0 14px', fontSize: 9, fontWeight: 900, letterSpacing: '0.13em', textTransform: 'uppercase', color: textMuted }}>
             Help
           </p>
           <button
-            onClick={() => window.alert('Jhapcham Help Center — How can we assist you?')}
+            onClick={() => toast('💡 Jhapcham Help Center — How can we assist you? Email: support@jhapcham.com', 'info')}
             style={{
-              width: 'calc(100% - 16px)', display: 'flex', alignItems: 'center', gap: 8,
-              padding: '8px 12px', margin: '1px 8px', borderRadius: 10, border: 'none', cursor: 'pointer',
-              background: 'transparent', fontSize: 13, fontWeight: 500, color: textNormal,
+              width: 'calc(100% - 12px)', display: 'flex', alignItems: 'center', gap: 7,
+              padding: '4px 10px', margin: '1px 6px', borderRadius: 4, border: 'none', cursor: 'pointer',
+              background: 'transparent', fontSize: 11, fontWeight: 600, color: textNormal,
               transition: 'background 0.15s ease',
             }}
             onMouseEnter={e => { e.currentTarget.style.background = dark ? 'rgba(255,255,255,.05)' : '#f9fafb'; }}
             onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
           >
-            <HelpCircle size={16} style={{ flexShrink: 0, color: dark ? 'rgba(255,255,255,.4)' : '#9ca3af' }} />
+            <HelpCircle size={12} style={{ flexShrink: 0, color: dark ? 'rgba(255,255,255,.4)' : '#9ca3af' }} />
             <span>Help Center</span>
           </button>
         </div>
       </div>
 
-      {/* ── Footer ─────────────────────────────────────────── */}
-      <div style={{ padding: '12px', borderTop: `1px solid ${border}` }}>
+      {/* ── Footer ─────────────────────────────────────── */}
+      <div style={{ padding: '8px', borderTop: `1px solid ${border}` }}>
         <button
           onClick={onLogout}
           style={{
-            width: '100%', display: 'flex', alignItems: 'center', gap: 8,
-            padding: '8px 12px', borderRadius: 10, border: 'none', cursor: 'pointer',
-            background: 'transparent', fontSize: 13, fontWeight: 600,
+            width: '100%', display: 'flex', alignItems: 'center', gap: 7,
+            padding: '5px 10px', borderRadius: 4, border: 'none', cursor: 'pointer',
+            background: 'transparent', fontSize: 11, fontWeight: 700,
             color: dark ? '#f87171' : '#ef4444', transition: 'background 0.15s ease',
           }}
           onMouseEnter={e => { e.currentTarget.style.background = dark ? 'rgba(239,68,68,.1)' : '#fef2f2'; }}
           onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
         >
-          <LogOut size={15} style={{ flexShrink: 0 }} />
+          <LogOut size={12} style={{ flexShrink: 0 }} />
           <span>Sign Out</span>
         </button>
-        <div style={{ display: 'flex', gap: 4, marginTop: 8, background: dark ? 'rgba(255,255,255,.05)' : '#f3f4f6', borderRadius: 10, padding: 4 }}>
+        <div style={{ display: 'flex', gap: 3, marginTop: 6, background: dark ? 'rgba(255,255,255,.05)' : '#f3f4f6', borderRadius: 4, padding: 3 }}>
           {[
             { label: 'Light', Icon: Sun,  on: !dark, click: () => dark && toggleDarkMode()  },
             { label: 'Dark',  Icon: Moon, on: dark,  click: () => !dark && toggleDarkMode() },
           ].map(({ label, Icon: I, on, click }) => (
             <button key={label} onClick={click} style={{
-              flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-              padding: '6px 0', borderRadius: 7, border: 'none', cursor: 'pointer',
-              fontSize: 11, fontWeight: 700,
+              flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+              padding: '4px 0', borderRadius: 3, border: 'none', cursor: 'pointer',
+              fontSize: 10, fontWeight: 700,
               background: on ? (dark ? 'rgba(16,185,129,.2)' : '#fff') : 'transparent',
               color: on ? (dark ? '#34d399' : '#059669') : (dark ? 'rgba(255,255,255,.35)' : '#9ca3af'),
-              boxShadow: on ? '0 1px 3px rgba(0,0,0,.1)' : 'none',
+              boxShadow: on ? '0 1px 2px rgba(0,0,0,.08)' : 'none',
               transition: 'all 0.15s ease',
             }}>
-              <I size={12} /><span>{label}</span>
+              <I size={10} /><span>{label}</span>
             </button>
           ))}
         </div>

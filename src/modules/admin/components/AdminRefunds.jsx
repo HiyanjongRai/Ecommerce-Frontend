@@ -6,6 +6,7 @@ import {
   adminConfirmRefundCompletionWithAmount,
   adminRecordRefundPaymentEvent,
   adminUpdateRefundStatus,
+  adminFinalizeRefund,
 } from '../services/adminService';
 import { BASE_URL } from '../../../shared/api/apiConfig';
 import EvidencePreviewModal from '../../dispute/components/EvidencePreviewModal';
@@ -186,10 +187,27 @@ function RefundRow({ refund, onRefreshed, themeClasses }) {
     if (!comment.trim()) { setErr('Please add an admin decision note.'); return; }
     try {
       setSubmitting(true); setErr('');
-      await adminUpdateRefundStatus(refund.id, status, comment);
+      const approve = status === 'APPROVED';
+
+      if (approve) {
+        // Backend guard on admin-finalize requires refund to be in APPROVED or RETURN_RECEIVED
+        // status before processing money/stock. Step 1: move to APPROVED, Step 2: finalize.
+        const currentStatus = refund.status;
+        const alreadyApproved = ['APPROVED', 'RETURN_RECEIVED'].includes(currentStatus);
+        if (!alreadyApproved) {
+          await adminUpdateRefundStatus(refund.id, 'APPROVED', comment);
+        }
+        await adminFinalizeRefund(refund.id, true, comment);
+      } else {
+        // Rejection: admin-finalize handles it directly regardless of current status
+        await adminFinalizeRefund(refund.id, false, comment);
+      }
       onRefreshed();
-    } catch (ex) { setErr(ex.response?.data?.message || 'Decision failed.'); }
-    finally { setSubmitting(false); }
+    } catch (ex) {
+      setErr(ex.response?.data?.message || ex.message || 'Decision failed.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handlePaymentEvent = async () => {
@@ -541,7 +559,7 @@ function RefundRow({ refund, onRefreshed, themeClasses }) {
                 <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Audit History Logs</span>
               </div>
               <div className="relative border-l border-emerald-500/20 dark:border-emerald-500/10 ml-3 space-y-5">
-                {refund.timeline.slice(-6).map((entry) => {
+                {refund.timeline.map((entry) => {
                   const actor = String(entry.performedBy || 'SYSTEM').toUpperCase();
                   const badgeColor = 
                     actor === 'SELLER' ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/20 dark:text-emerald-400 border-emerald-100/30' :

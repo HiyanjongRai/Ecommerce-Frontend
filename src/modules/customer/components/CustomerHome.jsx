@@ -3,410 +3,335 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useCustomer } from '../contexts/CustomerContext';
 import { getUserOrdersSimple, getLoyaltyPoints } from '../../../shared/api/customerApi';
 
-/* ── Icon Components ─────────────────────────────────────────── */
-const IconOrders = () => (
-  <svg className="w-7 h-7 text-gray-300 group-hover:text-emerald-500 transition-colors duration-300" fill="none" stroke="currentColor" strokeWidth="1.2" viewBox="0 0 24 24">
-    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-    <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
-    <line x1="12" y1="22.08" x2="12" y2="12"/>
-  </svg>
-);
-
-const IconRefunds = () => (
-  <svg className="w-7 h-7 text-gray-300 group-hover:text-emerald-500 transition-colors duration-300" fill="none" stroke="currentColor" strokeWidth="1.2" viewBox="0 0 24 24">
-    <rect x="2" y="5" width="20" height="14" rx="2" ry="2"/>
-    <line x1="2" y1="10" x2="22" y2="10"/>
-  </svg>
-);
-
-const IconAddresses = () => (
-  <svg className="w-7 h-7 text-gray-300 group-hover:text-emerald-500 transition-colors duration-300" fill="none" stroke="currentColor" strokeWidth="1.2" viewBox="0 0 24 24">
-    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-    <circle cx="12" cy="10" r="3"/>
-  </svg>
-);
-
-const IconAccount = () => (
-  <svg className="w-7 h-7 text-gray-300 group-hover:text-emerald-500 transition-colors duration-300" fill="none" stroke="currentColor" strokeWidth="1.2" viewBox="0 0 24 24">
-    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-    <circle cx="12" cy="7" r="4"/>
-  </svg>
-);
-
-const IconWishlist = () => (
-  <svg className="w-7 h-7 text-gray-300 group-hover:text-emerald-500 transition-colors duration-300" fill="none" stroke="currentColor" strokeWidth="1.2" viewBox="0 0 24 24">
-    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-  </svg>
-);
-
-const IconLogout = () => (
-  <svg className="w-7 h-7 text-gray-300 group-hover:text-red-400 transition-colors duration-300" fill="none" stroke="currentColor" strokeWidth="1.2" viewBox="0 0 24 24">
-    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-    <polyline points="16 17 21 12 16 7"/>
-    <line x1="21" y1="12" x2="9" y2="12"/>
-  </svg>
-);
-
-const IconCart = () => (
-  <svg className="w-7 h-7 text-gray-300 group-hover:text-emerald-500 transition-colors duration-300" fill="none" stroke="currentColor" strokeWidth="1.2" viewBox="0 0 24 24">
-    <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
-    <line x1="3" y1="6" x2="21" y2="6"/>
-    <path d="M16 10a4 4 0 0 1-8 0"/>
-  </svg>
-);
-
-const IconLoyalty = () => (
-  <svg className="w-7 h-7 text-gray-300 group-hover:text-emerald-500 transition-colors duration-300" fill="none" stroke="currentColor" strokeWidth="1.2" viewBox="0 0 24 24">
-    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-  </svg>
-);
-
-const IconNotifications = () => (
-  <svg className="w-7 h-7 text-gray-300 group-hover:text-emerald-500 transition-colors duration-300" fill="none" stroke="currentColor" strokeWidth="1.2" viewBox="0 0 24 24">
-    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-    <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-  </svg>
-);
-
-const IconMessages = () => (
-  <svg className="w-7 h-7 text-gray-300 group-hover:text-emerald-500 transition-colors duration-300" fill="none" stroke="currentColor" strokeWidth="1.2" viewBox="0 0 24 24">
-    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-  </svg>
-);
-
-/* ── Quick Cards Data ─────────────────────────────────────────── */
-const CARDS = [
-  { to: '/customer/orders',        label: 'ORDERS',        icon: <IconOrders /> },
-  { to: '/customer/refunds',       label: 'REFUNDS',       icon: <IconRefunds /> },
-  { to: '/customer/addresses',     label: 'ADDRESSES',     icon: <IconAddresses /> },
-  { to: '/customer/profile',       label: 'ACCOUNT DETAILS', icon: <IconAccount /> },
-  { to: '/customer/wishlist',      label: 'WISHLIST',      icon: <IconWishlist /> },
-  { to: '/customer/cart',          label: 'CART',          icon: <IconCart /> },
-  { to: '/customer/loyalty',       label: 'LOYALTY',       icon: <IconLoyalty /> },
-  { to: '/customer/notifications', label: 'NOTIFICATIONS', icon: <IconNotifications /> },
-  { to: '/customer/messages',      label: 'MESSAGES',      icon: <IconMessages /> },
-];
-
-const STATUS_CLASS = {
-  PENDING:    'bg-yellow-100 text-yellow-700 border-yellow-200',
-  PROCESSING: 'bg-blue-100 text-blue-700 border-blue-200',
-  SHIPPED:    'bg-purple-100 text-purple-700 border-purple-200',
-  DELIVERED:  'bg-green-100 text-green-700 border-green-200',
-  CANCELLED:  'bg-red-100 text-red-700 border-red-200',
-  PAID:       'bg-green-100 text-green-700 border-green-200',
+/* ── Status badge config ─────────────────────────────────────── */
+const STATUS_CFG = {
+  PENDING:    { label: 'Pending',    cls: 'bg-amber-50 text-amber-700 border-amber-200' },
+  CONFIRMED:  { label: 'Confirmed',  cls: 'bg-blue-50 text-blue-700 border-blue-200' },
+  PROCESSING: { label: 'Processing', cls: 'bg-indigo-50 text-indigo-700 border-indigo-200' },
+  PACKED:     { label: 'Packed',     cls: 'bg-violet-50 text-violet-700 border-violet-200' },
+  SHIPPED:    { label: 'Shipped',    cls: 'bg-sky-50 text-sky-700 border-sky-200' },
+  DELIVERED:  { label: 'Delivered',  cls: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+  CANCELLED:  { label: 'Cancelled',  cls: 'bg-red-50 text-red-600 border-red-200' },
+  REFUNDED:   { label: 'Refunded',   cls: 'bg-orange-50 text-orange-600 border-orange-200' },
 };
+
+const StatusBadge = ({ status }) => {
+  const cfg = STATUS_CFG[status] || { label: status, cls: 'bg-gray-50 text-gray-500 border-gray-200' };
+  return (
+    <span className={`inline-flex items-center text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-sm border ${cfg.cls}`}>
+      {cfg.label}
+    </span>
+  );
+};
+
+/* ── Tier helper ─────────────────────────────────────────────── */
+const getTier = (pts = 0) =>
+  pts >= 10000 ? { label: 'Diamond', color: '#06b6d4' } :
+  pts >= 4000  ? { label: 'Platinum', color: '#6366f1' } :
+  pts >= 1500  ? { label: 'Gold',    color: '#d97706' } :
+  pts >= 500   ? { label: 'Silver',  color: '#64748b' } :
+                 { label: 'Bronze',  color: '#92400e' };
+
+/* ── Quick link data ─────────────────────────────────────────── */
+const QUICK_LINKS = [
+  {
+    to: '/customer/orders', label: 'My Orders', sub: 'Track & manage',
+    color: '#10B981', bg: '#f0fdf4',
+    icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.6" viewBox="0 0 24 24"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>,
+  },
+  {
+    to: '/customer/refunds', label: 'Refunds', sub: 'Return requests',
+    color: '#f59e0b', bg: '#fffbeb',
+    icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.6" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>,
+  },
+  {
+    to: '/customer/wishlist', label: 'Wishlist', sub: 'Saved items',
+    color: '#ef4444', bg: '#fff1f2',
+    icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.6" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>,
+  },
+  {
+    to: '/customer/addresses', label: 'Addresses', sub: 'Delivery locations',
+    color: '#8b5cf6', bg: '#f5f3ff',
+    icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.6" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>,
+  },
+  {
+    to: '/customer/loyalty', label: 'Rewards', sub: 'Points & tiers',
+    color: '#d97706', bg: '#fffbeb',
+    icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.6" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>,
+  },
+  {
+    to: '/customer/messages', label: 'Messages', sub: 'Inbox',
+    color: '#3b82f6', bg: '#eff6ff',
+    icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.6" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>,
+  },
+];
 
 /* ── Component ───────────────────────────────────────────────── */
 const CustomerHome = () => {
-  const { user, logoutUser } = useCustomer();
+  const { user } = useCustomer();
   const navigate = useNavigate();
-  const [orders,  setOrders]  = useState([]);
-  const [loyalty, setLoyalty] = useState(null);
+  const [orders,        setOrders]        = useState([]);
+  const [loyalty,       setLoyalty]       = useState(null);
   const [loadingOrders, setLoadingOrders] = useState(true);
   const userId = user?.id;
 
   useEffect(() => {
-    const fetch = async () => {
-      if (!userId) { setLoadingOrders(false); setOrders([]); setLoyalty(null); return; }
+    const load = async () => {
+      if (!userId) { setLoadingOrders(false); return; }
       const [ordRes, loyRes] = await Promise.allSettled([
         getUserOrdersSimple(),
         getLoyaltyPoints(),
       ]);
       if (ordRes.status === 'fulfilled') {
-        const data = ordRes.value.data;
-        setOrders(Array.isArray(data) ? data : []);
+        const d = ordRes.value.data;
+        setOrders(Array.isArray(d) ? d : []);
       }
       if (loyRes.status === 'fulfilled') setLoyalty(loyRes.value.data);
       setLoadingOrders(false);
     };
-    fetch();
+    load();
   }, [userId]);
 
-  const displayName = user?.fullName || user?.username || 'Customer';
-
-  // ── Metrics Calculations ──
-  const totalOrders = orders.length;
-  const totalSpending = orders.reduce((acc, o) => acc + (o.grandTotal || o.totalAmount || 0), 0);
-  const avgOrderVal = totalOrders > 0 ? Math.round(totalSpending / totalOrders) : 0;
-  const pendingCount = orders.filter(o => ['PENDING', 'PROCESSING', 'SHIPPED'].includes(o.status)).length;
-  const deliveredCount = orders.filter(o => o.status === 'DELIVERED').length;
-
-  // Monthly Spending Trend calculations
-  const monthlyStats = {};
-  orders.forEach(o => {
-    if (!o.createdAt) return;
-    const d = new Date(o.createdAt);
-    const key = d.toLocaleDateString('en-GB', { month: 'short', year: '2-digit' });
-    monthlyStats[key] = (monthlyStats[key] || 0) + (o.grandTotal || o.totalAmount || 0);
-  });
-
-  let trendData = Object.entries(monthlyStats).map(([month, val]) => ({ month, val }));
-  if (trendData.length === 0) {
-    // Elegant baseline demo targets
-    trendData = [
-      { month: 'Mar 26', val: 0 },
-      { month: 'Apr 26', val: 0 },
-      { month: 'May 26', val: 0 },
-    ];
-  } else {
-    // Sort trendData chronologically by converting key back to dates for comparison
-    trendData.sort((a, b) => {
-      const parseDate = (str) => {
-        const [m, y] = str.split(' ');
-        return new Date(Date.parse(`${m} 1, 20${y}`));
-      };
-      return parseDate(a.month) - parseDate(b.month);
-    });
-  }
-
-  const maxSpendVal = Math.max(...trendData.map(t => t.val), 1000);
+  const displayName  = user?.fullName || user?.username || 'Customer';
+  const firstName    = displayName.split(' ')[0];
+  const totalOrders  = orders.length;
+  const totalSpent   = orders.reduce((s, o) => s + (o.grandTotal || o.totalAmount || 0), 0);
+  const avgOrder     = totalOrders > 0 ? Math.round(totalSpent / totalOrders) : 0;
+  const activeOrders = orders.filter(o => ['PENDING','CONFIRMED','PROCESSING','PACKED','SHIPPED','DRAFT'].includes(o.status)).length;
+  const delivered    = orders.filter(o => o.status === 'DELIVERED').length;
+  const loyaltyPts   = loyalty?.points ?? 0;
+  const tier         = getTier(loyaltyPts);
+  const today        = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
   return (
-    <div className="space-y-8 animate-in fade-in-50 duration-200">
-      {/* Greeting */}
-      <div>
-        <h2 className="text-xl md:text-2xl font-black text-gray-900 mb-1">
-          Welcome back, {displayName}! 👋
-        </h2>
-        <p className="text-xs md:text-sm text-gray-500 font-semibold uppercase tracking-wider">
-          {new Date().toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-        </p>
+    <div className="space-y-5">
+
+      {/* ── Hero Banner ────────────────────────────────────────── */}
+      <div
+        className="relative overflow-hidden rounded-sm p-5"
+        style={{ background: 'linear-gradient(135deg, #064e3b 0%, #065f46 40%, #047857 100%)' }}
+      >
+        {/* Decorative circles */}
+        <div className="absolute -right-8 -top-8 w-40 h-40 rounded-full border border-white/10" />
+        <div className="absolute -right-2 top-10 w-24 h-24 rounded-full border border-white/10" />
+        <div className="absolute right-20 -bottom-6 w-32 h-32 rounded-full bg-white/5" />
+
+        <div className="relative flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+          <div>
+            <p className="text-emerald-300/80 text-[10px] font-black uppercase tracking-[0.2em] mb-1">{today}</p>
+            <h2 className="text-white text-xl font-black leading-tight">
+              Welcome back, {firstName}! 👋
+            </h2>
+            <p className="text-emerald-200/70 text-xs font-medium mt-1">
+              Here's what's happening with your account today.
+            </p>
+          </div>
+          {/* Loyalty tier pill */}
+          <div className="flex-shrink-0 flex items-center gap-2 bg-white/10 border border-white/20 rounded-sm px-3 py-2">
+            <svg className="w-4 h-4 text-yellow-300" fill="currentColor" viewBox="0 0 24 24">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+            </svg>
+            <div>
+              <p className="text-[9px] text-white/60 font-black uppercase tracking-widest">Tier</p>
+              <p className="text-white text-xs font-black" style={{ color: tier.color === '#92400e' ? '#fbbf24' : tier.color }}>
+                {tier.label}
+              </p>
+            </div>
+            <div className="w-px h-6 bg-white/20 mx-1" />
+            <div>
+              <p className="text-[9px] text-white/60 font-black uppercase tracking-widest">Points</p>
+              <p className="text-white text-xs font-black">{loyaltyPts.toLocaleString()}</p>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* ── Bento-Style Analytics Deck ── */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* ── Stat Cards ──────────────────────────────────────────── */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {/* Total Spending */}
-        <div className="bg-white border border-gray-200 rounded-sm p-4 shadow-sm flex flex-col justify-between">
-          <div>
-            <span className="block text-[10px] font-black uppercase tracking-wider text-gray-400 mb-1.5">
-              💸 Total Spending
-            </span>
-            <span className="text-xl font-black text-gray-900 leading-none">
-              Rs. {totalSpending.toLocaleString()}
-            </span>
+        <div className="bg-white border border-gray-200 rounded-sm p-4 flex flex-col gap-3">
+          <div className="flex items-center justify-between">
+            <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">Total Spent</p>
+            <div className="w-7 h-7 rounded-sm bg-emerald-50 flex items-center justify-center">
+              <svg className="w-3.5 h-3.5 text-[#10B981]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+              </svg>
+            </div>
           </div>
-          <div className="mt-3 pt-3 border-t border-gray-100 flex justify-between items-center text-xs text-gray-500">
-            <span>Avg. Order:</span>
-            <span className="font-bold text-gray-800">Rs. {avgOrderVal.toLocaleString()}</span>
+          <div>
+            <p className="text-xl font-black text-gray-900 leading-none">Rs. {totalSpent.toLocaleString()}</p>
+            <p className="text-[10px] text-gray-400 font-medium mt-1">Avg. Rs. {avgOrder.toLocaleString()} / order</p>
           </div>
         </div>
 
         {/* Total Orders */}
-        <div className="bg-white border border-gray-200 rounded-sm p-4 shadow-sm flex flex-col justify-between">
-          <div>
-            <span className="block text-[10px] font-black uppercase tracking-wider text-gray-400 mb-1.5">
-              📦 Total Purchases
-            </span>
-            <span className="text-xl font-black text-gray-900 leading-none">
-              {totalOrders} {totalOrders === 1 ? 'Order' : 'Orders'}
-            </span>
+        <div className="bg-white border border-gray-200 rounded-sm p-4 flex flex-col gap-3">
+          <div className="flex items-center justify-between">
+            <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">Orders</p>
+            <div className="w-7 h-7 rounded-sm bg-blue-50 flex items-center justify-center">
+              <svg className="w-3.5 h-3.5 text-blue-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+              </svg>
+            </div>
           </div>
-          <div className="mt-3 pt-3 border-t border-gray-100 flex justify-between items-center text-xs text-gray-500">
-            <span className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-blue-500 inline-block" /> {pendingCount} Pending
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-green-500 inline-block" /> {deliveredCount} Delivered
-            </span>
+          <div>
+            <p className="text-xl font-black text-gray-900 leading-none">{totalOrders}</p>
+            <p className="text-[10px] text-gray-400 font-medium mt-1">{delivered} delivered</p>
           </div>
         </div>
 
-        {/* Loyalty Tier */}
-        <div className="bg-white border border-gray-200 rounded-sm p-4 shadow-sm flex flex-col justify-between">
-          <div>
-            <span className="block text-[10px] font-black uppercase tracking-wider text-gray-400 mb-1.5">
-              💎 Loyalty Points Balance
-            </span>
-            <span className="text-xl font-black text-gray-900 leading-none">
-              {(loyalty?.points ?? 0).toLocaleString()} <span className="text-[10px] font-semibold text-gray-400 ml-0.5">pts</span>
-            </span>
+        {/* Active Orders */}
+        <div className="bg-white border border-gray-200 rounded-sm p-4 flex flex-col gap-3">
+          <div className="flex items-center justify-between">
+            <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">Active</p>
+            <div className="w-7 h-7 rounded-sm bg-amber-50 flex items-center justify-center">
+              <svg className="w-3.5 h-3.5 text-amber-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+              </svg>
+            </div>
           </div>
-          <div className="mt-3 pt-3 border-t border-gray-100 flex justify-between items-center text-xs text-gray-500">
-            <span>Member Status:</span>
-            <span className="font-black text-emerald-600 uppercase tracking-wide">
-              {loyalty?.points >= 10000 ? '👑 Diamond' : loyalty?.points >= 4000 ? '💎 Platinum' : loyalty?.points >= 1500 ? '🥇 Gold' : loyalty?.points >= 500 ? '🥈 Silver' : '🥉 Bronze'}
-            </span>
+          <div>
+            <p className="text-xl font-black text-gray-900 leading-none">{activeOrders}</p>
+            <p className="text-[10px] text-gray-400 font-medium mt-1">In progress</p>
           </div>
         </div>
-      </div>
 
-      {/* ── Visual Spend Sheet & Monthly Trend Chart ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Monthly Spend Chart */}
-        <div className="lg:col-span-2 bg-white border border-gray-200 rounded-sm p-4 shadow-sm flex flex-col justify-between">
+        {/* Loyalty Points */}
+        <div className="bg-white border border-gray-200 rounded-sm p-4 flex flex-col gap-3">
+          <div className="flex items-center justify-between">
+            <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">Rewards</p>
+            <div className="w-7 h-7 rounded-sm bg-yellow-50 flex items-center justify-center">
+              <svg className="w-3.5 h-3.5 text-yellow-500" fill="currentColor" viewBox="0 0 24 24">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+              </svg>
+            </div>
+          </div>
           <div>
-            <h3 className="text-[11px] font-black uppercase tracking-wider text-gray-800 pb-2 border-b border-gray-200 mb-3">
-              📊 Spending Analytics Sheet
-            </h3>
-            <p className="text-[11px] text-gray-400 font-semibold mb-4">
-              Track your aggregate product purchase spending trends month by month.
+            <p className="text-xl font-black text-gray-900 leading-none">{loyaltyPts.toLocaleString()}</p>
+            <p className="text-[10px] font-black mt-1" style={{ color: tier.color === '#92400e' ? '#d97706' : tier.color }}>
+              {tier.label} tier
             </p>
           </div>
+        </div>
+      </div>
 
-          <div className="flex gap-4 items-end justify-between h-32 pt-4 px-2 border-b border-gray-100">
-            {trendData.map(item => {
-              const pct = Math.max(Math.round((item.val / maxSpendVal) * 100), 4);
-              return (
-                <div key={item.month} className="flex-1 flex flex-col items-center group relative cursor-pointer">
-                  {/* Tooltip */}
-                  <div className="absolute bottom-full mb-2 bg-gray-900 text-white text-[9px] font-black uppercase tracking-wider px-2 py-1 rounded-sm shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-10 whitespace-nowrap pointer-events-none">
-                    Rs. {item.val.toLocaleString()}
+      {/* ── Main Grid ───────────────────────────────────────────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
+
+        {/* Left: Recent Orders */}
+        <div className="lg:col-span-2 bg-white border border-gray-200 rounded-sm overflow-hidden">
+          {/* Card header */}
+          <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100">
+            <h3 className="text-xs font-black uppercase tracking-widest text-gray-800">Recent Orders</h3>
+            <Link
+              to="/customer/orders"
+              className="text-[10px] font-black uppercase tracking-wider text-[#10B981] hover:text-[#059669] transition-colors flex items-center gap-1"
+            >
+              View all
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </Link>
+          </div>
+
+          {loadingOrders ? (
+            <div className="flex items-center gap-2 p-6 text-gray-400 text-xs">
+              <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+              </svg>
+              Loading orders…
+            </div>
+          ) : orders.length === 0 ? (
+            <div className="text-center py-12 px-5">
+              <div className="w-12 h-12 bg-gray-50 border border-gray-200 rounded-sm flex items-center justify-center mx-auto mb-3">
+                <svg className="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                  <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                </svg>
+              </div>
+              <p className="text-xs font-black text-gray-600 uppercase tracking-wider mb-1">No orders yet</p>
+              <p className="text-[10px] text-gray-400">Your purchase history will appear here.</p>
+              <Link to="/" className="inline-block mt-4 bg-[#10B981] hover:bg-[#059669] text-white text-[10px] font-black uppercase tracking-wider px-5 py-2 rounded-sm transition-colors">
+                Start Shopping →
+              </Link>
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-100">
+              {orders.slice(0, 5).map(o => {
+                const ref = o.customOrderId || (o.orderId ? `#${o.orderId}` : '—');
+                const date = o.createdAt
+                  ? new Date(o.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+                  : '—';
+                const amount = (o.grandTotal || o.totalAmount || 0).toLocaleString();
+                const productName = o.items?.[0]?.name
+                  ? (o.items.length > 1 ? `${o.items[0].name} +${o.items.length - 1}` : o.items[0].name)
+                  : null;
+                return (
+                  <div
+                    key={o.orderId || o.id}
+                    className="flex items-center gap-4 px-5 py-3.5 hover:bg-gray-50/60 transition-colors cursor-pointer"
+                    onClick={() => navigate('/customer/orders')}
+                  >
+                    {/* Icon */}
+                    <div className="w-8 h-8 rounded-sm bg-emerald-50 border border-emerald-100 flex items-center justify-center flex-shrink-0">
+                      <svg className="w-4 h-4 text-[#10B981]" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                        <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                      </svg>
+                    </div>
+
+                    {/* Info */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-[10px] font-black text-gray-800 font-mono">{ref}</span>
+                        <StatusBadge status={o.status} />
+                      </div>
+                      <p className="text-[10px] text-gray-400 font-medium mt-0.5">
+                        {productName ? `${productName} · ` : ''}{date}
+                      </p>
+                    </div>
+
+                    {/* Amount */}
+                    <div className="text-right flex-shrink-0">
+                      <p className="text-sm font-black text-gray-900">Rs. {amount}</p>
+                    </div>
                   </div>
-                  {/* Bar */}
-                  <div className="w-full max-w-[48px] bg-gray-50 rounded-t-sm flex items-end h-24 overflow-hidden border border-gray-100/50">
-                    <div
-                      className="bg-emerald-600 hover:bg-emerald-700 w-full transition-all duration-300 rounded-t-sm"
-                      style={{ height: `${pct}%` }}
-                    />
-                  </div>
-                  {/* X Axis Label */}
-                  <span className="text-[9px] font-black tracking-wide text-gray-400 mt-2 uppercase">{item.month}</span>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Right: Quick Links */}
+        <div className="bg-white border border-gray-200 rounded-sm overflow-hidden">
+          <div className="px-4 py-3 border-b border-gray-100">
+            <h3 className="text-xs font-black uppercase tracking-widest text-gray-800">Quick Access</h3>
+          </div>
+          <div className="divide-y divide-gray-100">
+            {QUICK_LINKS.map(link => (
+              <Link
+                key={link.to}
+                to={link.to}
+                className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50/70 transition-colors group"
+              >
+                {/* Colored icon box */}
+                <div
+                  className="w-8 h-8 rounded-sm flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-105"
+                  style={{ background: link.bg, color: link.color }}
+                >
+                  {link.icon}
                 </div>
-              );
-            })}
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-black text-gray-800 group-hover:text-gray-900">{link.label}</p>
+                  <p className="text-[10px] text-gray-400 font-medium">{link.sub}</p>
+                </div>
+                <svg className="w-3.5 h-3.5 text-gray-300 group-hover:text-gray-500 transition-colors flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                  <path d="M9 18l6-6-6-6"/>
+                </svg>
+              </Link>
+            ))}
           </div>
         </div>
 
-        {/* Spend Insights & Smart Metrics */}
-        <div className="bg-white border border-gray-200 rounded-sm p-4 shadow-sm flex flex-col justify-between">
-          <div>
-            <h3 className="text-[11px] font-black uppercase tracking-wider text-gray-800 pb-2 border-b border-gray-200 mb-3">
-              💡 Spend Insights
-            </h3>
-            <ul className="space-y-3 text-[11px] font-semibold text-gray-600">
-              <li className="flex justify-between items-center py-1 border-b border-gray-50">
-                <span>Account Activity State</span>
-                <span className="text-green-600 bg-green-50 px-2 py-0.5 rounded-sm border border-green-100 text-[9px] font-black uppercase tracking-wide">Active</span>
-              </li>
-              <li className="flex justify-between items-center py-1 border-b border-gray-50">
-                <span>Average Basket Value</span>
-                <span className="text-gray-900 font-bold">Rs. {avgOrderVal.toLocaleString()}</span>
-              </li>
-              <li className="flex justify-between items-center py-1 border-b border-gray-50">
-                <span>Order Fulfillment Rate</span>
-                <span className="text-gray-900 font-bold">
-                  {totalOrders > 0 ? `${Math.round((deliveredCount / totalOrders) * 100)}%` : '100%'}
-                </span>
-              </li>
-              <li className="flex justify-between items-center py-1">
-                <span>Next Rewards Target</span>
-                <span className="text-emerald-600 font-bold">
-                  {loyalty?.points >= 1500 ? '4,000 pts' : '1,500 pts'}
-                </span>
-              </li>
-            </ul>
-          </div>
-          <div className="pt-3 border-t border-gray-100">
-            <Link
-              to="/"
-              className="block w-full text-center bg-gray-50 hover:bg-gray-100 text-gray-700 text-[10px] font-black uppercase tracking-wider py-2 border border-gray-200 rounded-sm transition-colors duration-150"
-            >
-              Continue Shopping
-            </Link>
-          </div>
-        </div>
-      </div>
-
-      {/* ── Porto Quick Menu Grid ── */}
-      <div>
-        <h3 className="text-[11px] font-black uppercase tracking-wider text-gray-800 mb-3 pb-2 border-b border-gray-200">
-          ⚙️ Account Quick Portal
-        </h3>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-0 border border-gray-200 rounded-sm overflow-hidden shadow-sm">
-          {CARDS.map((card, idx) => (
-            <Link
-              key={card.to}
-              to={card.to}
-              className={`
-                group flex flex-col items-center justify-center py-5 px-3 gap-2
-                bg-white hover:bg-gray-50 transition-all duration-200
-                border-gray-200 border-r border-b
-              `}
-            >
-              {card.icon}
-              <span className="text-[8px] font-black tracking-[1px] text-gray-500 group-hover:text-emerald-600 transition-colors duration-200 uppercase">
-                {card.label}
-              </span>
-            </Link>
-          ))}
-
-          {/* Logout tile */}
-          <button
-            onClick={logoutUser}
-            className="group flex flex-col items-center justify-center py-5 px-3 gap-2 bg-white hover:bg-gray-50 transition-all duration-200 border-b border-r"
-          >
-            <IconLogout />
-            <span className="text-[8px] font-black tracking-[1px] text-gray-500 group-hover:text-red-500 transition-colors duration-200 uppercase">
-              LOGOUT
-            </span>
-          </button>
-        </div>
-      </div>
-
-      {/* ── Recent Orders Table ── */}
-      <div className="bg-white border border-gray-200 rounded-sm p-4 shadow-sm">
-        <div className="flex items-center justify-between pb-2 border-b border-gray-200 mb-3">
-          <h2 className="text-[11px] font-black uppercase tracking-wider text-gray-800">Recent Purchase History</h2>
-          <Link to="/customer/orders" className="text-[10px] text-emerald-600 hover:underline font-bold uppercase tracking-wider">
-            View All →
-          </Link>
-        </div>
-
-        {loadingOrders ? (
-          <div className="flex items-center gap-2 py-3 text-gray-400 text-xs">
-            <svg className="animate-spin w-3 h-3" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
-            </svg>
-            Loading orders…
-          </div>
-        ) : orders.length === 0 ? (
-          <div className="text-center py-6">
-            <div className="text-3xl mb-1">📭</div>
-            <p className="text-[10px] font-bold text-gray-500 uppercase mb-1">No orders yet</p>
-            <p className="text-[10px] text-gray-400">Start shopping to see your orders here.</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs text-left">
-              <thead>
-                <tr className="border-b border-gray-200 text-[10px] font-black uppercase tracking-wider text-gray-400">
-                  <th className="py-2 pr-3">Order</th>
-                  <th className="py-2 px-3">Date</th>
-                  <th className="py-2 px-3">Status</th>
-                  <th className="py-2 px-3 text-right">Total</th>
-                  <th className="py-2 pl-3 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100 bg-white">
-                {orders.slice(0, 5).map(o => (
-                  <tr key={o.id} className="hover:bg-gray-50/50 transition-colors">
-                    <td className="py-2.5 pr-3 font-bold text-emerald-600">#{o.id}</td>
-                    <td className="py-2.5 px-3 text-gray-500 font-semibold text-[10px]">
-                      {o.createdAt ? new Date(o.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
-                    </td>
-                    <td className="py-2.5 px-3">
-                      <span className={`inline-block text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-sm border ${STATUS_CLASS[o.status] || 'bg-gray-50 text-gray-500 border-gray-200'}`}>
-                        {o.status}
-                      </span>
-                    </td>
-                    <td className="py-2.5 px-3 text-right font-black text-gray-800">
-                      Rs. {(o.grandTotal || o.totalAmount || 0).toLocaleString()}
-                    </td>
-                    <td className="py-2.5 pl-3 text-right">
-                      <button
-                        onClick={() => navigate('/customer/orders')}
-                        className="text-[10px] font-black uppercase tracking-wider text-emerald-600 hover:text-emerald-700"
-                      >
-                        View
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
       </div>
     </div>
   );

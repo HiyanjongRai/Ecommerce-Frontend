@@ -38,17 +38,17 @@ export const LoadingState = ({ label = 'Loading...' }) => (
 );
 
 export const EmptyState = ({ title, text }) => (
-  <div className="bg-white border border-emerald-100 rounded-xl p-6 text-center shadow-[0_2px_8px_-3px_rgba(16,185,129,0.15)]">
+  <div className="bg-white border border-gray-200 rounded-sm p-6 text-center shadow-sm">
     <h3 className="text-xs font-black text-gray-900 uppercase tracking-wider">{title}</h3>
     <p className="text-[10px] text-gray-500 font-semibold mt-1">{text}</p>
   </div>
 );
 
 export const SectionHeader = ({ title, subtitle, action }) => (
-  <div className="bg-white rounded-xl p-4 shadow-[0_2px_8px_-3px_rgba(16,185,129,0.15)] border border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+  <div className="bg-white rounded-sm p-4 shadow-sm border border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
     <div>
-      <h2 className="text-sm font-bold text-black tracking-tight">{title}</h2>
-      {subtitle ? <p className="text-[10px] text-gray-500 font-medium mt-0.5">{subtitle}</p> : null}
+      <h2 className="text-sm font-black text-gray-900 tracking-tight">{title}</h2>
+      {subtitle ? <p className="text-[11px] text-gray-400 font-medium mt-0.5">{subtitle}</p> : null}
     </div>
     {action}
   </div>

@@ -112,7 +112,7 @@ export const sendSellerMessage = (payload) => {
 };
 
 export const getUnreadMessageCount = () => {
-  return apiClient.get('/messages/unread-count');
+  return apiClient.get('/messages/unread-count', { suppressGlobalErrorToast: true });
 };
 
 export const markSellerMessagesRead = (senderId) => {
@@ -204,3 +204,10 @@ export const getSellerDisputeList = (sellerId) =>
 export const reportCustomer = (data) =>
   apiClient.post('/v1/reports/customer', data);
 
+// ── NOTIFICATIONS ─────────────────────────────────────────────────────────────
+// Uses suppressGlobalErrorToast so a 401 (role mismatch) is handled gracefully
+export const getSellerNotifications = () =>
+  apiClient.get('/notifications', { suppressGlobalErrorToast: true });
+
+export const markSellerNotifRead = (notifId) =>
+  apiClient.put(`/notifications/${notifId}/read`, null, { suppressGlobalErrorToast: true });

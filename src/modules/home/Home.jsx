@@ -415,7 +415,7 @@ export default function Home() {
                 }}
               >
                 <div className="relative z-10 max-w-2xl text-left">
-                  <span className="text-[8px] font-black uppercase tracking-widest text-emerald-400 block mb-1.5">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400 block mb-1.5">
                     EST. 2024 / JHAPCHAM SPOTLIGHT
                   </span>
                   
@@ -423,14 +423,14 @@ export default function Home() {
                     {banners[currentBannerIndex].title || 'Premium Products, Delivered Fast'}
                   </h1>
                   
-                  <p className="font-inter text-gray-300 text-[10px] sm:text-[11px] leading-relaxed max-w-lg mb-4 animate-in fade-in duration-500">
+                  <p className="font-inter text-gray-300 text-xs sm:text-sm leading-relaxed max-w-lg mb-4 animate-in fade-in duration-500">
                     {banners[currentBannerIndex].subtitle || 'Discover verified electronics, fashion, home essentials and more — curated from trusted sellers across Nepal.'}
                   </p>
  
                   <div className="flex flex-wrap gap-2.5 mb-4">
                     <Link 
                       to={banners[currentBannerIndex].redirectUrl || "/product-list"} 
-                      className="bg-emerald-500 hover:bg-white text-white hover:text-slate-900 text-[10px] font-bold px-3.5 py-1.5 rounded-pill tracking-wide transition-all duration-300 shadow-md focus:ring-2 focus:ring-emerald-500/40 outline-none flex items-center gap-1.5"
+                      className="bg-emerald-500 hover:bg-white text-white hover:text-slate-900 text-xs font-bold px-5 py-2.5 rounded-pill tracking-wide transition-all duration-300 shadow-md focus:ring-2 focus:ring-emerald-500/40 outline-none flex items-center gap-1.5"
                     >
                       <span>Shop This Deal</span>
                       <ArrowRight className="w-3 h-3" />
@@ -456,15 +456,15 @@ export default function Home() {
                   <div className="grid grid-cols-3 gap-2.5 text-left">
                     <div>
                       <span className="font-bold text-sm sm:text-base text-emerald-400 block">12,000+</span>
-                      <span className="text-[7px] text-gray-400 font-bold uppercase tracking-wider">Products Listed</span>
+                      <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Products Listed</span>
                     </div>
                     <div>
                       <span className="font-bold text-sm sm:text-base text-emerald-400 block">99.4%</span>
-                      <span className="text-[7px] text-gray-400 font-bold uppercase tracking-wider">Authenticity Rate</span>
+                      <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Authenticity Rate</span>
                     </div>
                     <div>
                       <span className="font-bold text-sm sm:text-base text-emerald-400 block">100%</span>
-                      <span className="text-[7px] text-gray-400 font-bold uppercase tracking-wider">Secure Delivery</span>
+                      <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Secure Delivery</span>
                     </div>
                   </div>
                 </div>
@@ -485,7 +485,7 @@ export default function Home() {
  
                 {/* Top Row: Tagline and Headline */}
                 <div className="relative z-10 max-w-2xl text-left">
-                  <span className="text-[8px] font-black uppercase tracking-widest text-emerald-400 block mb-2">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400 block mb-2">
                     EST. 2024 / NEPAL'S PREMIUM MARKETPLACE
                   </span>
                   
@@ -493,7 +493,7 @@ export default function Home() {
                     Quality products, <span className="font-normal italic text-emerald-400">verified</span> sellers, delivered fast.
                   </h1>
                   
-                  <p className="font-inter text-gray-300 text-[10px] sm:text-[11px] leading-relaxed max-w-lg mb-4">
+                  <p className="font-inter text-gray-300 text-xs sm:text-sm leading-relaxed max-w-lg mb-4">
                     Jhapcham connects you to trusted sellers across Nepal — from premium electronics and fashion to home essentials and lifestyle goods. Every listing is quality-checked and shipped securely.
                   </p>
  
@@ -501,14 +501,14 @@ export default function Home() {
                   <div className="flex flex-wrap gap-2.5 mb-4">
                     <Link 
                       to="/product-list" 
-                      className="bg-emerald-500 hover:bg-white text-white hover:text-slate-900 text-[10px] font-bold px-3.5 py-1.5 rounded-pill tracking-wide transition-all duration-300 shadow-md focus:ring-2 focus:ring-emerald-500/40 outline-none flex items-center gap-1.5"
+                      className="bg-emerald-500 hover:bg-white text-white hover:text-slate-900 text-xs font-bold px-5 py-2.5 rounded-pill tracking-wide transition-all duration-300 shadow-md focus:ring-2 focus:ring-emerald-500/40 outline-none flex items-center gap-1.5"
                     >
                       <span>Browse Catalog</span>
                       <ArrowRight className="w-3 h-3" />
                     </Link>
                     <Link 
                       to="/product-list?onSale=true" 
-                      className="border border-gray-600 hover:border-white text-white text-[10px] font-bold px-3.5 py-1.5 rounded-pill tracking-wide transition-all duration-300 focus:ring-2 focus:ring-gray-650/40 outline-none"
+                      className="border border-gray-600 hover:border-white text-white text-xs font-bold px-5 py-2.5 rounded-pill tracking-wide transition-all duration-300 focus:ring-2 focus:ring-gray-650/40 outline-none"
                     >
                       View Flash Sale
                     </Link>
@@ -520,15 +520,15 @@ export default function Home() {
                   <div className="grid grid-cols-3 gap-2.5 text-left">
                     <div>
                       <span className="font-bold text-sm sm:text-base text-emerald-400 block">12,000+</span>
-                      <span className="text-[7px] text-gray-400 font-bold uppercase tracking-wider">Products Listed</span>
+                      <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Products Listed</span>
                     </div>
                     <div>
                       <span className="font-bold text-sm sm:text-base text-emerald-400 block">99.4%</span>
-                      <span className="text-[7px] text-gray-400 font-bold uppercase tracking-wider">Authenticity Rate</span>
+                      <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Authenticity Rate</span>
                     </div>
                     <div>
                       <span className="font-bold text-sm sm:text-base text-emerald-400 block">100%</span>
-                      <span className="text-[7px] text-gray-400 font-bold uppercase tracking-wider">Secure Delivery</span>
+                      <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Secure Delivery</span>
                     </div>
                   </div>
                 </div>
@@ -545,16 +545,16 @@ export default function Home() {
           {displayDeals.map((deal, index) => (
             <div 
               key={index} 
-              className="bg-white border border-gray-200 rounded-xl p-3 flex flex-col justify-between text-left group hover:border-emerald-500 hover:shadow-md transition-all duration-300"
+              className="bg-white border border-gray-200 rounded-xl p-5 flex flex-col justify-between text-left group hover:border-emerald-500 hover:shadow-md transition-all duration-300"
             >
               <div>
                 <div className="flex justify-between items-start mb-2.5">
-                  <span className={`text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-xs ${deal.tag === 'FLASH SALE' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-50 text-emerald-700'}`}>
+                  <span className={`text-[10px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-xs ${deal.tag === 'FLASH SALE' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-50 text-emerald-700'}`}>
                     {deal.tag}
                   </span>
                   
                   {deal.showTimer && (
-                    <span className="font-mono text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-xs border border-emerald-100">
+                    <span className="font-mono text-xs font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-xs border border-emerald-100">
                       {formatCountdown(flashTimeLeft)}
                     </span>
                   )}
@@ -562,7 +562,7 @@ export default function Home() {
                 <h3 className="font-bold text-sm text-slate-800 mb-1 leading-tight">
                   {deal.title}
                 </h3>
-                <p className="text-[11px] text-gray-500 leading-relaxed line-clamp-3">
+                <p className="text-xs text-gray-500 leading-relaxed line-clamp-3">
                   {deal.desc}
                 </p>
               </div>
@@ -570,12 +570,12 @@ export default function Home() {
               <div className="flex justify-between items-center mt-4 pt-2.5 border-t border-gray-100">
                 <Link 
                   to={deal.link} 
-                  className="text-[11px] font-bold text-emerald-600 hover:text-emerald-700 flex items-center gap-1 transition-colors"
+                  className="text-xs font-bold text-emerald-600 hover:text-emerald-700 flex items-center gap-1 transition-colors"
                 >
                   <span>Explore Offer</span>
                   <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
                 </Link>
-                <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-xs bg-gray-100 text-gray-700`}>
+                <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-xs bg-gray-100 text-gray-700`}>
                   {deal.badge}
                 </span>
               </div>
@@ -593,40 +593,40 @@ export default function Home() {
               <div className="p-2 rounded-full bg-emerald-50 text-emerald-600 shadow-sm">
                 <Truck className="w-4 h-4" />
               </div>
-              <h4 className="font-bold text-xs text-slate-800">Fast Shipping</h4>
-              <p className="text-[9px] text-gray-400">Secure bubble-wrapped packaging</p>
+              <h4 className="font-bold text-sm text-slate-800">Fast Shipping</h4>
+              <p className="text-xs text-gray-400">Secure bubble-wrapped packaging</p>
             </div>
- 
+  
             <div className="flex flex-col items-center gap-1.5 p-1">
               <div className="p-2 rounded-full bg-emerald-50 text-emerald-600 shadow-sm">
                 <ShieldCheck className="w-4 h-4" />
               </div>
-              <h4 className="font-bold text-xs text-slate-800">Authenticity Guarantee</h4>
-              <p className="text-[9px] text-gray-400">100% genuine products with warranty</p>
+              <h4 className="font-bold text-sm text-slate-800">Authenticity Guarantee</h4>
+              <p className="text-xs text-gray-400">100% genuine products with warranty</p>
             </div>
- 
+  
             <div className="flex flex-col items-center gap-1.5 p-1">
               <div className="p-2 rounded-full bg-emerald-50 text-emerald-600 shadow-sm">
                 <RotateCcw className="w-4 h-4" />
               </div>
-              <h4 className="font-bold text-xs text-slate-800">Easy Returns</h4>
-              <p className="text-[9px] text-gray-400">Hassle-free 7-day return policy</p>
+              <h4 className="font-bold text-sm text-slate-800">Easy Returns</h4>
+              <p className="text-xs text-gray-400">Hassle-free 7-day return policy</p>
             </div>
- 
+  
             <div className="flex flex-col items-center gap-1.5 p-1">
               <div className="p-2 rounded-full bg-emerald-50 text-emerald-600 shadow-sm">
                 <Lock className="w-4 h-4" />
               </div>
-              <h4 className="font-bold text-xs text-slate-800">Secure Checkout</h4>
-              <p className="text-[9px] text-gray-400">100% secure online transactions</p>
+              <h4 className="font-bold text-sm text-slate-800">Secure Checkout</h4>
+              <p className="text-xs text-gray-400">100% secure online transactions</p>
             </div>
- 
+  
             <div className="flex flex-col items-center gap-1.5 p-1 col-span-2 md:col-span-1">
               <div className="p-2 rounded-full bg-emerald-50 text-emerald-600 shadow-sm">
                 <Headphones className="w-4 h-4" />
               </div>
-              <h4 className="font-bold text-xs text-slate-800">24/7 Support</h4>
-              <p className="text-[9px] text-gray-400">Always-on priority live agent care</p>
+              <h4 className="font-bold text-sm text-slate-800">24/7 Support</h4>
+              <p className="text-xs text-gray-400">Always-on priority live agent care</p>
             </div>
  
           </div>
@@ -637,7 +637,7 @@ export default function Home() {
       <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-10 text-left">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-5 border-b border-gray-200 pb-2.5">
           <div>
-            <span className="text-[8px] font-black uppercase tracking-widest text-emerald-600 block mb-0.5">
+            <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600 block mb-0.5">
               CURATED FOR YOU
             </span>
             <h2 className="font-bold text-lg text-slate-800 tracking-tight">
@@ -653,7 +653,7 @@ export default function Home() {
                 <button
                   key={tab}
                   onClick={() => handleTabChange(tab)}
-                  className={`text-[11px] font-bold px-3 py-1 rounded-pill transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 ${
+                  className={`text-xs font-bold px-4 py-2 rounded-pill transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 ${
                     active 
                       ? 'bg-emerald-500 text-white shadow-sm' 
                       : 'bg-white border border-gray-200 hover:border-emerald-500 text-slate-700 hover:text-emerald-600'
@@ -887,93 +887,22 @@ export default function Home() {
             )}
  
             {/* Newsletter Stats */}
-            <div className="grid grid-cols-3 gap-3 border-t border-gray-800 pt-5 mt-6 text-[9px] font-bold text-gray-400 uppercase tracking-wider">
+            <div className="grid grid-cols-3 gap-3 border-t border-gray-800 pt-5 mt-6 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
               <div>
-                <span className="block text-emerald-400 text-[11px] font-bold mb-0.5">Every Week</span>
+                <span className="block text-emerald-400 text-xs font-bold mb-0.5">Every Week</span>
                 <span>Curated deal alerts</span>
               </div>
               <div>
-                <span className="block text-emerald-400 text-[11px] font-bold mb-0.5">15,000+</span>
+                <span className="block text-emerald-400 text-xs font-bold mb-0.5">15,000+</span>
                 <span>Active members</span>
               </div>
               <div>
-                <span className="block text-emerald-400 text-[11px] font-bold mb-0.5">Zero Spam</span>
+                <span className="block text-emerald-400 text-xs font-bold mb-0.5">Zero Spam</span>
                 <span>Unsubscribe anytime</span>
               </div>
             </div>
- 
-          </div>
-        </div>
-      </section>
 
-      {/* ─── Multi-column Product Showcase ─────────────────────────────────── */}
-      <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pb-10 text-left">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          
-          {/* Column 1: Featured Products */}
-          <div className="space-y-3">
-            <h3 className="font-bold text-xs tracking-wide text-slate-800 uppercase border-b border-gray-250 pb-1.5 block">
-              Featured Products
-            </h3>
-            <div className="space-y-2">
-              {colsLoading ? (
-                Array.from({ length: 3 }).map((_, i) => <MiniProductSkeleton key={i} />)
-              ) : featuredCol.length > 0 ? (
-                featuredCol.map(p => <MiniProductRow key={p.productId || p.id} product={p} />)
-              ) : (
-                <div className="text-gray-400 text-[11px] py-3">No featured products.</div>
-              )}
-            </div>
           </div>
- 
-          {/* Column 2: Best Selling Products */}
-          <div className="space-y-3">
-            <h3 className="font-bold text-xs tracking-wide text-slate-800 uppercase border-b border-gray-250 pb-1.5 block">
-              Best Selling Products
-            </h3>
-            <div className="space-y-2">
-              {colsLoading ? (
-                Array.from({ length: 3 }).map((_, i) => <MiniProductSkeleton key={i} />)
-              ) : bestSellingCol.length > 0 ? (
-                bestSellingCol.map(p => <MiniProductRow key={p.productId || p.id} product={p} />)
-              ) : (
-                <div className="text-gray-400 text-[11px] py-3">No top sellers.</div>
-              )}
-            </div>
-          </div>
- 
-          {/* Column 3: Latest Products */}
-          <div className="space-y-3">
-            <h3 className="font-bold text-xs tracking-wide text-slate-800 uppercase border-b border-gray-250 pb-1.5 block">
-              Latest Products
-            </h3>
-            <div className="space-y-2">
-              {colsLoading ? (
-                Array.from({ length: 3 }).map((_, i) => <MiniProductSkeleton key={i} />)
-              ) : latestCol.length > 0 ? (
-                latestCol.map(p => <MiniProductRow key={p.productId || p.id} product={p} />)
-              ) : (
-                <div className="text-gray-400 text-[11px] py-3">No new arrivals.</div>
-              )}
-            </div>
-          </div>
- 
-          {/* Column 4: Top Rated Products */}
-          <div className="space-y-3">
-            <h3 className="font-bold text-xs tracking-wide text-slate-800 uppercase border-b border-gray-250 pb-1.5 block">
-              Top Rated Products
-            </h3>
-            <div className="space-y-2">
-              {colsLoading ? (
-                Array.from({ length: 3 }).map((_, i) => <MiniProductSkeleton key={i} />)
-              ) : topRatedCol.length > 0 ? (
-                topRatedCol.map(p => <MiniProductRow key={p.productId || p.id} product={p} />)
-              ) : (
-                <div className="text-gray-400 text-[11px] py-4">No top-rated products.</div>
-              )}
-            </div>
-          </div>
-
         </div>
       </section>
 

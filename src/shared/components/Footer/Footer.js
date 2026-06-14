@@ -28,8 +28,8 @@ export default function Footer({ isVerdant = false }) {
               Have questions or need support? Our team is here to help you 24/7.
             </p>
           </div>
-          <Link 
-            to="/about" 
+          <Link
+            to="/contact"
             className={`font-extrabold px-8 py-3.5 rounded-full uppercase tracking-widest transition-colors shadow-lg whitespace-nowrap ${
               isVerdant 
                 ? 'bg-forest-black hover:bg-linen hover:text-forest-black text-linen' 
@@ -68,28 +68,31 @@ export default function Footer({ isVerdant = false }) {
               : "Nepal's trusted marketplace for electronics, fashion, and lifestyle products. Every listing is verified — shop with confidence, delivered to your door."
             }
           </p>
-          <button type="button" className={`font-bold transition-colors inline-block mt-1 text-left ${accentColor}`}>
+          <Link to="/about" className={`font-bold transition-colors inline-block mt-1 text-left ${accentColor}`}>
             Read More...
-          </button>
-          {/* Social Icons */}
+          </Link>
           <div className="flex items-center gap-2.5 mt-1">
-            {['Facebook', 'Twitter', 'Instagram', 'LinkedIn'].map((label, idx) => {
-              const Icon = [Facebook, Twitter, Instagram, Linkedin][idx];
-              return (
-                <button 
-                  key={label}
-                  type="button" 
-                  aria-label={label} 
-                  className={`w-9 h-9 rounded-full border border-gray-700 flex items-center justify-center transition-all ${
-                    isVerdant 
-                      ? 'hover:border-moss hover:text-moss' 
-                      : 'hover:border-emerald-400 hover:text-emerald-400'
-                  }`}
-                >
-                  <Icon className="w-4 h-4" />
-                </button>
-              );
-            })}
+            {[
+              { label: 'Facebook',  href: 'https://facebook.com',  Icon: Facebook  },
+              { label: 'Twitter',   href: 'https://twitter.com',   Icon: Twitter   },
+              { label: 'Instagram', href: 'https://instagram.com', Icon: Instagram },
+              { label: 'LinkedIn',  href: 'https://linkedin.com',  Icon: Linkedin  },
+            ].map(({ label, href, Icon }) => (
+              <a
+                key={label}
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={label}
+                className={`w-9 h-9 rounded-full border border-gray-700 flex items-center justify-center transition-all ${
+                  isVerdant 
+                    ? 'hover:border-moss hover:text-moss' 
+                    : 'hover:border-emerald-400 hover:text-emerald-400'
+                }`}
+              >
+                <Icon className="w-4 h-4" />
+              </a>
+            ))}
           </div>
         </div>
 

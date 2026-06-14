@@ -7,11 +7,10 @@ module.exports = {
         'linen': '#FFFFFF',
         'sage': '#E8F5EE',
         'moss': '#10B981',
-        'ochre': '#2563EB',
+        'brand-blue': '#2563EB',
         'stone': '#6B7280',
       },
       fontFamily: {
-        fraunces: ['Fraunces', 'serif'],
         inter: ['Inter', 'sans-serif'],
       },
       borderRadius: {

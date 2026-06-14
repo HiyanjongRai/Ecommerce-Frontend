@@ -138,7 +138,7 @@ const Checkout = () => {
     email: user?.email || '',
     phone: user?.phoneNumber || '',
     alternativePhone: '',
-    province: '',
+    province: 'Bagmati Province',
     district: '',
     municipality: '',
     ward: '',
@@ -515,193 +515,207 @@ const Checkout = () => {
       </div>
     );
   }
+  // Validation helper
+  const hasError = (fieldName) => errorMsg && !formData[fieldName];
 
   return (
     <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-8 font-sans text-[#222529]">
       
-      {/* Checkout Progress */}
-      <div className="flex justify-center items-center gap-2 md:gap-4 mb-10 text-[10px] md:text-[11px] font-black uppercase tracking-wider select-none">
-        <span className={`transition-colors ${step >= 1 ? 'text-[#222529] border-b-2 border-[#222529] pb-0.5' : 'text-gray-400 cursor-pointer hover:text-gray-600'}`} onClick={() => setStep(1)}>
-          01. Address
-        </span>
-        <span className="text-gray-300">➔</span>
-        <span className={`transition-colors ${step >= 2 ? 'text-[#222529] border-b-2 border-[#222529] pb-0.5' : 'text-gray-400'}`}>
-          02. Details
-        </span>
-        <span className="text-gray-300">➔</span>
-        <span className={`transition-colors ${step >= 3 ? 'text-[#222529] border-b-2 border-[#222529] pb-0.5' : 'text-gray-400'}`}>
-          03. Payment
-        </span>
+      {/* Page Title */}
+      <div className="mb-8">
+        <h1 className="text-xl md:text-2xl font-black uppercase tracking-wider text-[#222529]">Secure Checkout</h1>
+        <p className="text-xs text-gray-500 font-semibold mt-1">Complete your delivery and payment details below to place your order.</p>
       </div>
 
-      <div className="max-w-3xl mx-auto">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         
-        {/* Step 1: Address Details */}
-        {step === 1 && (
-          <div className="bg-white border border-gray-200 rounded-sm p-6 md:p-8 shadow-sm">
-            <h2 className="text-sm font-black uppercase tracking-widest mb-6 border-b border-gray-150 pb-4">
-              Billing & Delivery Details
+        {/* Left Column: Delivery & Payment Details */}
+        <div className="lg:col-span-7 space-y-6">
+          
+          {/* Card 1: Delivery Address Form */}
+          <div className="bg-white border border-gray-200 rounded-sm p-6 md:p-8 shadow-sm space-y-6">
+            <h2 className="text-xs font-black uppercase tracking-widest border-b border-gray-150 pb-3">
+              1. Delivery Information
             </h2>
 
-            {errorMsg && (
-              <div className="mb-6 bg-red-50 border-l-4 border-red-500 text-red-700 p-4 text-xs font-bold">
-                {errorMsg}
+            {/* Saved Address Dropdown */}
+            {savedAddresses.length > 0 && (
+              <div className="bg-emerald-50/30 border border-emerald-100 rounded-sm p-4 animate-in fade-in-50 duration-200">
+                <label className="block text-[10px] font-black uppercase text-emerald-800 tracking-wider mb-2">
+                  📍 Ship to Saved Address
+                </label>
+                <select
+                  onChange={(e) => {
+                    const addrId = e.target.value;
+                    if (!addrId) return;
+                    const selected = savedAddresses.find(a => String(a.id) === addrId);
+                    if (selected) {
+                      setFormData(prev => ({
+                        ...prev,
+                        province: selected.province || '',
+                        district: selected.district || '',
+                        streetAddress: selected.street || '',
+                        municipality: selected.city || '',
+                        phone: selected.phone || prev.phone,
+                      }));
+                    }
+                  }}
+                  className="w-full border border-emerald-200 rounded-sm px-4 py-2.5 text-xs outline-none bg-white text-gray-750 font-semibold focus:border-emerald-500 transition-colors"
+                >
+                  <option value="">-- Choose a saved address --</option>
+                  {savedAddresses.map(addr => (
+                    <option key={addr.id} value={addr.id}>
+                      {addr.label ? `[${addr.label.toUpperCase()}] ` : ''}
+                      {addr.street}, {addr.city}, {addr.district}, {addr.province} {addr.phone ? `(${addr.phone})` : ''}
+                      {addr.isDefault ? ' (Default)' : ''}
+                    </option>
+                  ))}
+                </select>
               </div>
             )}
 
-            <form className="space-y-6">
-              
-              {/* Ship to Saved Address Dropdown Picker */}
-              {savedAddresses.length > 0 && (
-                <div className="bg-emerald-50/30 border border-emerald-100 rounded-sm p-4 animate-in fade-in-50 duration-200">
-                  <label className="block text-[10px] font-black uppercase text-emerald-800 tracking-wider mb-2">
-                    📍 Ship to Saved Address
-                  </label>
-                  <select
-                    onChange={(e) => {
-                      const addrId = e.target.value;
-                      if (!addrId) return;
-                      const selected = savedAddresses.find(a => String(a.id) === addrId);
-                      if (selected) {
-                        setFormData(prev => ({
-                          ...prev,
-                          province: selected.province || '',
-                          district: selected.district || '',
-                          streetAddress: selected.street || '',
-                          municipality: selected.city || '',
-                          phone: selected.phone || prev.phone,
-                        }));
-                      }
-                    }}
-                    className="w-full border border-emerald-200 rounded-sm px-4 py-2.5 text-xs outline-none bg-white text-gray-700 font-semibold focus:border-emerald-500 transition-colors"
-                  >
-                    <option value="">-- Choose a saved address --</option>
-                    {savedAddresses.map(addr => (
-                      <option key={addr.id} value={addr.id}>
-                        {addr.label ? `[${addr.label.toUpperCase()}] ` : ''}
-                        {addr.street}, {addr.city}, {addr.district}, {addr.province} {addr.phone ? `(${addr.phone})` : ''}
-                        {addr.isDefault ? ' (Default)' : ''}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              {/* Contact info grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[10px] font-black uppercase text-gray-500 tracking-wider mb-2">Full Name *</label>
+                  <label className="block text-[10px] font-black uppercase text-gray-500 tracking-wider mb-1.5">Full Name *</label>
                   <input
                     type="text"
                     name="fullName"
                     value={formData.fullName}
                     onChange={handleInputChange}
-                    className="w-full border border-gray-300 rounded-sm px-4 py-2.5 text-xs focus:border-[#222529] outline-none transition-colors bg-gray-50/50"
+                    className={`w-full border rounded-sm px-3.5 py-2.5 text-xs outline-none transition-colors bg-gray-50/30 ${
+                      hasError('fullName') ? 'border-red-500 focus:border-red-500 bg-red-50/10' : 'border-gray-300 focus:border-[#222529]'
+                    }`}
                     placeholder="John Doe"
                     required
                   />
+                  {hasError('fullName') && <span className="text-red-500 text-[10px] block mt-1 font-bold">Full Name is required.</span>}
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black uppercase text-gray-500 tracking-wider mb-2">Email Address</label>
+                  <label className="block text-[10px] font-black uppercase text-gray-500 tracking-wider mb-1.5">Email Address</label>
                   <input
                     type="email"
                     name="email"
                     value={formData.email}
                     onChange={handleInputChange}
-                    className="w-full border border-gray-300 rounded-sm px-4 py-2.5 text-xs focus:border-[#222529] outline-none transition-colors bg-gray-50/50"
+                    className="w-full border border-gray-300 rounded-sm px-3.5 py-2.5 text-xs focus:border-[#222529] outline-none transition-colors bg-gray-50/30"
                     placeholder="john@example.com"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[10px] font-black uppercase text-gray-500 tracking-wider mb-2">Phone Number *</label>
+                  <label className="block text-[10px] font-black uppercase text-gray-500 tracking-wider mb-1.5">Phone Number *</label>
                   <input
                     type="tel"
                     name="phone"
                     value={formData.phone}
                     onChange={handleInputChange}
-                    className="w-full border border-gray-300 rounded-sm px-4 py-2.5 text-xs focus:border-[#222529] outline-none transition-colors bg-gray-50/50"
-                    placeholder="9800000000"
+                    className={`w-full border rounded-sm px-3.5 py-2.5 text-xs outline-none transition-colors bg-gray-50/30 ${
+                      hasError('phone') ? 'border-red-500 focus:border-red-500 bg-red-50/10' : 'border-gray-300 focus:border-[#222529]'
+                    }`}
+                    placeholder="e.g. 9811234567"
                     required
                   />
+                  {hasError('phone') && <span className="text-red-500 text-[10px] block mt-1 font-bold">Phone Number is required.</span>}
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black uppercase text-gray-500 tracking-wider mb-2">Alternative Phone</label>
+                  <label className="block text-[10px] font-black uppercase text-gray-500 tracking-wider mb-1.5">Alternative Phone</label>
                   <input
                     type="tel"
                     name="alternativePhone"
                     value={formData.alternativePhone}
                     onChange={handleInputChange}
-                    className="w-full border border-gray-300 rounded-sm px-4 py-2.5 text-xs focus:border-[#222529] outline-none transition-colors bg-gray-50/50"
-                    placeholder="Optional"
+                    className="w-full border border-gray-300 rounded-sm px-3.5 py-2.5 text-xs focus:border-[#222529] outline-none transition-colors bg-gray-50/30"
+                    placeholder="Optional alternative number"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-t border-gray-100 pt-6">
-                <div>
-                  <label className="block text-[10px] font-black uppercase text-gray-500 tracking-wider mb-2">Province *</label>
-                  <select
-                    name="province"
-                    value={formData.province}
-                    onChange={handleInputChange}
-                    className="w-full border border-gray-300 rounded-sm px-4 py-2.5 text-xs focus:border-[#222529] outline-none transition-colors bg-white"
-                    required
-                  >
-                    <option value="">Select Province</option>
-                    <option value="Koshi Province">Koshi Province</option>
-                    <option value="Madhesh Province">Madhesh Province</option>
-                    <option value="Bagmati Province">Bagmati Province</option>
-                    <option value="Gandaki Province">Gandaki Province</option>
-                    <option value="Lumbini Province">Lumbini Province</option>
-                    <option value="Karnali Province">Karnali Province</option>
-                    <option value="Sudurpashchim Province">Sudurpashchim Province</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-[10px] font-black uppercase text-gray-500 tracking-wider mb-2">District *</label>
-                  <input
-                    type="text"
-                    name="district"
-                    value={formData.district}
-                    onChange={handleInputChange}
-                    className="w-full border border-gray-300 rounded-sm px-4 py-2.5 text-xs focus:border-[#222529] outline-none transition-colors bg-gray-50/50"
-                    placeholder="e.g. Kathmandu"
-                    required
-                  />
+              {/* Grouped Location Fields */}
+              <div className="border border-gray-200 rounded-sm p-4 bg-gray-50/30 space-y-4">
+                <span className="text-[10px] font-black uppercase text-gray-500 tracking-wider block border-b border-gray-150 pb-1.5">Address & Region</span>
+                
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+                  <div className="md:col-span-6">
+                    <label className="block text-[9px] font-black uppercase text-gray-400 tracking-wider mb-1">Province *</label>
+                    <select
+                      name="province"
+                      value={formData.province}
+                      onChange={handleInputChange}
+                      className={`w-full border rounded-sm px-3 py-2 text-xs outline-none transition-colors bg-white font-medium ${
+                        hasError('province') ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-[#222529]'
+                      }`}
+                      required
+                    >
+                      <option value="">Select Province</option>
+                      <option value="Koshi Province">Koshi Province</option>
+                      <option value="Madhesh Province">Madhesh Province</option>
+                      <option value="Bagmati Province">Bagmati Province</option>
+                      <option value="Gandaki Province">Gandaki Province</option>
+                      <option value="Lumbini Province">Lumbini Province</option>
+                      <option value="Karnali Province">Karnali Province</option>
+                      <option value="Sudurpashchim Province">Sudurpashchim Province</option>
+                    </select>
+                    {hasError('province') && <span className="text-red-500 text-[9px] block mt-1 font-bold">Province is required.</span>}
+                  </div>
+                  
+                  <div className="md:col-span-6">
+                    <label className="block text-[9px] font-black uppercase text-gray-400 tracking-wider mb-1">District *</label>
+                    <input
+                      type="text"
+                      name="district"
+                      value={formData.district}
+                      onChange={handleInputChange}
+                      className={`w-full border rounded-sm px-3 py-2 text-xs outline-none transition-colors bg-white font-medium ${
+                        hasError('district') ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-[#222529]'
+                      }`}
+                      placeholder="e.g. Kathmandu"
+                      required
+                    />
+                    {hasError('district') && <span className="text-red-500 text-[9px] block mt-1 font-bold">District is required.</span>}
+                  </div>
+
+                  <div className="md:col-span-8">
+                    <label className="block text-[9px] font-black uppercase text-gray-400 tracking-wider mb-1">Municipality / City *</label>
+                    <input
+                      type="text"
+                      name="municipality"
+                      value={formData.municipality}
+                      onChange={handleInputChange}
+                      className={`w-full border rounded-sm px-3 py-2 text-xs outline-none transition-colors bg-white font-medium ${
+                        hasError('municipality') ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-[#222529]'
+                      }`}
+                      placeholder="e.g. Kathmandu Metropolitan"
+                      required
+                    />
+                    {hasError('municipality') && <span className="text-red-500 text-[9px] block mt-1 font-bold">City is required.</span>}
+                  </div>
+
+                  <div className="md:col-span-4">
+                    <label className="block text-[9px] font-black uppercase text-gray-400 tracking-wider mb-1">Ward No. <span className="font-medium normal-case">(Optional)</span></label>
+                    <input
+                      type="number"
+                      name="ward"
+                      value={formData.ward}
+                      onChange={handleInputChange}
+                      className="w-full border border-gray-300 rounded-sm px-3 py-2 text-xs focus:border-[#222529] outline-none transition-colors bg-white font-medium"
+                      placeholder="e.g. 8"
+                      title="Your local municipality ward number (1–35). Leave blank if unsure."
+                      min="1"
+                      max="35"
+                    />
+                    <p className="text-[9px] text-gray-400 mt-0.5 font-medium">Local ward no. — optional</p>
+                  </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-[10px] font-black uppercase text-gray-500 tracking-wider mb-2">Municipality / City *</label>
-                  <input
-                    type="text"
-                    name="municipality"
-                    value={formData.municipality}
-                    onChange={handleInputChange}
-                    className="w-full border border-gray-300 rounded-sm px-4 py-2.5 text-xs focus:border-[#222529] outline-none transition-colors bg-gray-50/50"
-                    placeholder="e.g. Kageshwori Manohara"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-[10px] font-black uppercase text-gray-500 tracking-wider mb-2">Ward No.</label>
-                  <input
-                    type="number"
-                    name="ward"
-                    value={formData.ward}
-                    onChange={handleInputChange}
-                    className="w-full border border-gray-300 rounded-sm px-4 py-2.5 text-xs focus:border-[#222529] outline-none transition-colors bg-gray-50/50"
-                    placeholder="e.g. 8"
-                  />
-                </div>
-              </div>
-
-              <div className="relative border-b border-gray-100 pb-6">
-                <div className="flex justify-between items-end mb-2">
-                  <label className="block text-[10px] font-black uppercase text-gray-500 tracking-wider">Street / Tole / Landmark *</label>
+              {/* Street Address and Landmark */}
+              <div className="relative">
+                <div className="flex justify-between items-end mb-1.5">
+                  <label className="block text-[10px] font-black uppercase text-gray-500 tracking-wider">Street Address / Landmark *</label>
                   <button
                     type="button"
                     onClick={handleDetectLocation}
@@ -718,12 +732,15 @@ const Checkout = () => {
                   onChange={handleAddressChange}
                   onFocus={() => { if (addressSuggestions.length > 0) setShowSuggestions(true); }}
                   onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-                  className="w-full border border-gray-300 rounded-sm px-4 py-2.5 text-xs focus:border-[#222529] outline-none transition-colors bg-gray-50/50"
-                  placeholder="Street address or Landmark (Type to search map...)"
+                  className={`w-full border rounded-sm px-3.5 py-2.5 text-xs outline-none transition-colors bg-gray-50/30 ${
+                    hasError('streetAddress') ? 'border-red-500 focus:border-red-500 bg-red-50/10' : 'border-gray-300 focus:border-[#222529]'
+                  }`}
+                  placeholder="Street address, building, or nearby landmark (Type to search map...)"
                   required
                 />
+                {hasError('streetAddress') && <span className="text-red-500 text-[10px] block mt-1 font-bold">Street Address is required.</span>}
                 
-                {/* LocationIQ Autocomplete Dropdown */}
+                {/* LocationIQ Suggestions Dropdown */}
                 {showSuggestions && addressSuggestions.length > 0 && (
                   <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-sm shadow-lg max-h-48 overflow-y-auto">
                     {addressSuggestions.map((suggestion, idx) => (
@@ -740,26 +757,27 @@ const Checkout = () => {
                 )}
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Delivery and shipping options */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
                 <div>
-                  <label className="block text-[10px] font-black uppercase text-gray-500 tracking-wider mb-2">Region</label>
+                  <label className="block text-[10px] font-black uppercase text-gray-500 tracking-wider mb-1.5">Shipping Region</label>
                   <select
                     name="shippingLocation"
                     value={formData.shippingLocation}
                     onChange={handleInputChange}
-                    className="w-full border border-gray-300 rounded-sm px-4 py-2.5 text-xs focus:border-[#222529] outline-none transition-colors bg-white font-semibold text-gray-700"
+                    className="w-full border border-gray-300 rounded-sm px-3.5 py-2.5 text-xs focus:border-[#222529] outline-none transition-colors bg-white font-semibold text-gray-700 cursor-pointer"
                   >
-                    <option value="INSIDE">Kathmandu Valley</option>
+                    <option value="INSIDE">Kathmandu Valley (Inside Valley)</option>
                     <option value="OUTSIDE">Outside Valley</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black uppercase text-gray-500 tracking-wider mb-2">Delivery Preference</label>
+                  <label className="block text-[10px] font-black uppercase text-gray-500 tracking-wider mb-1.5">Delivery Time Preference</label>
                   <select
                     name="deliveryTimePreference"
                     value={formData.deliveryTimePreference}
                     onChange={handleInputChange}
-                    className="w-full border border-gray-300 rounded-sm px-4 py-2.5 text-xs focus:border-[#222529] outline-none transition-colors bg-white font-semibold text-gray-700"
+                    className="w-full border border-gray-300 rounded-sm px-3.5 py-2.5 text-xs focus:border-[#222529] outline-none transition-colors bg-white font-semibold text-gray-700 cursor-pointer"
                   >
                     <option value="ANYTIME">Anytime (Default)</option>
                     <option value="MORNING">Morning (9 AM - 12 PM)</option>
@@ -769,66 +787,112 @@ const Checkout = () => {
               </div>
 
               <div>
-                <label className="block text-[10px] font-black uppercase text-gray-500 tracking-wider mb-2">Order Notes (Optional)</label>
+                <label className="block text-[10px] font-black uppercase text-gray-500 tracking-wider mb-1.5">Order Notes (Optional)</label>
                 <textarea
                   name="orderNote"
                   value={formData.orderNote}
                   onChange={handleInputChange}
-                  rows="3"
-                  className="w-full border border-gray-300 rounded-sm px-4 py-3 text-xs focus:border-[#222529] outline-none transition-colors bg-gray-50/50 resize-none"
-                  placeholder="Notes about your order, e.g. special notes for delivery."
+                  rows="2"
+                  className="w-full border border-gray-300 rounded-sm px-3.5 py-2.5 text-xs focus:border-[#222529] outline-none transition-colors bg-gray-50/30 resize-none"
+                  placeholder="Notes about your order, e.g. instructions for delivery rider..."
                 ></textarea>
               </div>
-
-              <div className="flex justify-end pt-4">
-                <button
-                  type="button"
-                  onClick={handleNextStep}
-                  className="bg-[#222529] hover:bg-black text-white text-[11px] font-black uppercase tracking-widest px-8 py-3.5 rounded-sm transition-all shadow-md"
-                >
-                  Continue to Details
-                </button>
-              </div>
-            </form>
+            </div>
           </div>
-        )}
 
-        {/* Step 2: Order Details Review */}
-        {step === 2 && (
-          <div className="bg-white border border-gray-200 rounded-sm p-6 md:p-8 shadow-sm">
-            <h2 className="text-sm font-black uppercase tracking-widest mb-6 border-b border-gray-150 pb-4">
-              Your Order Details
+          {/* Card 2: Payment Gateway Selection */}
+          <div className="bg-white border border-gray-200 rounded-sm p-6 md:p-8 shadow-sm space-y-5">
+            <h2 className="text-xs font-black uppercase tracking-widest border-b border-gray-150 pb-3">
+              2. Payment Method
             </h2>
             
-            <div className="bg-gray-50 border border-gray-150 rounded-sm p-4 mb-6 text-xs text-gray-700">
-              <h3 className="font-black uppercase tracking-widest text-[9px] text-gray-500 mb-2">Delivery Information</h3>
-              <p className="font-bold text-[#222529] mb-1">{formData.fullName} <span className="font-normal text-gray-500 ml-2">📞 {formData.phone} {formData.alternativePhone ? `/ ${formData.alternativePhone}` : ''}</span></p>
-              <p>{formData.streetAddress}{formData.ward ? `, Ward ${formData.ward}` : ''}</p>
-              <p>{formData.municipality}, {formData.district}, {formData.province}</p>
-              {formData.orderNote && <p className="mt-2 pt-2 border-t border-gray-200 text-[10px] text-gray-500 italic">" {formData.orderNote} "</p>}
-            </div>
-            
-            <div className="max-h-[400px] overflow-y-auto pr-2 space-y-4 mb-6">
-              {Object.values(groupedItems).map(group => (
-                <div key={group.sellerId} className="border border-gray-150 rounded-sm overflow-hidden bg-white">
-                  <div className="bg-gray-50 px-4 py-2 border-b border-gray-150 flex justify-between items-center gap-3 text-[10px]">
-                    <span className="font-black text-[#222529] uppercase tracking-wider truncate">Sold by: {group.sellerName}</span>
-                    <span className="font-extrabold text-gray-600 whitespace-nowrap">Shipping: Rs. {formatMoney(calculateGroupShipping(group, formData.shippingLocation))}</span>
+            <div className="grid grid-cols-1 gap-3.5">
+              <label className={`block border rounded-sm p-4 cursor-pointer transition-all ${formData.paymentMethod === 'COD' ? 'border-[#222529] bg-gray-50' : 'border-gray-200 hover:border-gray-300'}`}>
+                <div className="flex items-center gap-4">
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value="COD"
+                    checked={formData.paymentMethod === 'COD'}
+                    onChange={handleInputChange}
+                    className="accent-[#222529] w-4.5 h-4.5"
+                  />
+                  <div>
+                    <span className="block text-xs font-black uppercase tracking-wider text-[#222529]">Cash on Delivery (COD)</span>
+                    <span className="block text-[10px] text-gray-500 font-semibold mt-1">Pay with physical cash or QR code scan on delivery.</span>
                   </div>
-                  <div className="divide-y divide-gray-100 px-4">
+                </div>
+              </label>
+
+              <label className={`block border rounded-sm p-4 cursor-pointer transition-all ${formData.paymentMethod === 'ESEWA' ? 'border-green-600 bg-green-50/10' : 'border-gray-200 hover:border-green-300'}`}>
+                <div className="flex items-center gap-4">
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value="ESEWA"
+                    checked={formData.paymentMethod === 'ESEWA'}
+                    onChange={handleInputChange}
+                    className="accent-green-600 w-4.5 h-4.5"
+                  />
+                  <div className="flex-1">
+                    <span className="block text-xs font-black uppercase tracking-wider text-green-700">eSewa Mobile Wallet</span>
+                    <span className="block text-[10px] text-gray-500 font-semibold mt-1">Instant online payment using Nepal's leading eSewa gateway.</span>
+                  </div>
+                  <img src="https://esewa.com.np/common/images/esewa_logo.png" alt="eSewa" className="h-5.5 object-contain opacity-90" />
+                </div>
+              </label>
+
+              <label className={`block border rounded-sm p-4 cursor-pointer transition-all ${formData.paymentMethod === 'KHALTI' ? 'border-purple-600 bg-purple-50/10' : 'border-gray-200 hover:border-purple-300'}`}>
+                <div className="flex items-center gap-4">
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value="KHALTI"
+                    checked={formData.paymentMethod === 'KHALTI'}
+                    onChange={handleInputChange}
+                    className="accent-purple-600 w-4.5 h-4.5"
+                  />
+                  <div className="flex-1">
+                    <span className="block text-xs font-black uppercase tracking-wider text-purple-700">Khalti Wallet</span>
+                    <span className="block text-[10px] text-gray-500 font-semibold mt-1">Pay securely online via Khalti digital payment gateway.</span>
+                  </div>
+                  <span className="text-purple-750 text-xs font-black uppercase tracking-widest">Khalti</span>
+                </div>
+              </label>
+            </div>
+          </div>
+
+        </div>
+
+        {/* Right Column: Order Summary & Sticky Totals */}
+        <div className="lg:col-span-5 space-y-6 lg:sticky lg:top-6">
+          
+          {/* Card 3: Order Summary list */}
+          <div className="bg-white border border-gray-200 rounded-sm p-6 shadow-sm space-y-4">
+            <h2 className="text-xs font-black uppercase tracking-widest border-b border-gray-150 pb-3">
+              Order Summary
+            </h2>
+            
+            <div className="max-h-[300px] overflow-y-auto pr-1 divide-y divide-gray-100">
+              {Object.values(groupedItems).map(group => (
+                <div key={group.sellerId} className="py-3.5 first:pt-0">
+                  <span className="block text-[9px] font-black text-gray-400 uppercase tracking-wider mb-2">
+                    Store: {group.sellerName}
+                  </span>
+                  <div className="space-y-3">
                     {group.items.map(item => (
-                      <div key={item.cartItemId} className="py-3 flex gap-3 items-center">
-                        <div className="w-12 h-12 border border-gray-150 rounded-sm flex items-center justify-center p-1 flex-shrink-0 bg-gray-50">
+                      <div key={item.cartItemId} className="flex gap-3 items-center">
+                        <div className="w-11 h-11 border border-gray-150 rounded-sm flex items-center justify-center p-1 flex-shrink-0 bg-gray-50">
                           {item.image ? (
                             <img
                               src={item.image.startsWith('http') ? item.image : `${BASE_URL}${item.image.startsWith('/') ? '' : '/'}${item.image}`}
                               alt=""
                               className="object-contain w-full h-full"
                             />
-                          ) : <span className="text-[10px]">Box</span>}
+                          ) : <span className="text-[10px]">📦</span>}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h4 className="text-[10px] font-bold text-[#222529] line-clamp-1">{item.name}</h4>
+                          <h4 className="text-[11px] font-bold text-[#222529] line-clamp-1">{item.name}</h4>
                           <span className="text-[9px] text-gray-500 font-semibold block mt-0.5">
                             Qty: <span className="text-[#222529]">{item.quantity}</span>
                             {item.variantLabel && ` - ${item.variantLabel}`}
@@ -843,205 +907,131 @@ const Checkout = () => {
                 </div>
               ))}
             </div>
+          </div>
 
-            {/* Subtotals */}
-            <div className="space-y-3 pt-4 border-t border-gray-150 text-xs font-semibold text-gray-600 mb-8 bg-gray-50 p-4 rounded-sm">
-              <div className="flex justify-between items-center">
+          {/* Card 4: Price details breakdown */}
+          <div className="bg-white border border-gray-200 rounded-sm p-6 shadow-sm space-y-5">
+            <h2 className="text-xs font-black uppercase tracking-widest border-b border-gray-150 pb-3">
+              Payment Totals
+            </h2>
+
+            <div className="space-y-3 text-xs font-semibold text-gray-655">
+              <div className="flex justify-between items-center text-gray-500">
                 <span className="uppercase text-[9px] font-black tracking-wider text-gray-500">Subtotal</span>
                 <span className="font-extrabold text-[#222529]">Rs. {formatMoney(activeSubtotal)}</span>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="uppercase text-[9px] font-black tracking-wider text-gray-500">Shipping to {formData.district ? formData.district : 'Address'}</span>
+              
+              <div className="flex justify-between items-center text-gray-500 border-t border-gray-100 pt-2.5">
+                <span className="uppercase text-[9px] font-black tracking-wider text-gray-500">Shipping Charge</span>
                 <span className="font-extrabold text-[#222529]">Rs. {formatMoney(activeShipping)}</span>
               </div>
-              {Object.values(groupedItems).map(group => {
-                const totalQty = group.items.reduce((sum, item) => sum + Number(item.quantity || 1), 0);
-                return (
-                  <div key={group.sellerId} className="rounded-sm border border-gray-200 bg-white p-3 space-y-1 my-1">
-                    <div className="flex justify-between items-center gap-3">
-                      <span className="text-[10px] font-black uppercase tracking-wider text-[#222529]">
-                        {group.sellerName}
-                      </span>
-                      <span className="font-extrabold text-[11px] text-[#222529]">
-                        Rs. {formatMoney(calculateGroupShipping(group, formData.shippingLocation))}
-                      </span>
+
+              {/* Show individual seller shipping if there are multiple */}
+              {Object.keys(groupedItems).length > 1 && (
+                <div className="pl-3 border-l-2 border-gray-150 space-y-1.5 py-1 text-[10px] text-gray-400">
+                  {Object.values(groupedItems).map(group => (
+                    <div key={group.sellerId} className="flex justify-between">
+                      <span className="truncate pr-4">{group.sellerName}</span>
+                      <span className="font-bold">Rs. {formatMoney(calculateGroupShipping(group, formData.shippingLocation))}</span>
                     </div>
-                    <p className="text-[10px] font-semibold text-gray-500">
-                      {totalQty} {totalQty === 1 ? 'item' : 'items'}: {getGroupItemSummary(group)}
-                    </p>
-                  </div>
-                );
-              })}
-              <div className="flex justify-between items-center">
+                  ))}
+                </div>
+              )}
+
+              <div className="flex justify-between items-center text-gray-500 border-t border-gray-100 pt-2.5">
                 <span className="uppercase text-[9px] font-black tracking-wider text-gray-500">Included VAT (13%)</span>
                 <span className="font-extrabold text-[#222529]">Rs. {formatMoney(vatAmount)}</span>
               </div>
+
               {discountPercent > 0 && (
-                <div className="flex justify-between items-center text-green-600">
-                  <span className="uppercase text-[9px] font-black tracking-wider">Discount ({discountPercent}%)</span>
+                <div className="flex justify-between items-center text-green-600 border-t border-gray-100 pt-2.5">
+                  <span className="uppercase text-[9px] font-black tracking-wider">Coupon Discount ({discountPercent}%)</span>
                   <span className="font-extrabold">- Rs. {formatMoney(discountAmount)}</span>
                 </div>
               )}
-              <div className="rounded-md border border-gray-200 bg-white p-3">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-                  <div>
-                    <label className="block text-[9px] font-black uppercase tracking-wider text-gray-500 mb-1.5">
-                      Use reward points
+
+              {/* Loyalty reward points */}
+              <div className="border-t border-gray-100 pt-3">
+                <div className="bg-gray-50 border border-gray-200 rounded-sm p-3.5 space-y-2.5">
+                  <div className="flex flex-col gap-2">
+                    <label className="block text-[9px] font-black uppercase tracking-wider text-gray-500">
+                      Redeem Reward Points
                     </label>
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      name="loyaltyPointsToRedeem"
-                      value={formData.loyaltyPointsToRedeem}
-                      onChange={handleLoyaltyPointsChange}
-                      placeholder="0"
-                      className="w-40 border border-gray-300 rounded-sm px-3 py-2 text-xs font-bold outline-none focus:border-[#222529]"
-                    />
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        name="loyaltyPointsToRedeem"
+                        value={formData.loyaltyPointsToRedeem}
+                        onChange={handleLoyaltyPointsChange}
+                        placeholder="Points count (e.g. 100)"
+                        className="flex-1 border border-gray-300 rounded-sm px-3 py-1.5 text-xs font-bold outline-none focus:border-[#222529]"
+                      />
+                    </div>
                   </div>
-                  <div className="text-left sm:text-right">
-                    <p className="text-[10px] font-bold text-gray-500">
-                      Available: {Number(loyaltyWallet?.availablePoints || 0).toLocaleString()} pts
-                    </p>
-                    <p className="text-[10px] font-bold text-gray-400">
-                      Max 30% of eligible order value
-                    </p>
+                  
+                  <div className="flex justify-between items-center text-[10px] text-gray-550 font-bold border-t border-gray-150 pt-2">
+                    <span>Available Balance:</span>
+                    <span>{Number(loyaltyWallet?.availablePoints || 0).toLocaleString()} pts</span>
                   </div>
+                  <p className="text-[9px] text-gray-400 font-semibold leading-normal">
+                    * Max redemption limit: 30% of the eligible order value.
+                  </p>
+
+                  {loyaltyQuote && (
+                    <div className="flex justify-between border-t border-dashed border-gray-200 pt-2 text-emerald-700 text-[10px]">
+                      <span className="font-black uppercase tracking-wider">
+                        Points Discount ({Number(loyaltyQuote.approvedPoints || 0).toLocaleString()} pts)
+                      </span>
+                      <span className="font-black">- Rs. {formatMoney(loyaltyQuote.discountAmount)}</span>
+                    </div>
+                  )}
                 </div>
-                {loyaltyQuote && (
-                  <div className="mt-3 flex justify-between border-t border-gray-100 pt-3 text-emerald-700">
-                    <span className="text-[9px] font-black uppercase tracking-wider">
-                      Reward discount ({Number(loyaltyQuote.approvedPoints || 0).toLocaleString()} pts)
-                    </span>
-                    <span className="font-extrabold">- Rs. {formatMoney(loyaltyQuote.discountAmount)}</span>
-                  </div>
-                )}
               </div>
               
-              <div className="pt-4 mt-2 border-t border-gray-200 flex justify-between items-baseline">
+              <div className="pt-4 border-t border-gray-250 flex justify-between items-baseline">
                 <span className="uppercase text-[11px] font-black tracking-widest text-[#222529]">Grand Total</span>
-                <span className="text-lg font-black text-blue-600">Rs. {formatMoney(grandTotal)}</span>
+                <span className="text-xl font-black text-[#222529]">Rs. {formatMoney(grandTotal)}</span>
               </div>
             </div>
 
-            <div className="flex justify-between items-center border-t border-gray-150 pt-6">
-              <button
-                type="button"
-                onClick={handlePrevStep}
-                className="text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-[#222529] transition-colors"
-              >
-                ← Back to Address
-              </button>
-              <button
-                type="button"
-                onClick={handleNextStep}
-                className="bg-[#222529] hover:bg-black text-white text-[11px] font-black uppercase tracking-widest px-8 py-3.5 rounded-sm transition-all shadow-md"
-              >
-                Continue to Payment
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Step 3: Payment Method & Submit */}
-        {step === 3 && (
-          <div className="bg-white border border-gray-200 rounded-sm p-6 md:p-8 shadow-sm">
-            <h2 className="text-sm font-black uppercase tracking-widest mb-4 border-b border-gray-150 pb-4">
-              Select Payment Option
-            </h2>
-            
-            <div className="space-y-4 mb-8">
-              <label className={`block border rounded-sm p-4 cursor-pointer transition-all ${formData.paymentMethod === 'COD' ? 'border-[#222529] bg-gray-50' : 'border-gray-200 hover:border-gray-300'}`}>
-                <div className="flex items-center gap-4">
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    value="COD"
-                    checked={formData.paymentMethod === 'COD'}
-                    onChange={handleInputChange}
-                    className="accent-[#222529] w-4 h-4"
-                  />
-                  <div>
-                    <span className="block text-xs font-black uppercase tracking-wider text-[#222529]">Cash on Delivery</span>
-                    <span className="block text-[10px] text-gray-500 font-semibold mt-1">Pay with cash upon delivery of your order.</span>
-                  </div>
-                </div>
-              </label>
-
-              <label className={`block border rounded-sm p-4 cursor-pointer transition-all ${formData.paymentMethod === 'ESEWA' ? 'border-green-600 bg-green-50/30' : 'border-gray-200 hover:border-green-300'}`}>
-                <div className="flex items-center gap-4">
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    value="ESEWA"
-                    checked={formData.paymentMethod === 'ESEWA'}
-                    onChange={handleInputChange}
-                    className="accent-green-600 w-4 h-4"
-                  />
-                  <div className="flex-1">
-                    <span className="block text-xs font-black uppercase tracking-wider text-green-700">eSewa Mobile Wallet</span>
-                    <span className="block text-[10px] text-gray-500 font-semibold mt-1">Pay securely online via eSewa.</span>
-                  </div>
-                  <img src="https://esewa.com.np/common/images/esewa_logo.png" alt="eSewa" className="h-6 object-contain opacity-90" />
-                </div>
-              </label>
-
-              <label className={`block border rounded-sm p-4 cursor-pointer transition-all ${formData.paymentMethod === 'KHALTI' ? 'border-purple-600 bg-purple-50/30' : 'border-gray-200 hover:border-purple-300'}`}>
-                <div className="flex items-center gap-4">
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    value="KHALTI"
-                    checked={formData.paymentMethod === 'KHALTI'}
-                    onChange={handleInputChange}
-                    className="accent-purple-600 w-4 h-4"
-                  />
-                  <div className="flex-1">
-                    <span className="block text-xs font-black uppercase tracking-wider text-purple-700">Khalti Digital Wallet</span>
-                    <span className="block text-[10px] text-gray-500 font-semibold mt-1">Pay securely online via Khalti sandbox.</span>
-                  </div>
-                  <span className="text-purple-700 text-xs font-black uppercase tracking-widest">Khalti</span>
-                </div>
-              </label>
-            </div>
-
+            {/* Error notifications */}
             {errorMsg && (
-              <div className="mb-6 bg-red-50 border-l-4 border-red-500 text-red-700 p-4 text-xs font-bold">
-                {errorMsg}
+              <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-3.5 text-xs font-black uppercase tracking-wide leading-relaxed">
+                ⚠️ Error: {errorMsg}
               </div>
             )}
 
-            <div className="flex flex-col-reverse md:flex-row justify-between items-center gap-4 border-t border-gray-150 pt-6">
-              <button
-                type="button"
-                onClick={handlePrevStep}
-                className="text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-[#222529] transition-colors w-full md:w-auto text-left"
-              >
-                ← Back to Details
-              </button>
-              
-              <button
-                onClick={handlePlaceOrder}
-                disabled={processing}
-                className={`w-full md:w-auto min-w-[200px] text-white text-[11px] font-black uppercase tracking-widest py-4 px-8 rounded-sm transition-all shadow-md flex justify-center items-center gap-2 ${
-                  processing ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#222529] hover:bg-black shadow-[#222529]/20'
-                }`}
-              >
-                {processing ? (
-                  <>
-                    <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
-                    </svg>
-                    Processing...
-                  </>
-                ) : 'Place Order Now'}
-              </button>
-            </div>
-            <p className="text-[9px] font-semibold text-center text-gray-400 mt-6">
-              Your personal data will be used to process your order, support your experience throughout this website, and for other purposes described in our privacy policy.
+            {/* Complete checkout CTA */}
+            <button
+              onClick={handlePlaceOrder}
+              disabled={processing}
+              className={`w-full text-white text-xs font-black uppercase tracking-widest py-4 rounded-sm transition-all shadow-md flex justify-center items-center gap-2 ${
+                processing ? 'bg-gray-400 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-750 shadow-emerald-600/10'
+              }`}
+            >
+              {processing ? (
+                <>
+                  <svg className="animate-spin w-4.5 h-4.5 text-white" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                  </svg>
+                  Processing Order...
+                </>
+              ) : (
+                <>Place Order Now Rs. {formatMoney(grandTotal)}</>
+              )}
+            </button>
+            
+            <p className="text-[9px] font-semibold text-center text-gray-400 leading-normal">
+              By placing this order, you agree to our{' '}
+              <a href="/terms" target="_blank" rel="noreferrer" className="underline hover:text-[#222529] transition-colors">Terms of Service</a>
+              {' '}and{' '}
+              <a href="/privacy" target="_blank" rel="noreferrer" className="underline hover:text-[#222529] transition-colors">Privacy Policy</a>.
             </p>
           </div>
-        )}
+
+        </div>
 
       </div>
 
@@ -1066,4 +1056,3 @@ const Checkout = () => {
 };
 
 export default Checkout;
-

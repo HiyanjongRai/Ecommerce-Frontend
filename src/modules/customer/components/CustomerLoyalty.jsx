@@ -63,26 +63,28 @@ const CustomerLoyalty = () => {
   const activityMax = Math.max(earned, redeemed, expired, 1);
 
   return (
-    <div className="space-y-6 text-[#20242a]">
-      <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3 border-b border-gray-200 pb-4">
+    <div className="space-y-5 text-[#20242a]">
+      {/* Header */}
+      <div className="flex items-center justify-between pb-4 border-b border-gray-200">
         <div>
-          <p className="text-[10px] font-black uppercase tracking-[0.18em] text-gray-400">Jhapcham Rewards</p>
-          <h2 className="text-xl font-black tracking-tight">Loyalty wallet</h2>
+          <h2 className="text-sm font-black text-gray-800">Loyalty Wallet</h2>
+          <p className="text-[10px] text-gray-400 font-medium mt-0.5">Jhapcham Rewards Program</p>
         </div>
         <div className="flex items-center gap-2 text-[11px] font-bold">
-          <span className={`h-2.5 w-2.5 rounded-full ${wallet.frozen ? 'bg-red-500' : 'bg-emerald-500'}`} />
+          <span className={`h-2 w-2 rounded-full ${wallet.frozen ? 'bg-red-500' : 'bg-emerald-500'}`} />
           {wallet.frozen ? 'Frozen for review' : 'Active wallet'}
         </div>
       </div>
 
-      <section className={`relative overflow-hidden rounded-lg bg-gradient-to-br ${tier.tone} p-6 text-white shadow-lg`}>
+      <section className={`relative overflow-hidden rounded-sm bg-gradient-to-br ${tier.tone} p-6 text-white shadow-lg`}>
         <div className="absolute right-5 top-5 h-24 w-24 rounded-full border border-white/20" />
         <div className="absolute right-14 bottom-[-40px] h-36 w-36 rounded-full border border-white/10" />
         <div className="relative grid gap-6 md:grid-cols-[1.2fr_0.8fr] md:items-end">
           <div>
             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/70">{tier.label} member</p>
             <div className="mt-3 text-5xl font-black leading-none">{formatPoints(wallet.availablePoints)}</div>
-            <p className="mt-2 text-xs font-semibold text-white/70">Available points</p>
+            <p className="mt-1 text-xs font-semibold text-white/70">Available points</p>
+            <p className="mt-1 text-[10px] font-bold text-white/50">1 pt = Rs. 1 • Max redemption: 30% of order value</p>
             <p className="mt-5 max-w-xl text-sm font-medium text-white/85">{wallet.benefits || tier.benefit}</p>
           </div>
           <div>
@@ -97,7 +99,7 @@ const CustomerLoyalty = () => {
         </div>
       </section>
 
-      <section className="grid gap-4 md:grid-cols-5">
+      <section className="grid gap-3 md:grid-cols-5">
         {[
           ['Lifetime points', wallet.lifetimePoints],
           ['Earned', wallet.totalPointsEarned],
@@ -105,15 +107,15 @@ const CustomerLoyalty = () => {
           ['Redeemed', wallet.redeemedPoints],
           ['Expired', wallet.expiredPoints]
         ].map(([label, value]) => (
-          <div key={label} className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+          <div key={label} className="rounded-sm border border-gray-200 bg-white p-4">
             <p className="text-[10px] font-black uppercase tracking-wider text-gray-400">{label}</p>
             <p className="mt-2 text-2xl font-black">{formatPoints(value)}</p>
           </div>
         ))}
       </section>
 
-      <section className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-        <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
+      <section className="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
+        <div className="rounded-sm border border-gray-200 bg-white p-5">
           <h3 className="text-xs font-black uppercase tracking-wider">Reward analytics</h3>
           <div className="mt-5 space-y-4">
             {[
@@ -134,7 +136,7 @@ const CustomerLoyalty = () => {
           </div>
         </div>
 
-        <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
+        <div className="rounded-sm border border-gray-200 bg-white p-5">
           <div className="flex items-center justify-between gap-3">
             <h3 className="text-xs font-black uppercase tracking-wider">Expiring points</h3>
             <span className="text-[10px] font-bold uppercase text-gray-400">Next 10 lots</span>
@@ -152,7 +154,7 @@ const CustomerLoyalty = () => {
         </div>
       </section>
 
-      <section className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
+      <section className="rounded-sm border border-gray-200 bg-white p-5">
         <div className="flex flex-col gap-3 border-b border-gray-100 pb-4 md:flex-row md:items-center md:justify-between">
           <h3 className="text-xs font-black uppercase tracking-wider">Reward activity timeline</h3>
           <div className="flex flex-wrap gap-2">
@@ -161,7 +163,11 @@ const CustomerLoyalty = () => {
                 key={item}
                 type="button"
                 onClick={() => setFilter(item)}
-                className={`rounded-md border px-3 py-1.5 text-[10px] font-black uppercase tracking-wider ${filter === item ? 'border-emerald-600 bg-emerald-600 text-white' : 'border-gray-200 text-gray-500 hover:border-gray-400'}`}
+                className={`rounded-sm border px-3 py-1.5 text-[10px] font-black uppercase tracking-wider ${
+                  filter === item
+                    ? 'border-[#10B981] bg-[#10B981] text-white'
+                    : 'border-gray-200 text-gray-500 hover:border-gray-400'
+                }`}
               >
                 {item.replace('_', ' ')}
               </button>
