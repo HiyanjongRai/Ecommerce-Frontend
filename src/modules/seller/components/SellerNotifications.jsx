@@ -42,7 +42,7 @@ const getTarget = (notif) => {
   const text = `${notif?.title || ''} ${notif?.message || ''}`.toLowerCase();
   if (type === 'MESSAGE_RECEIVED') return '/seller/inbox';
   if (text.includes('inventory') || text.includes('stock') || text.includes('restock')) return '/seller/inventory';
-  if (text.includes('refund')) return '/seller/refunds';
+  if (text.includes('refund')) return '/seller/orders';
   if (text.includes('dispute')) return '/seller/disputes';
   if (type === 'CAMPAIGN_ALERT' || text.includes('campaign')) return '/seller/campaigns';
   if (text.includes('promo')) return '/seller/promos';

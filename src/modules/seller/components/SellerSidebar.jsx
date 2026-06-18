@@ -32,7 +32,6 @@ const NAV = [
     group: 'Orders',
     items: [
       { to: '/seller/orders',             label: 'Orders',          icon: ShoppingCart    },
-      { to: '/seller/refunds',            label: 'Refunds',         icon: RefreshCw       },
       { to: '/seller/disputes',           label: 'Disputes',        icon: Scale           },
       { to: '/seller/inbox',              label: 'Inbox',           icon: Inbox, badgeKey: 'inbox' },
     ],

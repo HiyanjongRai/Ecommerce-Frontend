@@ -1,4 +1,17 @@
 import apiClient from '../../../shared/api/apiConfig';
+import {
+  v2GetSellerRefunds,
+  v2GetSellerRefund,
+  v2SellerApprove,
+  v2SellerReject,
+  v2SellerOfferPartial,
+  v2SellerOfferExchange,
+  v2SellerVerifyReturn,
+  v2UploadSellerEvidence,
+  v2GetSellerMessages,
+  v2SellerSendMessage,
+  v2SellerShipReplacement,
+} from '../../../shared/api/refundV2Api';
 
 export const getSellerProfile = () => {
   return apiClient.get('/seller/me');
@@ -159,39 +172,61 @@ export const createSellerShipment = (orderId) => {
   return apiClient.post(`/shipment/create/${orderId}`);
 };
 
-// ── REFUNDS ───────────────────────────────────────────────────────────────────
-export const respondToRefund = (refundId, action, comment) =>
-  apiClient.put(`/v1/refunds/${refundId}/seller-response`, null, { params: { action, comment } });
+// ── REFUNDS (V2) ──────────────────────────────────────────────────────────
+/** List seller's refunds (up to 200 for client-side filtering). */
+export const getSellerRefundRequests = () => v2GetSellerRefunds(0, 200);
 
-export const updateRefundStatus = (refundId, status, comment) =>
-  apiClient.put(`/v1/refunds/${refundId}/status`, null, { params: { status, comment } });
+/** Full detail of a single refund — seller view. */
+export const getSellerRefundDetail = (refundId) => v2GetSellerRefund(refundId);
 
-export const requestRefundEvidence = (refundId, comment) =>
-  apiClient.put(`/v1/refunds/${refundId}/request-evidence`, null, { params: { comment } });
+/** Approve and process full refund. data: { note } */
+export const approveRefund = (refundId, data) => v2SellerApprove(refundId, data);
 
-export const requestRefundReturn = (refundId, data) =>
-  apiClient.put(`/v1/refunds/${refundId}/return-request`, null, { params: data });
+/** Reject refund request. data: { note } */
+export const rejectRefund = (refundId, data) => v2SellerReject(refundId, data);
 
-export const confirmSellerRefundCompletion = (refundId, data) => {
-  if (data?.proof) {
-    const formData = new FormData();
-    Object.entries(data).forEach(([key, value]) => {
-      if (value !== null && value !== undefined && value !== '') {
-        formData.append(key, value);
-      }
-    });
-    return apiClient.put(`/v1/refunds/${refundId}/seller-confirm-completion`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
-  }
-  return apiClient.put(`/v1/refunds/${refundId}/seller-confirm-completion`, null, { params: data });
-};
+/** Propose a partial refund to the customer. data: { offeredAmount, reason } */
+export const offerPartialRefund = (refundId, data) => v2SellerOfferPartial(refundId, data);
 
-export const inspectRefundReturn = (refundId, data) =>
-  apiClient.put(`/v1/refunds/${refundId}/inspection`, data);
+/** Propose an exchange / replacement. data: { exchangeDetails, reason } */
+export const offerExchange = (refundId, data) => v2SellerOfferExchange(refundId, data);
 
-export const getSellerRefundRequests = (sellerId) =>
-  apiClient.get('/v1/refunds', { params: { sellerId } });
+/** Verify a returned item. data: { condition, notes, accepted } */
+export const verifyReturn = (refundId, data) => v2SellerVerifyReturn(refundId, data);
+
+/** Ship replacement product (seller). data: { courier, trackingNumber } */
+export const shipReplacement = (refundId, data) => v2SellerShipReplacement(refundId, data);
+
+/** Upload seller-side evidence files. */
+export const uploadSellerEvidence = (refundId, files, description = '') =>
+  v2UploadSellerEvidence(refundId, Array.isArray(files) ? files : [files], description);
+
+/** Get message thread. */
+export const getRefundMessages = (refundId) => v2GetSellerMessages(refundId);
+
+/** Send a message on the refund thread. */
+export const sendRefundMessage = (refundId, message) =>
+  v2SellerSendMessage(refundId, message);
+
+// ── LEGACY STUBS (deprecated in v2) ─────────────────────────────────────
+/** @deprecated Use approveRefund or rejectRefund instead. */
+export const respondToRefund = () =>
+  Promise.reject(new Error('respondToRefund: use approveRefund / rejectRefund in v2.'));
+export const updateRefundStatus = () =>
+  Promise.reject(new Error('updateRefundStatus: not supported in v2.'));
+export const requestRefundEvidence = () =>
+  Promise.reject(new Error('requestRefundEvidence: use seller message thread in v2.'));
+export const requestRefundReturn = () =>
+  Promise.reject(new Error('requestRefundReturn: return is customer-initiated in v2.'));
+export const confirmSellerRefundCompletion = () =>
+  Promise.reject(new Error('confirmSellerRefundCompletion: not supported in v2.'));
+export const inspectRefundReturn = (refundId, data) => v2SellerVerifyReturn(refundId, data);
+export const assignReturnPickup   = () => Promise.resolve();
+export const confirmReturnReceived = () => Promise.resolve();
+export const assignReplacementPickup  = () => Promise.resolve();
+export const markReplacementShipped   = () => Promise.resolve();
+export const markOldItemCollected     = () => Promise.resolve();
+export const markReplacementDelivered = () => Promise.resolve();
 
 // ── DISPUTES ──────────────────────────────────────────────────────────────────
 export const submitDisputeEvidence = (disputeId, data) =>

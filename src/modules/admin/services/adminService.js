@@ -1,4 +1,17 @@
 import apiClient from '../../../shared/api/apiConfig';
+import {
+  v2AdminGetRefunds,
+  v2AdminGetRefund,
+  v2AdminGetAuditLog,
+  v2AdminForceFullRefund,
+  v2AdminForcePartialRefund,
+  v2AdminForceExchange,
+  v2AdminRejectClaim,
+  v2AdminApproveReturn,
+  v2AdminRejectReturn,
+  v2AdminSendMessage,
+  v2AdminGetAnalytics,
+} from '../../../shared/api/refundV2Api';
 
 export const getAdminAnalytics = () =>
   apiClient.get('/admin/analytics');
@@ -158,24 +171,74 @@ export const getSellerReportByReference = (publicReferenceId) =>
 export const getCustomerReportByReference = (publicReferenceId) =>
   apiClient.get(`/v1/reports/customer/ref/${publicReferenceId}`);
 
-// ── ADMIN REFUNDS ─────────────────────────────────────────────────────────────
-export const getAdminRefunds = (status = '') => {
-  const params = {};
-  if (status) params.status = status;
-  return apiClient.get('/v1/refunds', { params });
-};
+// ── ADMIN REFUNDS (V2) ─────────────────────────────────────────────
+/** List all refunds, optionally filtered by status (up to 200). */
+export const getAdminRefunds = (status = '') => v2AdminGetRefunds(status, 0, 200);
 
-export const getRefundByReference = (publicReferenceId) =>
-  apiClient.get(`/v1/refunds/ref/${publicReferenceId}`);
+/** Full detail of a refund — admin view. */
+export const getAdminRefundDetail = (refundId) => v2AdminGetRefund(refundId);
 
-// Admin review helpers
+/** Get immutable audit log for a refund. */
+export const getRefundAuditLog = (refundId) => v2AdminGetAuditLog(refundId);
+
+/** Analytics summary for refund dashboard. */
+export const getRefundAnalytics = () => v2AdminGetAnalytics();
+
+/** Force a full refund. data: { note, holdSellerLiable } */
+export const adminForceFullRefund = (refundId, data) =>
+  v2AdminForceFullRefund(refundId, data);
+
+/** Force a partial refund. data: { note, approvedAmount, holdSellerLiable } */
+export const adminForcePartialRefund = (refundId, data) =>
+  v2AdminForcePartialRefund(refundId, data);
+
+/** Force an exchange resolution. data: { note, holdSellerLiable } */
+export const adminForceExchange = (refundId, data) =>
+  v2AdminForceExchange(refundId, data);
+
+/** Reject the customer's claim (side with seller). data: { note } */
+export const adminRejectClaim = (refundId, data) =>
+  v2AdminRejectClaim(refundId, data);
+
+/** Approve a disputed return. data: { note } */
+export const adminApproveReturn = (refundId, data) =>
+  v2AdminApproveReturn(refundId, data);
+
+/** Reject a disputed return. data: { note } */
+export const adminRejectReturn = (refundId, data) =>
+  v2AdminRejectReturn(refundId, data);
+
+/** Send admin message on refund thread. */
+export const adminSendRefundMessage = (refundId, message) =>
+  v2AdminSendMessage(refundId, message);
+
+// ── LEGACY STUBS (deprecated in v2) ──────────────────────────────
+export const getRefundByReference = () =>
+  Promise.reject(new Error('getRefundByReference: not available in v2.'));
+/** @deprecated Use adminForceFullRefund / adminRejectClaim instead. */
+export const adminFinalizeRefund = (refundId, approve, comment) =>
+  approve
+    ? v2AdminForceFullRefund(refundId, { note: comment, holdSellerLiable: false })
+    : v2AdminRejectClaim(refundId, { note: comment });
+export const adminConfirmRefundCompletion = () => Promise.resolve();
+export const adminConfirmRefundCompletionWithAmount = (refundId, _ref, refundAmount, comment) =>
+  v2AdminForcePartialRefund(refundId, { note: comment, approvedAmount: refundAmount, holdSellerLiable: false });
+export const adminRequestRefundEvidence = () => Promise.resolve();
+export const adminUpdateRefundStatus = () => Promise.resolve();
+export const adminInspectRefundReturn = (refundId, data) =>
+  v2AdminApproveReturn(refundId, { note: data?.comment });
+export const adminRecordRefundPaymentEvent = () => Promise.resolve();
+export const adminIssueWalletCredit = () => Promise.resolve();
+export const adminRetryFailedPayment = () => Promise.resolve();
+
+// ── ADMIN REVIEWS ─────────────────────────────────────────────────────────────
 export const getAdminReviews = () =>
   apiClient.get('/admin/reviews');
 
 export const deleteAdminReview = (reviewId) =>
   apiClient.delete(`/admin/reviews/${reviewId}`);
 
-// Admin promo helpers
+// ── ADMIN PROMOS ──────────────────────────────────────────────────────────────
 export const getAdminPromos = () =>
   apiClient.get('/promos');
 
@@ -187,27 +250,6 @@ export const updateAdminPromo = (promoId, payload) =>
 
 export const deleteAdminPromo = (promoId) =>
   apiClient.delete(`/promos/${promoId}`);
-
-export const adminFinalizeRefund = (refundId, approve, comment) =>
-  apiClient.put(`/v1/refunds/${refundId}/admin-finalize`, null, { params: { approve, comment } });
-
-export const adminConfirmRefundCompletion = (refundId, providerReference, comment) =>
-  apiClient.put(`/v1/refunds/${refundId}/confirm-completion`, null, { params: { providerReference, comment } });
-
-export const adminRequestRefundEvidence = (refundId, comment) =>
-  apiClient.put(`/v1/refunds/${refundId}/request-evidence`, null, { params: { comment } });
-
-export const adminUpdateRefundStatus = (refundId, status, comment) =>
-  apiClient.put(`/v1/refunds/${refundId}/status`, null, { params: { status, comment } });
-
-export const adminConfirmRefundCompletionWithAmount = (refundId, providerReference, refundAmount, comment) =>
-  apiClient.put(`/v1/refunds/${refundId}/confirm-completion`, null, { params: { providerReference, refundAmount, comment } });
-
-export const adminInspectRefundReturn = (refundId, data) =>
-  apiClient.put(`/v1/refunds/${refundId}/inspection`, data);
-
-export const adminRecordRefundPaymentEvent = (refundId, data) =>
-  apiClient.put(`/v1/refunds/${refundId}/payment-event`, data);
 
 // ── ADMIN DISPUTES ────────────────────────────────────────────────────────────
 export const getAdminDisputes = (status = '') => {
@@ -234,5 +276,8 @@ export const sendAdminMessage = (payload) =>
 
 export const broadcastAdminMessage = (content) =>
   apiClient.post('/admin/messages/broadcast', { content });
+
+export const getAdminOrderDetail = (orderId) =>
+  apiClient.get(`/orders/${orderId}`);
 
 

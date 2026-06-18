@@ -30,7 +30,6 @@ import AdminCampaignDetail from '../modules/admin/components/AdminCampaignDetail
 import AdminCommissions from '../modules/admin/components/AdminCommissions';
 import AdminPromos from '../modules/admin/components/AdminPromos';
 import AdminReports from '../modules/admin/components/AdminReports';
-import AdminRefunds from '../modules/admin/components/AdminRefunds';
 import AdminDisputes from '../modules/admin/components/AdminDisputes';
 import AdminAuditLogs from '../modules/admin/components/AdminAuditLogs';
 import AdminInbox from '../modules/admin/components/AdminInbox';
@@ -78,7 +77,6 @@ export default function AppRoutes() {
         <Route path="/admin/commissions" element={<AdminCommissions />} />
         <Route path="/admin/promos" element={<AdminPromos />} />
         <Route path="/admin/reports" element={<AdminReports />} />
-        <Route path="/admin/refunds" element={<AdminRefunds />} />
         <Route path="/admin/disputes" element={<AdminDisputes />} />
         <Route path="/admin/audit-logs" element={<AdminAuditLogs />} />
         <Route path="/admin/inbox" element={<AdminInbox />} />

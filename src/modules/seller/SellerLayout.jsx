@@ -12,7 +12,6 @@ import SellerSettings from './components/SellerSettings';
 import SellerPromos from './components/SellerPromos';
 import SellerDiscountSales from './components/SellerDiscountSales';
 import SellerSaleDiscountList from './components/SellerSaleDiscountList';
-import SellerRefunds from './components/SellerRefunds';
 import SellerDisputes from './components/SellerDisputes';
 import SellerNotifications from './components/SellerNotifications';
 import { getSellerProfile, getSellerApplicationStatus } from './services/sellerService';
@@ -35,7 +34,6 @@ const BREADCRUMBS = {
   '/seller/inbox':      'Messages Queue',
   '/seller/profile':    'Store Profile',
   '/seller/settings':   'Settings Panel',
-  '/seller/refunds':    'Refund Requests',
   '/seller/disputes':   'Order Disputes',
   '/seller/notifications': 'Notifications',
 };
@@ -155,12 +153,6 @@ const renderIcon = (type, isActive) => {
         <svg xmlns="http://www.w3.org/2000/svg" className={iconClass} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
           <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-        </svg>
-      );
-    case 'refunds':
-      return (
-        <svg xmlns="http://www.w3.org/2000/svg" className={iconClass} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M16 15v-6a4 4 0 00-4-4H4m0 0l4-4m-4 4l4 4m8 8H8a4 4 0 00-4 4v6" />
         </svg>
       );
     case 'disputes':
@@ -678,7 +670,6 @@ const SellerLayout = () => {
                 <Route path="profile" element={<SellerProfile />} />
                 <Route path="products" element={<SellerProducts />} />
                 <Route path="orders" element={<SellerOrders />} />
-                <Route path="refunds" element={<SellerRefunds />} />
                 <Route path="disputes" element={<SellerDisputes />} />
                 <Route path="inventory" element={<SellerInventory />} />
                 <Route path="notifications" element={<SellerNotifications />} />

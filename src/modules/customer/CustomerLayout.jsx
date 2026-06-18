@@ -15,11 +15,9 @@ import CustomerNotifications from './components/CustomerNotifications';
 import CustomerLoyalty from './components/CustomerLoyalty';
 // Customer listing pages removed (CustomerBrowse, FilteredProductsPage)
 import CustomerMessages from './components/CustomerMessages';
-import CustomerRefunds from './components/CustomerRefunds';
 import CustomerDisputes from './components/CustomerDisputes';
 // FilteredProductsPage removed
 import Navbar from '../../shared/components/Navbar/Navbar';
-import BorderAvatarDemo from '../../shared/components/ui/avatar-border';
 
 const BREADCRUMBS = {
   '/customer/dashboard':     'Dashboard',
@@ -32,7 +30,6 @@ const BREADCRUMBS = {
   '/customer/loyalty':       'Loyalty Points',
   '/customer/messages':      'Messages',
   '/customer/notifications': 'Notifications',
-  '/customer/refunds':       'My Refunds',
   '/customer/disputes':      'My Disputes',
 };
 
@@ -412,7 +409,6 @@ const CustomerLayout = () => {
                 onClick={() => navigate('/customer/notifications')}
               />
             </div>
-            <BorderAvatarDemo />
           </div>
         </div>
       </div>
@@ -447,7 +443,6 @@ const CustomerLayout = () => {
               <Route path="loyalty"       element={<CustomerLoyalty />} />
               <Route path="messages"      element={<CustomerMessages />} />
               <Route path="notifications" element={<CustomerNotifications />} />
-              <Route path="refunds"       element={<CustomerRefunds />} />
               <Route path="disputes"      element={<CustomerDisputes />} />
               <Route path="*"             element={<Navigate to="dashboard" replace />} />
             </Routes>

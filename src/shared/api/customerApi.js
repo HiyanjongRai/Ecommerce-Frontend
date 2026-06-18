@@ -1,4 +1,19 @@
 import apiClient from './apiClient';
+import {
+  v2CreateRefund,
+  v2GetCustomerRefunds,
+  v2GetCustomerRefund,
+  v2UploadCustomerEvidence,
+  v2SubmitReturn,
+  v2EscalateToAdmin,
+  v2AcceptOffer,
+  v2RejectOffer,
+  v2AcceptRejection,
+  v2GetCustomerMessages,
+  v2CustomerSendMessage,
+  v2GetTimeline,
+  v2ConfirmReplacement,
+} from './refundV2Api';
 
 // ── AUTH ─────────────────────────────────────────────────────────────────────
 export const getCurrentUser = () =>
@@ -203,49 +218,64 @@ export const validatePromoCode = (code, items) => {
   return apiClient.post('/promos/validate', { code, items });
 };
 
-// ── REFUNDS ───────────────────────────────────────────────────────────────────
-export const requestRefund = (orderId, data, evidencePhoto) => {
-  if (evidencePhoto) {
-    const formData = new FormData();
-    formData.append('data', new Blob([JSON.stringify(data)], { type: 'application/json' }));
-    formData.append('evidencePhoto', evidencePhoto);
-    return apiClient.post(`/v1/refunds/order/${orderId}/evidence`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
-  }
-  return apiClient.post(`/v1/refunds/order/${orderId}`, data);
-};
+// ── REFUNDS (V2) ─────────────────────────────────────────────────────────────
+// All refund calls now hit /api/v2/refunds/** (imports moved to top of file)
 
-export const getCustomerRefunds = () =>
-  apiClient.get('/v1/refunds'); // Filters by user implicitly if not admin
+/** Open a new refund. data must include: { orderItemId, reason, description, refundType, requestedAmount } */
+export const requestRefund = (_orderId, data) => v2CreateRefund(data);
 
-export const getRefundDetails = (refundId) =>
-  apiClient.get(`/v1/refunds/${refundId}`);
+/** List own refunds (fetches up to 200 for client-side filtering). */
+export const getCustomerRefunds = () => v2GetCustomerRefunds(0, 200);
 
-export const uploadRefundEvidence = (refundId, evidencePhotos, note = '') => {
-  const formData = new FormData();
-  const files = Array.isArray(evidencePhotos) ? evidencePhotos : [evidencePhotos];
-  files.filter(Boolean).forEach((file) => {
-    formData.append('evidencePhotos', file);
-  });
-  if (note) formData.append('note', note);
-  return apiClient.post(`/v1/refunds/${refundId}/evidence`, formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  });
-};
+/** Full detail for a single refund. */
+export const getRefundDetails = (refundId) => v2GetCustomerRefund(refundId);
 
+/** Upload additional evidence files. */
+export const uploadRefundEvidence = (refundId, files, description = '') =>
+  v2UploadCustomerEvidence(refundId, Array.isArray(files) ? files : [files], description);
+
+/** Submit return shipment tracking. data: { courier, trackingNumber } */
 export const submitRefundReturnShipment = (refundId, data) =>
-  apiClient.put(`/v1/refunds/${refundId}/return-shipment`, null, { params: data });
+  v2SubmitReturn(refundId, data);
 
-export const escalateRefundToAdmin = (refundId, comment) =>
-  apiClient.put(`/v1/refunds/${refundId}/status`, null, {
-    params: { status: 'ESCALATED_TO_DISPUTE', comment },
-  });
+/** Escalate seller rejection to admin. */
+export const escalateRefundToAdmin = (refundId, _comment) =>
+  v2EscalateToAdmin(refundId);
 
-export const cancelRefund = (refundId) =>
-  apiClient.put(`/v1/refunds/${refundId}/status`, null, {
-    params: { status: 'CANCELLED' },
-  });
+/** Accept current partial/exchange offer. */
+export const acceptRefundOffer = (refundId) => v2AcceptOffer(refundId);
+
+/** Reject current offer → escalates automatically to admin. */
+export const rejectRefundOffer = (refundId) => v2RejectOffer(refundId);
+
+/** Confirm receipt of the replacement item (customer). */
+export const confirmReplacementReceipt = (refundId) => v2ConfirmReplacement(refundId);
+
+/** Accept seller rejection and close case (customer chooses not to escalate). */
+export const closeCustomerRejectedCase = (refundId) => v2AcceptRejection(refundId);
+
+/** Get message thread for a refund. */
+export const getRefundMessages = (refundId) => v2GetCustomerMessages(refundId);
+
+/** Send a message on the refund thread. */
+export const sendRefundMessage = (refundId, message) =>
+  v2CustomerSendMessage(refundId, message);
+
+/** Get the immutable audit/timeline log. */
+export const getRefundTimeline = (refundId) => v2GetTimeline(refundId);
+
+// ── LEGACY STUBS (no-op in v2 — kept to avoid import errors) ──────────────
+/** @deprecated v2 does not support cancel via customer. */
+export const cancelRefund = () =>
+  Promise.reject(new Error('Cancel not supported in v2. Close case instead.'));
+
+/** @deprecated v2 does not support arbitrary status updates from customer. */
+export const updateCustomerRefundStatus = () =>
+  Promise.reject(new Error('updateCustomerRefundStatus is not supported in v2.'));
+
+/** @deprecated Replacement flow is handled by exchange offer in v2. */
+export const completeCustomerReplacement = () =>
+  Promise.reject(new Error('completeCustomerReplacement is not supported in v2.'));
 
 // ── DISPUTES ──────────────────────────────────────────────────────────────────
 export const openDispute = (data) =>

@@ -5,7 +5,7 @@ const tierCopy = {
   BRONZE: { label: 'Bronze', tone: 'from-stone-700 to-amber-700', benefit: 'Base rewards and member offers' },
   SILVER: { label: 'Silver', tone: 'from-slate-700 to-cyan-700', benefit: 'Bonus rewards and early promotions' },
   GOLD: { label: 'Gold', tone: 'from-zinc-800 to-yellow-600', benefit: 'Priority support and premium campaigns' },
-  PLATINUM: { label: 'Platinum', tone: 'from-neutral-900 to-emerald-700', benefit: 'VIP rewards and exclusive launches' }
+  PLATINUM: { label: 'Platinum', tone: 'from-neutral-900 to-[#10B981]', benefit: 'VIP rewards and exclusive launches' }
 };
 
 const formatDate = (value) => value ? new Date(value).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Pending';
@@ -43,14 +43,24 @@ const CustomerLoyalty = () => {
 
   if (loading) {
     return (
-      <div className="py-10 text-sm text-gray-500">Loading rewards wallet...</div>
+      <div className="py-20 flex flex-col items-center justify-center animate-in fade-in duration-300">
+        <svg className="animate-spin w-6 h-6 text-[#10B981] mb-3" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+        </svg>
+        <p className="text-xs font-black uppercase tracking-wider text-gray-400">Loading rewards wallet...</p>
+      </div>
     );
   }
 
   if (!wallet) {
     return (
-      <div className="bg-white border border-gray-200 p-6 text-sm text-gray-500">
-        Rewards wallet is not available right now.
+      <div className="bg-white border border-gray-100 p-8 rounded-2xl shadow-[0_2px_10px_rgba(0,0,0,0.02)] text-center animate-in fade-in duration-300">
+        <div className="w-16 h-16 bg-gray-50 border border-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <span className="text-2xl">💳</span>
+        </div>
+        <h3 className="text-sm font-black text-gray-900 uppercase tracking-wider mb-2">Wallet Unavailable</h3>
+        <p className="text-xs text-gray-500 font-medium">Rewards wallet is not available right now. Please try again later.</p>
       </div>
     );
   }
@@ -63,43 +73,46 @@ const CustomerLoyalty = () => {
   const activityMax = Math.max(earned, redeemed, expired, 1);
 
   return (
-    <div className="space-y-5 text-[#20242a]">
+    <div className="space-y-6 text-gray-900 animate-in fade-in duration-300 font-sans pb-10">
       {/* Header */}
-      <div className="flex items-center justify-between pb-4 border-b border-gray-200">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-4 pb-4 border-b border-gray-100">
         <div>
-          <h2 className="text-sm font-black text-gray-800">Loyalty Wallet</h2>
-          <p className="text-[10px] text-gray-400 font-medium mt-0.5">Jhapcham Rewards Program</p>
+          <h2 className="text-[22px] font-black tracking-tight leading-tight mb-1">Loyalty Wallet</h2>
+          <p className="text-xs text-gray-500 font-semibold">Jhapcham Rewards Program</p>
         </div>
-        <div className="flex items-center gap-2 text-[11px] font-bold">
-          <span className={`h-2 w-2 rounded-full ${wallet.frozen ? 'bg-red-500' : 'bg-emerald-500'}`} />
+        <div className="flex items-center gap-2 text-xs font-bold bg-white px-3 py-1.5 rounded-full border border-gray-200 shadow-sm">
+          <span className={`h-2 w-2 rounded-full ${wallet.frozen ? 'bg-red-500' : 'bg-[#10B981]'}`} />
           {wallet.frozen ? 'Frozen for review' : 'Active wallet'}
         </div>
       </div>
 
-      <section className={`relative overflow-hidden rounded-sm bg-gradient-to-br ${tier.tone} p-6 text-white shadow-lg`}>
-        <div className="absolute right-5 top-5 h-24 w-24 rounded-full border border-white/20" />
-        <div className="absolute right-14 bottom-[-40px] h-36 w-36 rounded-full border border-white/10" />
-        <div className="relative grid gap-6 md:grid-cols-[1.2fr_0.8fr] md:items-end">
+      <section className={`relative overflow-hidden rounded-3xl bg-gradient-to-br ${tier.tone} p-8 text-white shadow-xl shadow-black/5`}>
+        <div className="absolute right-5 top-5 h-24 w-24 rounded-full border-[1.5px] border-white/20" />
+        <div className="absolute right-14 bottom-[-40px] h-36 w-36 rounded-full border-[1.5px] border-white/10" />
+        <div className="relative grid gap-8 md:grid-cols-[1.2fr_0.8fr] md:items-end">
           <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/70">{tier.label} member</p>
-            <div className="mt-3 text-5xl font-black leading-none">{formatPoints(wallet.availablePoints)}</div>
-            <p className="mt-1 text-xs font-semibold text-white/70">Available points</p>
-            <p className="mt-1 text-[10px] font-bold text-white/50">1 pt = Rs. 1 • Max redemption: 30% of order value</p>
-            <p className="mt-5 max-w-xl text-sm font-medium text-white/85">{wallet.benefits || tier.benefit}</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/70 mb-3">{tier.label} member</p>
+            <div className="text-6xl font-black leading-none tracking-tight">{formatPoints(wallet.availablePoints)}</div>
+            <p className="mt-2 text-xs font-bold text-white/70 uppercase tracking-widest">Available points</p>
+            <div className="mt-6 inline-flex items-center gap-2 bg-black/20 backdrop-blur px-3 py-1.5 rounded-lg border border-white/10">
+              <span className="text-xl">✨</span>
+              <p className="text-[10px] font-bold text-white/90 uppercase tracking-wider">1 pt = Rs. 1 • Max redemption: 30% of order value</p>
+            </div>
+            <p className="mt-6 max-w-xl text-[13px] font-bold text-white/80 leading-relaxed">{wallet.benefits || tier.benefit}</p>
           </div>
-          <div>
-            <div className="flex justify-between text-[11px] font-bold text-white/75">
+          <div className="bg-black/10 backdrop-blur-md rounded-2xl p-5 border border-white/10">
+            <div className="flex justify-between text-[11px] font-black uppercase tracking-wider text-white/80">
               <span>{tier.label}</span>
               <span>{nextTier ? `${nextTier.label} in ${formatPoints(wallet.pointsToNextTier)} pts` : 'Top tier'}</span>
             </div>
-            <div className="mt-2 h-2 rounded-full bg-white/20">
-              <div className="h-full rounded-full bg-white transition-all duration-700" style={{ width: `${wallet.tierProgressPercent || 0}%` }} />
+            <div className="mt-3 h-2.5 rounded-full bg-black/20 overflow-hidden border border-white/10">
+              <div className="h-full rounded-full bg-white transition-all duration-700 ease-out" style={{ width: `${wallet.tierProgressPercent || 0}%` }} />
             </div>
           </div>
         </div>
       </section>
 
-      <section className="grid gap-3 md:grid-cols-5">
+      <section className="grid gap-4 sm:grid-cols-2 md:grid-cols-5">
         {[
           ['Lifetime points', wallet.lifetimePoints],
           ['Earned', wallet.totalPointsEarned],
@@ -107,66 +120,69 @@ const CustomerLoyalty = () => {
           ['Redeemed', wallet.redeemedPoints],
           ['Expired', wallet.expiredPoints]
         ].map(([label, value]) => (
-          <div key={label} className="rounded-sm border border-gray-200 bg-white p-4">
-            <p className="text-[10px] font-black uppercase tracking-wider text-gray-400">{label}</p>
-            <p className="mt-2 text-2xl font-black">{formatPoints(value)}</p>
+          <div key={label} className="rounded-2xl border border-gray-100 bg-white p-5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] transition-transform hover:scale-[1.02]">
+            <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">{label}</p>
+            <p className="mt-2 text-2xl font-black text-gray-900 tracking-tight">{formatPoints(value)}</p>
           </div>
         ))}
       </section>
 
-      <section className="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
-        <div className="rounded-sm border border-gray-200 bg-white p-5">
-          <h3 className="text-xs font-black uppercase tracking-wider">Reward analytics</h3>
-          <div className="mt-5 space-y-4">
+      <section className="grid gap-6 lg:grid-cols-[1fr_1fr]">
+        <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
+          <h3 className="text-sm font-black uppercase tracking-wider text-gray-900 pb-4 border-b border-gray-100">Reward analytics</h3>
+          <div className="mt-5 space-y-5">
             {[
-              ['Earned', earned, 'bg-emerald-600'],
-              ['Redeemed', redeemed, 'bg-emerald-500'],
+              ['Earned', earned, 'bg-[#10B981]'],
+              ['Redeemed', redeemed, 'bg-emerald-400'],
               ['Expired', expired, 'bg-rose-500']
             ].map(([label, value, color]) => (
               <div key={label}>
-                <div className="mb-1 flex justify-between text-xs font-bold text-gray-500">
+                <div className="mb-2 flex justify-between text-[11px] font-black uppercase tracking-wider text-gray-500">
                   <span>{label}</span>
-                  <span>{formatPoints(value)}</span>
+                  <span className="text-gray-900">{formatPoints(value)}</span>
                 </div>
-                <div className="h-2 rounded-full bg-gray-100">
-                  <div className={`h-full rounded-full ${color}`} style={{ width: `${Math.max(4, (value / activityMax) * 100)}%` }} />
+                <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
+                  <div className={`h-full rounded-full ${color} transition-all duration-1000 ease-out`} style={{ width: `${Math.max(4, (value / activityMax) * 100)}%` }} />
                 </div>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="rounded-sm border border-gray-200 bg-white p-5">
-          <div className="flex items-center justify-between gap-3">
-            <h3 className="text-xs font-black uppercase tracking-wider">Expiring points</h3>
-            <span className="text-[10px] font-bold uppercase text-gray-400">Next 10 lots</span>
+        <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
+          <div className="flex items-center justify-between gap-3 pb-4 border-b border-gray-100">
+            <h3 className="text-sm font-black uppercase tracking-wider text-gray-900">Expiring points</h3>
+            <span className="text-[10px] font-black uppercase tracking-wider text-gray-400 bg-gray-50 px-2 py-1 rounded-md">Next 10 lots</span>
           </div>
-          <div className="mt-4 divide-y divide-gray-100">
+          <div className="mt-2 divide-y divide-gray-50">
             {(wallet.expiringPoints || []).length === 0 ? (
-              <p className="py-5 text-sm text-gray-400">No points are close to expiry.</p>
+              <div className="py-8 text-center">
+                <span className="text-2xl mb-2 block">⏳</span>
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">No points are close to expiry.</p>
+              </div>
             ) : wallet.expiringPoints.map((item) => (
-              <div key={item.id} className="flex items-center justify-between py-3 text-sm">
-                <span className="font-bold">{formatPoints(item.pointsRemaining)} pts</span>
-                <span className="text-gray-500">{formatDate(item.expiresAt)}</span>
+              <div key={item.id} className="flex items-center justify-between py-3.5 text-[13px]">
+                <span className="font-black text-gray-900">{formatPoints(item.pointsRemaining)} pts</span>
+                <span className="text-gray-500 font-semibold">{formatDate(item.expiresAt)}</span>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="rounded-sm border border-gray-200 bg-white p-5">
-        <div className="flex flex-col gap-3 border-b border-gray-100 pb-4 md:flex-row md:items-center md:justify-between">
-          <h3 className="text-xs font-black uppercase tracking-wider">Reward activity timeline</h3>
+      <section className="rounded-2xl border border-gray-100 bg-white p-6 shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
+        <div className="flex flex-col gap-4 border-b border-gray-100 pb-5 md:flex-row md:items-center md:justify-between">
+          <h3 className="text-sm font-black uppercase tracking-wider text-gray-900">Reward activity timeline</h3>
           <div className="flex flex-wrap gap-2">
             {['ALL', 'EARN', 'REDEEM', 'REFUND_REVERSAL', 'EXPIRE', 'BONUS'].map((item) => (
               <button
                 key={item}
                 type="button"
                 onClick={() => setFilter(item)}
-                className={`rounded-sm border px-3 py-1.5 text-[10px] font-black uppercase tracking-wider ${
+                className={`rounded-xl border px-3 py-1.5 text-[10px] font-black uppercase tracking-widest transition-all ${
                   filter === item
-                    ? 'border-[#10B981] bg-[#10B981] text-white'
-                    : 'border-gray-200 text-gray-500 hover:border-gray-400'
+                    ? 'border-[#10B981] bg-[#10B981] text-white shadow-sm'
+                    : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300 hover:text-gray-700'
                 }`}
               >
                 {item.replace('_', ' ')}
@@ -174,16 +190,21 @@ const CustomerLoyalty = () => {
             ))}
           </div>
         </div>
-        <div className="divide-y divide-gray-100">
+        <div className="divide-y divide-gray-50 mt-2">
           {filteredTransactions.length === 0 ? (
-            <p className="py-6 text-sm text-gray-400">No reward activity for this filter.</p>
+            <div className="py-12 text-center">
+              <span className="text-2xl mb-2 block">📋</span>
+              <p className="text-xs font-bold uppercase tracking-wider text-gray-400">No reward activity for this filter.</p>
+            </div>
           ) : filteredTransactions.map((tx) => (
-            <div key={tx.id} className="grid gap-2 py-4 text-sm md:grid-cols-[1fr_auto] md:items-center">
+            <div key={tx.id} className="grid gap-2 py-4 text-[13px] md:grid-cols-[1fr_auto] md:items-center hover:bg-gray-50/50 rounded-xl px-2 transition-colors">
               <div>
-                <p className="font-black text-gray-800">{tx.description}</p>
-                <p className="mt-1 text-xs font-semibold text-gray-400">{formatDate(tx.createdAt)} · {tx.transactionType} · {tx.status}</p>
+                <p className="font-black text-gray-900">{tx.description}</p>
+                <p className="mt-1 text-[11px] font-semibold text-gray-500 tracking-wide uppercase">
+                  {formatDate(tx.createdAt)} <span className="mx-1 text-gray-300">|</span> {tx.transactionType.replace('_', ' ')} <span className="mx-1 text-gray-300">|</span> <span className={`${tx.status === 'COMPLETED' ? 'text-[#10B981]' : ''}`}>{tx.status}</span>
+                </p>
               </div>
-              <div className={`text-lg font-black ${tx.points >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+              <div className={`text-xl font-black ${tx.points >= 0 ? 'text-[#10B981]' : 'text-rose-600'}`}>
                 {tx.points >= 0 ? '+' : ''}{formatPoints(tx.points)}
               </div>
             </div>

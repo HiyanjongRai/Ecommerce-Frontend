@@ -40,7 +40,6 @@ const NAV_GROUPS = [
     label: 'Moderation',
     items: [
       { id: 'reports',      label: 'Reports',             icon: AlertTriangle,   path: '/admin/reports'     },
-      { id: 'refunds',      label: 'Refunds',             icon: RefreshCw,       path: '/admin/refunds',  urgent: true },
       { id: 'disputes',     label: 'Disputes',            icon: Scale,           path: '/admin/disputes', urgent: true },
       { id: 'audit',        label: 'Audit Logs',          icon: ShieldCheck,     path: '/admin/audit-logs'  },
       { id: 'inbox',        label: 'Inbox',               icon: MessageSquare,   path: '/admin/inbox'       },
@@ -209,13 +208,7 @@ export default function AdminLayout({ children, pageTitle, pageSubtitle, headerA
     e.preventDefault();
     if (!searchQuery.trim()) return;
     const query = searchQuery.trim();
-    const isRefund = /^ref-/i.test(query);
-
-    if (isRefund) {
-      navigate(`/admin/refunds?refundId=${encodeURIComponent(query)}`);
-    } else {
-      navigate(`/admin/orders?orderId=${encodeURIComponent(query)}`);
-    }
+    navigate(`/admin/orders?orderId=${encodeURIComponent(query)}`);
   };
 
   return (

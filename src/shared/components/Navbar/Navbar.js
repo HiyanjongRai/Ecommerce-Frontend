@@ -192,21 +192,11 @@ export default function Navbar() {
     const isOrder = /^jhc-/i.test(query) || /^#/i.test(query) || /^\d+$/.test(query);
 
     if (role === 'SELLER') {
-      if (isRefund) {
-        navigate(`/seller/refunds?refundId=${encodeURIComponent(query)}`);
-      } else {
-        navigate(`/seller/orders?orderId=${encodeURIComponent(query)}`);
-      }
+      navigate(`/seller/orders?orderId=${encodeURIComponent(query)}`);
     } else if (role === 'ADMIN') {
-      if (isRefund) {
-        navigate(`/admin/refunds?refundId=${encodeURIComponent(query)}`);
-      } else {
-        navigate(`/admin/orders?orderId=${encodeURIComponent(query)}`);
-      }
+      navigate(`/admin/orders?orderId=${encodeURIComponent(query)}`);
     } else if (role === 'CUSTOMER') {
-      if (isRefund) {
-        navigate(`/customer/refunds?refundId=${encodeURIComponent(query)}`);
-      } else if (isOrder) {
+      if (isOrder) {
         navigate(`/customer/orders?orderId=${encodeURIComponent(query)}`);
       } else {
         navigate(`/product-list?q=${encodeURIComponent(query)}`);
@@ -310,10 +300,6 @@ export default function Navbar() {
               <Link to="/customer/orders" className="hover:text-emerald-600 flex items-center gap-1.5 transition-colors outline-none focus:ring-1 focus:ring-emerald-500/20 rounded-xs">
                 <Package className="w-3.5 h-3.5" />
                 <span>Track Order</span>
-              </Link>
-              <Link to="/customer/refunds" className="hover:text-emerald-600 flex items-center gap-1.5 transition-colors outline-none focus:ring-1 focus:ring-emerald-500/20 rounded-xs">
-                <RotateCcw className="w-3.5 h-3.5" />
-                <span>Returns</span>
               </Link>
             </div>
 
