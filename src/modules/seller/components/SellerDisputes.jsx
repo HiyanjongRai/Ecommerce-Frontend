@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { getSellerRefunds } from '../../../shared/api/refundApi';
+import { getSellerRefunds, getRefundDetails } from '../../../shared/api/refundApi';
 import { useSellerTheme } from '../hooks/useSellerTheme';
 import SellerRefundList from '../../refund/seller/SellerRefundList';
 import SellerRefundDetails from '../../refund/seller/SellerRefundDetails';
@@ -45,8 +45,16 @@ export default function SellerDisputes() {
   };
 
   const loadDetail = async (id) => {
-    const matched = refunds.find(r => r.id === id);
-    setDetail(matched || null);
+    try {
+      const res = await getRefundDetails(id);
+      if (res.data) {
+        setDetail(res.data);
+      }
+    } catch (err) {
+      console.error('Failed to load refund details:', err);
+      const matched = refunds.find(r => r.id === id);
+      setDetail(matched || null);
+    }
   };
 
   useEffect(() => {
@@ -112,7 +120,7 @@ export default function SellerDisputes() {
   if (loading && refunds.length === 0) {
     return (
       <div className="py-16 text-center">
-        <svg className="animate-spin w-6 h-6 text-emerald-600 mx-auto mb-3" fill="none" viewBox="0 0 24 24">
+        <svg className="animate-spin w-6 h-6 text-[#16A34A] mx-auto mb-3" fill="none" viewBox="0 0 24 24">
           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
         </svg>

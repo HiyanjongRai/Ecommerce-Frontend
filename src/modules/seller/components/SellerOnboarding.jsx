@@ -12,7 +12,7 @@ const STYLES = `
   }
   .sob-in::placeholder { color: #d1d5db; }
   .sob-in:focus {
-    border-color: #10b981;
+    border-color: #16A34A;
     box-shadow: 0 0 0 3px rgba(16,185,129,0.1);
   }
   .sob-submit-btn {
@@ -36,7 +36,7 @@ const STYLES = `
     border: 1.5px solid #e5e7eb; background: #fff; color: #6b7280;
     flex-shrink: 0;
   }
-  .sob-upload-lbl:hover { border-color: #10b981; color: #059669; background: #f0fdf4; }
+  .sob-upload-lbl:hover { border-color: #16A34A; color: #059669; background: #f0fdf4; }
   .sob-upload-lbl.done  { border-color: #6ee7b7; background: #f0fdf4; color: #059669; }
   .sob-doc-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid #f9fafb; }
   .sob-doc-badge {
@@ -194,7 +194,7 @@ const SellerOnboarding = ({ onApproved }) => {
   /* ── Loading ── */
   if (loading) return card('Seller Onboarding', 'Step 2 of 2 — Store credentials & documents',
     <div style={{ textAlign: 'center', padding: '32px 0' }}>
-      <div style={{ width: 32, height: 32, border: '2.5px solid #e5e7eb', borderTopColor: '#10b981', borderRadius: '50%', animation: 'sob-spin 0.8s linear infinite', margin: '0 auto 12px' }} />
+      <div style={{ width: 32, height: 32, border: '2.5px solid #e5e7eb', borderTopColor: '#16A34A', borderRadius: '50%', animation: 'sob-spin 0.8s linear infinite', margin: '0 auto 12px' }} />
       <p style={{ fontSize: 12, color: '#9ca3af', fontWeight: 600 }}>Loading…</p>
     </div>
   );
@@ -284,7 +284,7 @@ const SellerOnboarding = ({ onApproved }) => {
         {/* Progress bar */}
         <div style={{ marginTop: 14, marginBottom: 16 }}>
           <div style={{ height: 3, background: '#f3f4f6', borderRadius: 4, overflow: 'hidden' }}>
-            <div style={{ height: '100%', width: `${(uploaded / 3) * 100}%`, background: '#10b981', borderRadius: 4, transition: 'width 0.4s ease' }} />
+            <div style={{ height: '100%', width: `${(uploaded / 3) * 100}%`, background: '#16A34A', borderRadius: 4, transition: 'width 0.4s ease' }} />
           </div>
           <p style={{ fontSize: 10, color: '#9ca3af', marginTop: 5 }}>
             {uploaded === 3 ? '✓ All documents ready — submit when ready' : `${3 - uploaded} document${3 - uploaded !== 1 ? 's' : ''} still needed`}

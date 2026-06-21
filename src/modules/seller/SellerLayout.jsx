@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Routes, Route, Navigate, Link, useLocation } from 'react-router-dom';
 import SellerDashboardHome from './components/SellerDashboardHome';
 import SellerProfile from './components/SellerProfile';
+import SellerAddProduct from './components/SellerAddProduct';
 import SellerProducts from './components/SellerProducts';
 import SellerOrders from './components/SellerOrders';
 import SellerInventory from './components/SellerInventory';
@@ -14,10 +15,14 @@ import SellerDiscountSales from './components/SellerDiscountSales';
 import SellerSaleDiscountList from './components/SellerSaleDiscountList';
 import SellerDisputes from './components/SellerDisputes';
 import SellerNotifications from './components/SellerNotifications';
+import SellerAnalytics from './components/SellerAnalytics';
+import SellerInsights from './components/SellerInsights';
+import SellerRefunds from './components/SellerRefunds';
 import { getSellerProfile, getSellerApplicationStatus } from './services/sellerService';
 import { useCustomer } from '../customer/contexts/CustomerContext';
 import SellerOnboarding from './components/SellerOnboarding';
 import SellerSidebar from './components/SellerSidebar';
+import { useSellerTheme } from './hooks/useSellerTheme';
 
 const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
 
@@ -25,7 +30,7 @@ const BREADCRUMBS = {
   '/seller/dashboard':  'Dashboard Overview',
   '/seller/orders':     'Orders & Analytics',
   '/seller/commission': 'Earnings Summary',
-  '/seller/products':   'Product Catalog',
+  '/seller/add-product': 'Add Product',
   '/seller/inventory':  'Inventory Manager',
   '/seller/campaigns':  'Promo Campaigns',
   '/seller/promos':     'Promo Codes Manager',
@@ -36,13 +41,17 @@ const BREADCRUMBS = {
   '/seller/settings':   'Settings Panel',
   '/seller/disputes':   'Order Disputes',
   '/seller/notifications': 'Notifications',
+  '/seller/analytics':  'Analytics Hub',
+  '/seller/insights':   'Strategic Insights',
+  '/seller/products':   'Product Catalog',
+  '/seller/refund-center': 'Refund Center'
 };
 
 // SIDEBAR_SECTIONS removed — navigation is handled by SellerSidebar.jsx
 
 const renderIcon = (type, isActive) => {
-  const activeColor = "text-[#10B981] theme-dark:text-[#34D399]";
-  const inactiveColor = "text-gray-400 group-hover:text-[#10B981] theme-dark:group-hover:text-[#34D399] transition-colors";
+  const activeColor = "text-[#16A34A] theme-dark:text-[#16A34A]";
+  const inactiveColor = "text-gray-400 group-hover:text-[#16A34A] theme-dark:group-hover:text-[#16A34A] transition-colors";
   const iconClass = `w-5 h-5 flex-shrink-0 ${isActive ? activeColor : inactiveColor}`;
 
   switch (type) {
@@ -189,9 +198,7 @@ const SellerLayout = () => {
   const [profile, setProfile] = useState(null);
   const [appStatus, setAppStatus] = useState(null);
   const [checkingApp, setCheckingApp] = useState(true);
-  const [darkMode, setDarkMode] = useState(() => {
-    return localStorage.getItem('seller-theme') === 'dark';
-  });
+  const { darkMode, toggleDarkMode } = useSellerTheme();
   const [sidebarToast, setSidebarToast] = useState(null);
 
   const showSidebarToast = (msg, type = 'info') => {
@@ -239,14 +246,6 @@ const SellerLayout = () => {
     }
   }, [user?.id, fetchProfileAndStatus]);
 
-  const toggleDarkMode = () => {
-    setDarkMode(prev => {
-      const next = !prev;
-      localStorage.setItem('seller-theme', next ? 'dark' : 'light');
-      return next;
-    });
-  };
-
   const handleLogout = () => {
     logoutUser();
   };
@@ -258,9 +257,11 @@ const SellerLayout = () => {
     <>
       <div className={`seller-page min-h-screen bg-gray-50 text-gray-900 font-sans transition-colors duration-250 flex flex-col ${darkMode ? 'theme-dark' : ''}`}>
         <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
         .seller-page {
-          background-color: #F9FAFB !important;
-          color: #111827 !important;
+          background-color: ${darkMode ? '#0d0d0d' : '#F8FAF7'} !important;
+          color: ${darkMode ? '#FFFFFF' : '#111827'} !important;
+          font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
         }
         .seller-page .text-blue-600,
         .seller-page .text-blue-700,
@@ -271,16 +272,17 @@ const SellerLayout = () => {
         .seller-page .text-[#1d4ed8] {
           color: #065F46 !important;
         }
-        .seller-page .bg-blue-50,
-        .seller-page .bg-blue-100,
-        .seller-page .bg-blue-200,
-        .seller-page .border-blue-200,
-        .seller-page .bg-sky-50,
-        .seller-page .border-sky-200,
-        .seller-page .text-sky-700,
-        .seller-page .bg-sky-100 {
+        .seller-page .bg-blue-50:not([class*="hover"]),
+        .seller-page .bg-blue-100:not([class*="hover"]),
+        .seller-page .bg-sky-50:not([class*="hover"]),
+        .seller-page .bg-sky-100:not([class*="hover"]) {
           background-color: #ECFDF5 !important;
+        }
+        .seller-page .border-blue-200,
+        .seller-page .border-sky-200 {
           border-color: #A7F3D0 !important;
+        }
+        .seller-page .text-sky-700 {
           color: #065F46 !important;
         }
         .seller-page .bg-blue-600,
@@ -288,16 +290,16 @@ const SellerLayout = () => {
         .seller-page .bg-[#5c4ce3],
         .seller-page .bg-blue-500,
         .seller-page .text-blue-50 {
-          background-color: #10B981 !important;
+          background-color: #16A34A !important;
           color: #FFFFFF !important;
-          border-color: #10B981 !important;
+          border-color: #16A34A !important;
         }
         .seller-page .hover:text-blue-600:hover,
         .seller-page .focus:border-blue-500:focus,
         .seller-page .focus:border-blue-400:focus,
         .seller-page .focus:border-sky-500:focus,
         .seller-page .text-blue-50 {
-          color: #10B981 !important;
+          color: #16A34A !important;
         }
         .seller-page .bg-blue-600:hover,
         .seller-page .bg-[#5c4ce3]:hover,
@@ -366,7 +368,7 @@ const SellerLayout = () => {
         .theme-dark span[class*="bg-emerald"],
         .theme-dark [class*="bg-[#E6FAF5]"] {
           background-color: rgba(16, 185, 129, 0.15) !important;
-          color: #10B981 !important;
+          color: #16A34A !important;
           border-color: rgba(16, 185, 129, 0.3) !important;
         }
         
@@ -402,7 +404,7 @@ const SellerLayout = () => {
         }
         
         .theme-dark .hover:text-blue-600:hover {
-          color: #10B981 !important;
+          color: #16A34A !important;
         }
         
         /* Input & Search Adaptations */
@@ -420,12 +422,12 @@ const SellerLayout = () => {
         .theme-dark [class*="text-blue-600"],
         .theme-dark [class*="text-blue-500"],
         .theme-dark [class*="text-[#5c4ce3]"] {
-          color: #10B981 !important;
+          color: #16A34A !important;
         }
         
         .theme-dark [class*="bg-blue-600"],
         .theme-dark [class*="bg-[#5c4ce3]"] {
-          background-color: #10B981 !important;
+          background-color: #16A34A !important;
           color: #000000 !important;
         }
         
@@ -433,14 +435,14 @@ const SellerLayout = () => {
         .theme-dark .bg-blue-50,
         .theme-dark [class*="bg-blue-50"] {
           background-color: rgba(16, 185, 129, 0.1) !important;
-          border-color: #10B981 !important;
+          border-color: #16A34A !important;
           color: #FFFFFF !important;
         }
         .theme-dark [class*="bg-blue-50"] span {
           color: #FFFFFF !important;
         }
         .theme-dark [class*="bg-blue-50"] p {
-          color: #10B981 !important;
+          color: #16A34A !important;
         }
         
         /* Buttons hover states */
@@ -454,8 +456,8 @@ const SellerLayout = () => {
         
         /* Stat trends */
         .theme-dark [class*="text-green-600"],
-        .theme-dark [class*="text-emerald-600"] {
-          color: #34D399 !important;
+        .theme-dark [class*="text-[#16A34A]"] {
+          color: #16A34A !important;
         }
         .theme-dark [class*="text-red-500"] {
           color: #F87171 !important;
@@ -464,12 +466,12 @@ const SellerLayout = () => {
         /* Badges & Pill backgrounds */
         .theme-dark .bg-blue-600\/5 {
           background-color: rgba(16, 185, 129, 0.1) !important;
-          color: #10B981 !important;
+          color: #16A34A !important;
           border: 1px solid rgba(16, 185, 129, 0.3) !important;
         }
-        .theme-dark .bg-emerald-50 {
+        .theme-dark .bg-[#16A34A]/10 {
           background-color: rgba(52, 211, 153, 0.1) !important;
-          color: #34D399 !important;
+          color: #16A34A !important;
           border: 1px solid rgba(52, 211, 153, 0.3) !important;
         }
         
@@ -497,7 +499,7 @@ const SellerLayout = () => {
         }
         .theme-dark [class*="bg-[#e6f4ea]"] {
           background-color: rgba(16, 185, 129, 0.12) !important;
-          color: #34D399 !important;
+          color: #16A34A !important;
           border-color: rgba(16, 185, 129, 0.25) !important;
         }
         .theme-dark [class*="bg-[#edf2f6]"] {
@@ -543,15 +545,15 @@ const SellerLayout = () => {
         }
         .theme-active-pill {
           background-color: rgba(16, 185, 129, 0.08) !important;
-          color: #10B981 !important;
+          color: #16A34A !important;
         }
         .theme-dark .theme-active-pill {
           background-color: rgba(16, 185, 129, 0.1) !important;
-          color: #34D399 !important;
+          color: #16A34A !important;
         }
         .theme-dark .theme-dark-sidebar a:hover:not(.theme-active-pill) {
           background-color: rgba(255, 255, 255, 0.04) !important;
-          color: #10B981 !important;
+          color: #16A34A !important;
         }
         @keyframes slideIn {
           from { transform: translateY(1rem); opacity: 0; }
@@ -564,10 +566,155 @@ const SellerLayout = () => {
         .seller-topbar {
           background: #ffffff;
           border-bottom: 1px solid #E5E7EB;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.04);
         }
         .theme-dark .seller-topbar {
           background: #0b0c10 !important;
           border-bottom-color: rgba(255,255,255,0.08) !important;
+          box-shadow: 0 1px 8px rgba(0,0,0,0.35) !important;
+        }
+        /* Unified design system based on Earning Page */
+        
+        /* 1. Typography & Font Family */
+        .font-sans, select, input, button, textarea, table, p, span, h1, h2, h3, h4, h5, h6 {
+          font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+        }
+
+        /* 2. Page Container Background */
+        .theme-dark {
+          background-color: #0b0c10 !important;
+        }
+        
+        /* 3. Card Styling */
+        .seller-card, 
+        .bg-white.border.border-gray-200.rounded-xl, 
+        .bg-white.border.border-gray-200.rounded-2xl, 
+        .bg-white.border.border-gray-200.rounded-sm, 
+        [class*="bg-white"][class*="border-gray-200"][class*="rounded"] {
+          border-radius: 20px !important;
+          border-color: #E5E7EB !important;
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08) !important;
+          background-color: #FFFFFF !important;
+          transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        }
+        
+        .seller-card:hover, 
+        .bg-white.border.border-gray-200.rounded-xl:hover, 
+        .bg-white.border.border-gray-200.rounded-2xl:hover, 
+        .bg-white.border.border-gray-200.rounded-sm:hover, 
+        [class*="bg-white"][class*="border-gray-200"][class*="rounded"]:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12) !important;
+          border-color: #C3C6CB !important;
+        }
+        
+        .theme-dark .seller-card,
+        .theme-dark .bg-white.border.border-gray-200.rounded-xl,
+        .theme-dark .bg-white.border.border-gray-200.rounded-2xl,
+        .theme-dark .bg-white.border.border-gray-200.rounded-sm,
+        .theme-dark [class*="bg-white"][class*="border-gray-200"][class*="rounded"] {
+          background-color: rgba(9, 9, 11, 0.45) !important;
+          border-color: rgba(255, 255, 255, 0.08) !important;
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25) !important;
+          color: #FFFFFF !important;
+        }
+        
+        .theme-dark .seller-card:hover,
+        .theme-dark .bg-white.border.border-gray-200.rounded-xl:hover,
+        .theme-dark .bg-white.border.border-gray-200.rounded-2xl:hover,
+        .theme-dark .bg-white.border.border-gray-200.rounded-sm:hover,
+        .theme-dark [class*="bg-white"][class*="border-gray-200"][class*="rounded"]:hover {
+          border-color: rgba(255, 255, 255, 0.15) !important;
+          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35) !important;
+        }
+
+        /* 4. Inputs, Selects, and Textareas */
+        input[type="text"], input[type="email"], input[type="search"], input[type="number"], input[type="password"], select, textarea {
+          border-radius: 12px !important;
+          border: 1px solid #E5E7EB !important;
+          font-size: 12px !important;
+          font-weight: 600 !important;
+          padding: 10px 16px !important;
+          background-color: #FFFFFF !important;
+          color: #111827 !important;
+          outline: none !important;
+          transition: all 0.2s ease !important;
+        }
+        .theme-dark input[type="text"], .theme-dark input[type="email"], .theme-dark input[type="search"], .theme-dark input[type="number"], .theme-dark input[type="password"], .theme-dark select, .theme-dark textarea {
+          background-color: #111111 !important;
+          border-color: rgba(255, 255, 255, 0.08) !important;
+          color: #FFFFFF !important;
+        }
+        input:focus, select:focus, textarea:focus {
+          border-color: #16A34A !important;
+          box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.15) !important;
+        }
+
+        /* 5. Button Standardization */
+        button, .button, a.button {
+          border-radius: 12px !important;
+          font-weight: 700 !important;
+          font-size: 12px !important;
+          padding: 8px 16px !important;
+          transition: all 0.2s ease !important;
+          display: inline-flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          gap: 6px !important;
+        }
+        button[class*="bg-[#16A34A]"], button[class*="bg-green-600"], .bg-emerald-600, .bg-[#16A34A] {
+          background-color: #16A34A !important;
+          color: #FFFFFF !important;
+          border: none !important;
+          box-shadow: 0 4px 12px rgba(22, 163, 74, 0.15) !important;
+        }
+        button[class*="bg-[#16A34A]"]:hover, button[class*="bg-green-600"]:hover, .bg-emerald-600:hover, .bg-[#16A34A]:hover {
+          background-color: #15803D !important;
+          box-shadow: 0 6px 16px rgba(22, 163, 74, 0.25) !important;
+          transform: translateY(-1px);
+        }
+        
+        /* 6. Table styling */
+        table {
+          width: 100% !important;
+          border-collapse: collapse !important;
+        }
+        thead {
+          background-color: rgba(241, 245, 249, 0.5) !important;
+          border-bottom: 1px solid #E5E7EB !important;
+        }
+        .theme-dark thead {
+          background-color: rgba(24, 24, 27, 0.5) !important;
+          border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+        }
+        th {
+          padding: 12px 20px !important;
+          font-size: 9px !important;
+          font-weight: 800 !important;
+          text-transform: uppercase !important;
+          letter-spacing: 0.05em !important;
+          color: #6B7280 !important;
+        }
+        .theme-dark th {
+          color: #9CA3AF !important;
+        }
+        td {
+          padding: 12px 20px !important;
+          font-size: 11px !important;
+          font-weight: 600 !important;
+        }
+        tr {
+          border-bottom: 1px solid #F1F5F9 !important;
+          transition: background-color 0.2s ease !important;
+        }
+        .theme-dark tr {
+          border-bottom-color: rgba(255, 255, 255, 0.04) !important;
+        }
+        tr:hover {
+          background-color: rgba(241, 245, 249, 0.3) !important;
+        }
+        .theme-dark tr:hover {
+          background-color: rgba(255, 255, 255, 0.02) !important;
         }
       `}</style>
 
@@ -577,8 +724,8 @@ const SellerLayout = () => {
           {/* Left: Logo + brand */}
           <div className="flex items-center gap-3 shrink-0">
             <Link to="/" className="flex items-center gap-2 group" title="Back to storefront">
-              <span className="text-xl font-black text-gray-900 tracking-tight group-hover:text-[#10B981] transition-colors">
-                Jhapcham<span className="text-[#10B981]">.</span>
+              <span className="text-xl font-black text-gray-900 tracking-tight group-hover:text-[#16A34A] transition-colors">
+                Jhapcham<span className="text-[#16A34A]">.</span>
               </span>
             </Link>
             <div className="w-px h-5 bg-gray-200 mx-1" />
@@ -587,7 +734,7 @@ const SellerLayout = () => {
 
           {/* Center: Breadcrumb */}
           <nav className="hidden md:flex items-center gap-1.5 text-[11px] font-semibold text-gray-400 select-none">
-            <Link to="/seller/dashboard" className="hover:text-[#10B981] transition-colors">Dashboard</Link>
+            <Link to="/seller/dashboard" className="hover:text-[#16A34A] transition-colors">Dashboard</Link>
             {currentLabel !== 'Dashboard Overview' && (
               <>
                 <svg className="w-3 h-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7"/></svg>
@@ -601,7 +748,7 @@ const SellerLayout = () => {
             {/* Dark mode toggle */}
             <button
               onClick={toggleDarkMode}
-              className="p-2 rounded-lg border border-gray-200 hover:border-[#10B981] hover:bg-emerald-50 transition-all text-gray-500 hover:text-[#10B981]"
+              className="p-2 rounded-lg border border-gray-200 hover:border-[#16A34A] hover:bg-[#16A34A]/10 transition-all text-gray-500 hover:text-[#16A34A]"
               title={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
             >
               {darkMode ? (
@@ -620,20 +767,20 @@ const SellerLayout = () => {
                   className="w-7 h-7 rounded-full object-cover border border-gray-200"
                 />
               ) : (
-                <span className="w-7 h-7 rounded-full bg-[#10B981] text-white flex items-center justify-center font-black text-xs">
+                <span className="w-7 h-7 rounded-full bg-[#16A34A] text-white flex items-center justify-center font-black text-xs">
                   {profile?.storeName ? profile.storeName.charAt(0).toUpperCase() : 'S'}
                 </span>
               )}
               <div className="hidden sm:block">
                 <p className="text-xs font-black text-gray-800 leading-none">{profile?.storeName || 'Seller Studio'}</p>
-                <p className="text-[10px] text-[#10B981] font-bold mt-0.5">Active Store</p>
+                <p className="text-[10px] text-[#16A34A] font-bold mt-0.5">Active Store</p>
               </div>
             </div>
 
             {/* Back to store link */}
             <Link
               to="/"
-              className="hidden lg:flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wider text-gray-500 hover:text-[#10B981] transition-colors border border-gray-200 hover:border-[#10B981] px-3 py-1.5 rounded-sm"
+              className="hidden lg:flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wider text-gray-500 hover:text-[#16A34A] transition-colors border border-gray-200 hover:border-[#16A34A] px-3 py-1.5 rounded-sm"
             >
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
               Storefront
@@ -646,7 +793,7 @@ const SellerLayout = () => {
       <div className="flex-1 max-w-[1600px] w-full mx-auto px-5 pt-3 pb-4">
         {checkingApp ? (
           <div className="flex flex-col items-center justify-center min-h-[400px] text-white">
-            <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-[#10B981] mb-4" />
+            <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-[#16A34A] mb-4" />
             <p className="text-xs uppercase tracking-widest font-black text-gray-500">Verifying merchant credentials...</p>
           </div>
         ) : appStatus !== 'APPROVED' ? (
@@ -668,7 +815,12 @@ const SellerLayout = () => {
                 <Route index element={<Navigate to="dashboard" replace />} />
                 <Route path="dashboard" element={<SellerDashboardHome />} />
                 <Route path="profile" element={<SellerProfile />} />
+                <Route path="add-product" element={<SellerAddProduct />} />
                 <Route path="products" element={<SellerProducts />} />
+                <Route path="analytics" element={<SellerAnalytics />} />
+                <Route path="insights" element={<SellerInsights />} />
+                <Route path="performance" element={<Navigate to="/seller/insights" replace />} />
+                <Route path="refund-center" element={<SellerRefunds />} />
                 <Route path="orders" element={<SellerOrders />} />
                 <Route path="disputes" element={<SellerDisputes />} />
                 <Route path="inventory" element={<SellerInventory />} />
@@ -692,8 +844,8 @@ const SellerLayout = () => {
       {sidebarToast && (
         <div className={`fixed bottom-6 right-6 z-[9999] flex items-center gap-3 px-4 py-3 rounded-2xl shadow-xl text-white text-xs font-semibold backdrop-blur-md transition-all duration-300 animate-slide-in border ${
           sidebarToast.type === 'success' 
-            ? 'bg-[#10B981]/95 border-[#10B981]/25 text-white' 
-            : 'bg-[#10B981]/95 border-[#10B981]/25 text-white'
+            ? 'bg-[#16A34A]/95 border-[#16A34A]/25 text-white' 
+            : 'bg-[#16A34A]/95 border-[#16A34A]/25 text-white'
         }`}>
           <span>{sidebarToast.msg}</span>
         </div>

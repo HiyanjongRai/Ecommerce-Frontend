@@ -19,6 +19,7 @@ export function clearAuthStorage() {
   // Backward-compat cleanup for previously stored redundant keys.
   localStorage.removeItem('user_id');
   localStorage.removeItem('user_role');
+  localStorage.removeItem('jhapcham_coupon');
 }
 
 function base64UrlDecode(input) {

@@ -63,7 +63,7 @@ export default function AdminArbitration({
         <button
           onClick={handleApprove}
           disabled={busy}
-          className="flex-1 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs transition-colors shadow-2xs cursor-pointer"
+          className="flex-1 py-2 rounded-lg bg-[#16A34A]/100 hover:bg-[#152F17] text-white font-bold text-xs transition-colors shadow-2xs cursor-pointer"
         >
           Approve (Overrule Seller)
         </button>

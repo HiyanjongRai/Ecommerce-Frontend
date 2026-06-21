@@ -1,11 +1,12 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { getSellerProfile } from '../services/sellerService';
-import { LoadingState, SectionHeader, resolveImageUrl } from './SellerSectionUtils';
+import { LoadingState, resolveImageUrl, SectionHeader } from './SellerSectionUtils';
 import { useCustomer } from '../../customer/contexts/CustomerContext';
 import apiClient from '../../../shared/api/apiConfig';
 import { Toast, createToaster } from "@ark-ui/react/toast";
 import { Portal } from "@ark-ui/react/portal";
 import { X, Loader2, Eye, EyeOff } from "lucide-react";
+import { useSellerTheme } from '../hooks/useSellerTheme';
 
 const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
 
@@ -21,83 +22,100 @@ const resolveAvatarUrl = (user) => {
   return raw.startsWith('http') ? raw : `${BASE_URL}${raw.startsWith('/') ? '' : '/'}${raw}`;
 };
 
-// ── Shared styles ─────────────────────────────────────────────────────────────
-const inputCls = 'w-full bg-white border border-gray-200 rounded-sm px-3 py-2 text-xs font-semibold text-gray-800 placeholder-gray-300 outline-none focus:border-gray-400 transition-colors';
-const inputDisabledCls = 'w-full bg-gray-50 border border-gray-200 rounded-sm px-3 py-2 text-xs font-semibold text-gray-400 cursor-not-allowed outline-none';
-const labelCls = 'block text-[9px] font-black uppercase tracking-wider text-gray-400 mb-1';
-
-// ── Alert banner ──────────────────────────────────────────────────────────────
-const Alert = ({ msg }) => {
-  if (!msg) return null;
-  const isSuccess = msg.type === 'success';
-  return (
-    <div className={`p-3 rounded-sm border text-xs font-bold flex items-center gap-2 mb-4 ${
-      isSuccess ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-red-50 border-red-200 text-red-800'
-    }`}>
-      <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-        {isSuccess
-          ? <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-          : <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
-        }
-      </svg>
-      {msg.text}
-    </div>
-  );
-};
-
-// ── Card wrapper ──────────────────────────────────────────────────────────────
-const Card = ({ title, children }) => (
-  <div className="bg-white border border-gray-200 rounded-sm shadow-sm overflow-hidden">
-    <div className="px-4 py-3 border-b border-gray-100">
-      <p className="text-[9px] font-black uppercase tracking-wider text-gray-400">{title}</p>
-    </div>
-    <div className="p-4">{children}</div>
-  </div>
-);
-
-// ── Save button ───────────────────────────────────────────────────────────────
-const SaveBtn = ({ loading, label, loadingLabel }) => (
-  <button
-    type="submit"
-    disabled={loading}
-    className="flex items-center gap-1.5 bg-gray-900 hover:bg-black disabled:opacity-60 text-white text-[9px] font-black uppercase tracking-wider px-4 py-1.5 rounded-sm transition-colors"
-  >
-    {loading ? (
-      <>
-        <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
-          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
-        </svg>
-        {loadingLabel}
-      </>
-    ) : label}
-  </button>
-);
-
-// ── Password field with show/hide ─────────────────────────────────────────────
-const PasswordField = ({ label, name, value, onChange, show, onToggle }) => (
-  <div>
-    <label className={labelCls}>{label}</label>
-    <div className="relative">
-      <input
-        type={show ? 'text' : 'password'}
-        name={name} value={value} onChange={onChange}
-        placeholder="••••••••" required
-        className={`${inputCls} pr-10`}
-      />
-      <button
-        type="button" onClick={onToggle}
-        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-      >
-        {show ? <EyeOff size={14}/> : <Eye size={14}/>}
-      </button>
-    </div>
-  </div>
-);
+// Helpers are declared inside the main component body now to access isDark.
 
 // ── Main Component ────────────────────────────────────────────────────────────
 const SellerSettings = () => {
   const { user, setUser } = useCustomer();
+  const { darkMode, themeClasses } = useSellerTheme();
+  const isDark = darkMode;
+
+  // ── Shared styles ──
+  const inputCls = `w-full rounded-xl px-4 py-2.5 text-xs font-semibold focus:outline-none transition-colors border ${
+    isDark 
+      ? 'bg-[#111827] border-white/10 text-white placeholder-gray-650 focus:border-[#16A34A]' 
+      : 'bg-white border-gray-200 text-[#222529] placeholder-gray-400 focus:border-[#16A34A]'
+  }`;
+  const inputDisabledCls = `w-full rounded-xl px-4 py-2.5 text-xs font-semibold cursor-not-allowed outline-none border ${
+    isDark 
+      ? 'bg-white/5 border-white/5 text-gray-500' 
+      : 'bg-gray-50 border-gray-200 text-gray-400'
+  }`;
+  const labelCls = `block text-[10px] font-black uppercase tracking-widest mb-1.5 ${isDark ? 'text-gray-500' : 'text-gray-400'}`;
+
+  // ── Alert banner ──
+  const Alert = ({ msg }) => {
+    if (!msg) return null;
+    const isSuccess = msg.type === 'success';
+    return (
+      <div className={`p-4 border rounded-xl text-xs font-black flex items-center gap-3 tracking-wide uppercase mb-4 ${
+        isSuccess
+          ? (isDark ? 'bg-[#16A34A]/10 border-[#16A34A]/20 text-[#16A34A]' : 'bg-green-50 border-green-100 text-green-700')
+          : (isDark ? 'bg-red-500/10 border-red-500/20 text-red-400' : 'bg-red-50 border-red-200 text-red-700')
+      }`}>
+        <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+          {isSuccess
+            ? <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            : <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
+          }
+        </svg>
+        {msg.text}
+      </div>
+    );
+  };
+
+  // ── Card wrapper ──
+  const Card = ({ title, children }) => (
+    <div className={`border rounded-2xl shadow-[0_2px_10px_rgba(0,0,0,0.02)] overflow-hidden transition-colors ${isDark ? 'bg-[#0b0c10] border-white/10' : 'bg-white border-gray-200'}`}>
+      <div className={`px-4 py-3 border-b ${isDark ? 'border-white/10 bg-[#111827]' : 'border-gray-100'}`}>
+        <p className={`text-[10px] font-black uppercase tracking-wider ${isDark ? 'text-white/40' : 'text-gray-400'}`}>{title}</p>
+      </div>
+      <div className="p-4">{children}</div>
+    </div>
+  );
+
+  // ── Save button ──
+  const SaveBtn = ({ loading, label, loadingLabel }) => (
+    <button
+      type="submit"
+      disabled={loading}
+      className={`flex items-center gap-1.5 disabled:opacity-60 text-[10px] font-black uppercase tracking-wider px-5 py-2.5 rounded-xl transition-colors cursor-pointer ${
+        isDark ? 'bg-[#16A34A] text-white hover:bg-[#059669]' : 'bg-gray-900 text-white hover:bg-black'
+      }`}
+    >
+      {loading ? (
+        <>
+          <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+          </svg>
+          {loadingLabel}
+        </>
+      ) : label}
+    </button>
+  );
+
+  // ── Password field with show/hide ──
+  const PasswordField = ({ label, name, value, onChange, show, onToggle }) => (
+    <div>
+      <label className={labelCls}>{label}</label>
+      <div className="relative">
+        <input
+          type={show ? 'text' : 'password'}
+          name={name} value={value} onChange={onChange}
+          placeholder="••••••••" required
+          className={`${inputCls} pr-10`}
+        />
+        <button
+          type="button" onClick={onToggle}
+          className={`absolute right-3 top-1/2 -translate-y-1/2 transition-colors cursor-pointer ${isDark ? 'text-gray-500 hover:text-white' : 'text-gray-400 hover:text-gray-600'}`}
+        >
+          {show ? <EyeOff size={14}/> : <Eye size={14}/>}
+        </button>
+      </div>
+    </div>
+  );
+
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -229,8 +247,14 @@ const SellerSettings = () => {
     : user?.username?.[0]?.toUpperCase() || 'S';
 
   return (
-    <div className="space-y-4 max-w-[1400px]">
-      <SectionHeader title="Settings" subtitle="Review store info, update personal profile and change your password." />
+    <div className={`space-y-4 max-w-[1400px] animate-in fade-in-50 duration-200 font-sans ${themeClasses.bg.primary}`}>
+      
+      {/* ── Page Header ── */}
+      <SectionHeader
+        title="Settings"
+        subtitle="Review store info, update personal profile and change your password."
+        tag="Store Administration"
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
@@ -240,20 +264,20 @@ const SellerSettings = () => {
           {/* Store identity */}
           <Card title="Store Summary">
             <div className="flex flex-col items-center text-center gap-3">
-              <div className="w-16 h-16 rounded-sm border border-gray-200 overflow-hidden flex items-center justify-center bg-gray-50">
+              <div className={`w-16 h-16 rounded-xl border overflow-hidden flex items-center justify-center ${isDark ? 'bg-[#0b0c10] border-white/10' : 'bg-gray-50 border-gray-200'}`}>
                 {logo
                   ? <img src={logo} alt={profile?.storeName || 'Store'} className="w-full h-full object-cover"/>
-                  : <svg className="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 21v-7.5a.75.75 0 01.75-.75h3a.75.75 0 01.75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349m-16.5 11.65V9.35m0 0a3.001 3.001 0 003.75-.615A2.993 2.993 0 009.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 002.25 1.016c.896 0 1.7-.393 2.25-1.016a3.001 3.001 0 003.75.614m-16.5 0a3.004 3.004 0 01-.621-4.72L4.318 3.44A1.5 1.5 0 015.378 3h13.243a1.5 1.5 0 011.06.44l1.19 1.189a3 3 0 01-.621 4.72m-13.5 8.65h3.75a.75.75 0 00.75-.75V13.5a.75.75 0 00-.75-.75H6.75a.75.75 0 00-.75.75v3.75c0 .415.336.75.75.75z"/></svg>
+                  : <svg className={`w-8 h-8 ${isDark ? 'text-white/20' : 'text-gray-300'}`} fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 21v-7.5a.75.75 0 01.75-.75h3a.75.75 0 01.75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349m-16.5 11.65V9.35m0 0a3.001 3.001 0 003.75-.615A2.993 2.993 0 009.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 002.25 1.016c.896 0 1.7-.393 2.25-1.016a3.001 3.001 0 003.75.614m-16.5 0a3.004 3.004 0 01-.621-4.72L4.318 3.44A1.5 1.5 0 015.378 3h13.243a1.5 1.5 0 011.06.44l1.19 1.189a3 3 0 01-.621 4.72m-13.5 8.65h3.75a.75.75 0 00.75-.75V13.5a.75.75 0 00-.75-.75H6.75a.75.75 0 00-.75.75v3.75c0 .415.336.75.75.75z"/></svg>
                 }
               </div>
               <div>
-                <p className="text-sm font-black text-gray-900">{profile?.storeName || 'Seller Store'}</p>
-                <p className="text-[10px] text-gray-400 font-medium mt-0.5">Merchant Account</p>
+                <p className={`text-sm font-black ${isDark ? 'text-white' : 'text-gray-900'}`}>{profile?.storeName || 'Seller Store'}</p>
+                <p className={`text-[10px] font-semibold mt-0.5 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Merchant Account</p>
               </div>
-              <span className={`px-2.5 py-0.5 rounded-sm text-[9px] font-black uppercase tracking-wider border ${
+              <span className={`px-2.5 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider border ${
                 (profile?.status || 'APPROVED') === 'APPROVED'
-                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                  : 'bg-gray-100 text-gray-500 border-gray-200'
+                  ? (isDark ? 'bg-[#16A34A]/15 text-[#16A34A] border-[#16A34A]/30' : 'bg-[#16A34A]/10 text-[#152F17] border-[#16A34A]/20')
+                  : (isDark ? 'bg-white/5 text-gray-400 border-white/10' : 'bg-gray-100 text-gray-500 border-gray-200')
               }`}>
                 {profile?.status || 'APPROVED'}
               </span>
@@ -270,12 +294,12 @@ const SellerSettings = () => {
                 ['Free Shipping', profile?.freeShippingEnabled ? `Rs. ${Number(profile.freeShippingMinOrder).toLocaleString()}+` : 'Disabled'],
               ].map(([label, value]) => (
                 <div key={label} className="flex justify-between items-center">
-                  <span className="text-[10px] text-gray-400 font-semibold">{label}</span>
-                  <span className="text-[10px] text-gray-900 font-black">{value}</span>
+                  <span className={`text-[10px] font-semibold ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>{label}</span>
+                  <span className={`text-[10px] font-black ${isDark ? 'text-white' : 'text-gray-900'}`}>{value}</span>
                 </div>
               ))}
             </div>
-            <p className="text-[9px] text-gray-400 font-medium mt-4 pt-3 border-t border-gray-100 leading-relaxed">
+            <p className={`text-[9px] font-semibold mt-4 pt-3 border-t border-dashed leading-relaxed ${isDark ? 'border-white/5 text-gray-500' : 'border-gray-100 text-gray-400'}`}>
               Store config is managed via the Store Profile page.
             </p>
           </Card>
@@ -293,7 +317,7 @@ const SellerSettings = () => {
                 {/* Avatar upload */}
                 <div className="flex flex-col items-center shrink-0 gap-2">
                   <label className="cursor-pointer relative group inline-block">
-                    <div className="relative w-20 h-20 rounded-sm overflow-hidden border-2 border-emerald-500">
+                    <div className="relative w-20 h-20 rounded-xl overflow-hidden border-2 border-[#16A34A]">
                       {avatarUrl
                         ? <img src={avatarUrl} alt="avatar" className="object-cover w-full h-full"/>
                         : null
@@ -322,7 +346,7 @@ const SellerSettings = () => {
                     </div>
                     <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} disabled={uploading}/>
                   </label>
-                  <p className="text-[9px] font-bold text-gray-400">Change Avatar</p>
+                  <p className={`text-[9px] font-black uppercase tracking-wider ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Change Avatar</p>
                 </div>
 
                 {/* Fields */}
@@ -400,12 +424,17 @@ const SellerSettings = () => {
       <Portal>
         <SettingsToaster toaster={settingsToaster}>
           {(toast) => (
-            <Toast.Root className="bg-white rounded-sm shadow-xl min-w-80 p-4 border border-gray-200 relative overflow-hidden transition-all duration-300 ease-default will-change-transform h-(--height) opacity-(--opacity) translate-x-(--x) translate-y-(--y) scale-(--scale) z-(--z-index)"
-                        style={{ borderLeft: '4px solid #111827' }}>
+            <Toast.Root className={`rounded-xl shadow-xl min-w-80 p-4 border relative overflow-hidden transition-all duration-300 ease-default ${
+              isDark 
+                ? 'bg-[#0b0c10] border-white/10 text-white shadow-[0_4px_24px_rgba(0,0,0,0.5)]' 
+                : 'bg-white border-gray-200 text-gray-900'
+            }`}
+              style={{ borderLeft: isDark ? '4px solid #16A34A' : '4px solid #111827' }}
+            >
               <div className="flex items-start gap-3">
-                {toast.type === 'loading' && <Loader2 className="w-4 h-4 mt-0.5 text-gray-500 animate-spin shrink-0"/>}
+                {toast.type === 'loading' && <Loader2 className={`w-4 h-4 mt-0.5 animate-spin shrink-0 ${isDark ? 'text-[#16A34A]' : 'text-gray-500'}`}/>}
                 {toast.type === 'success' && (
-                  <div className="w-4 h-4 mt-0.5 bg-emerald-500 rounded-sm flex items-center justify-center text-white shrink-0">
+                  <div className={`w-4 h-4 mt-0.5 rounded-sm flex items-center justify-center text-white shrink-0 ${isDark ? 'bg-[#16A34A]' : 'bg-[#16A34A]/100'}`}>
                     <span className="text-[9px] font-bold">✓</span>
                   </div>
                 )}
@@ -415,16 +444,16 @@ const SellerSettings = () => {
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
-                  <Toast.Title className="text-gray-900 font-black text-xs uppercase tracking-wider">{toast.title}</Toast.Title>
-                  <Toast.Description className="text-gray-500 text-[11px] mt-1 font-medium">{toast.description}</Toast.Description>
+                  <Toast.Title className={`font-black text-xs uppercase tracking-wider ${isDark ? 'text-white' : 'text-gray-900'}`}>{toast.title}</Toast.Title>
+                  <Toast.Description className={`text-[11px] mt-1 font-medium ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{toast.description}</Toast.Description>
                   {toast.type === 'loading' && (
-                    <div className="mt-2.5 w-full bg-gray-100 rounded-full h-1 overflow-hidden">
-                      <div className="bg-gray-900 h-1 rounded-full animate-pulse w-3/4"/>
+                    <div className={`mt-2.5 w-full rounded-full h-1 overflow-hidden ${isDark ? 'bg-white/10' : 'bg-gray-100'}`}>
+                      <div className={`h-1 rounded-full animate-pulse w-3/4 ${isDark ? 'bg-[#16A34A]' : 'bg-gray-900'}`}/>
                     </div>
                   )}
                 </div>
               </div>
-              <Toast.CloseTrigger className="absolute top-3 right-3 p-1 hover:bg-gray-100 rounded-sm transition-colors text-gray-400 hover:text-gray-600">
+              <Toast.CloseTrigger className={`absolute top-3 right-3 p-1 rounded-md transition-colors ${isDark ? 'text-gray-500 hover:bg-white/10 hover:text-white' : 'text-gray-400 hover:bg-gray-100 hover:text-gray-600'}`}>
                 <X className="w-3.5 h-3.5"/>
               </Toast.CloseTrigger>
             </Toast.Root>

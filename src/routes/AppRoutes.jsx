@@ -9,6 +9,7 @@ import TopSellers from '../modules/seller/TopSellers';
 import PaymentSuccess from '../features/payment/PaymentSuccess';
 import PaymentFailure from '../features/payment/PaymentFailure';
 import RegistrationPage from '../modules/auth/Register';
+import GoogleAuthCallback from '../modules/auth/GoogleAuthCallback';
 import CourierLogin from '../features/courier/CourierLogin';
 import CourierDashboard from '../features/courier/CourierDashboard';
 import PromoLandingPage from '../modules/promo/PromoLandingPage';
@@ -63,6 +64,8 @@ export default function AppRoutes() {
         <Route path="/payment/failure" element={<PaymentFailure />} />
         <Route path="/courier/login" element={<CourierLogin />} />
         <Route path="/courier/dashboard" element={<CourierDashboard />} />
+        {/* Google OAuth 2.0 callback — must be outside PublicLayout (no navbar/footer) */}
+        <Route path="/auth/google/callback" element={<GoogleAuthCallback />} />
         <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
         <Route path="/admin/users" element={<AdminUsers />} />

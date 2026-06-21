@@ -6,31 +6,42 @@ export const useSellerTheme = () => {
   });
 
   useEffect(() => {
-    localStorage.setItem('seller-theme', darkMode ? 'dark' : 'light');
-  }, [darkMode]);
+    const handleThemeChange = (e) => {
+      setDarkMode(e.detail.darkMode);
+    };
+    window.addEventListener('seller-theme-change', handleThemeChange);
+    return () => {
+      window.removeEventListener('seller-theme-change', handleThemeChange);
+    };
+  }, []);
 
-  const toggleDarkMode = () => setDarkMode(prev => !prev);
+  const toggleDarkMode = () => {
+    const next = !darkMode;
+    setDarkMode(next);
+    localStorage.setItem('seller-theme', next ? 'dark' : 'light');
+    window.dispatchEvent(new CustomEvent('seller-theme-change', { detail: { darkMode: next } }));
+  };
 
-  // Color scheme: Green (#10B981), Black (#000000), White (#FFFFFF), Red (#EF4444)
+  // Color scheme: Green (#16A34A), Black (#000000), White (#FFFFFF), Red (#EF4444)
   const themeClasses = {
     // Backgrounds
     bg: {
-      primary: darkMode ? 'bg-black' : 'bg-white',
+      primary: darkMode ? 'bg-black' : 'bg-[#F8FAF7]',
       secondary: darkMode ? 'bg-gray-900' : 'bg-gray-50',
       tertiary: darkMode ? 'bg-gray-800' : 'bg-gray-100',
-      accent: 'bg-emerald-500',
-      success: darkMode ? 'bg-emerald-900/20' : 'bg-emerald-50',
+      accent: 'bg-[#16A34A]',
+      success: darkMode ? 'bg-emerald-950/20' : 'bg-emerald-50',
       danger: darkMode ? 'bg-red-900/20' : 'bg-red-50',
       warning: darkMode ? 'bg-amber-900/20' : 'bg-amber-50',
       info: darkMode ? 'bg-blue-900/20' : 'bg-blue-50',
     },
     // Text colors
     text: {
-      primary: darkMode ? 'text-white' : 'text-gray-900',
+      primary: darkMode ? 'text-white' : 'text-[#111827]',
       secondary: darkMode ? 'text-gray-300' : 'text-gray-600',
       tertiary: darkMode ? 'text-gray-400' : 'text-gray-500',
-      accent: darkMode ? 'text-emerald-400' : 'text-emerald-600',
-      success: darkMode ? 'text-emerald-400' : 'text-emerald-700',
+      accent: darkMode ? 'text-emerald-400' : 'text-[#16A34A]',
+      success: darkMode ? 'text-emerald-450' : 'text-emerald-700',
       danger: darkMode ? 'text-red-400' : 'text-red-700',
       warning: darkMode ? 'text-amber-400' : 'text-amber-700',
       info: darkMode ? 'text-blue-400' : 'text-blue-700',
@@ -47,8 +58,8 @@ export const useSellerTheme = () => {
     // Buttons
     button: {
       primary: darkMode 
-        ? 'bg-emerald-600 hover:bg-emerald-700 text-white' 
-        : 'bg-emerald-500 hover:bg-emerald-600 text-white',
+        ? 'bg-[#16A34A] hover:bg-[#15803D] text-white' 
+        : 'bg-[#16A34A] hover:bg-[#15803D] text-white',
       secondary: darkMode
         ? 'bg-gray-700 hover:bg-gray-600 text-white'
         : 'bg-gray-200 hover:bg-gray-300 text-gray-900',
@@ -61,7 +72,7 @@ export const useSellerTheme = () => {
     },
     // Status badges
     status: {
-      success: darkMode ? 'bg-emerald-900/30 text-emerald-400 border-emerald-500/30' : 'bg-emerald-50 text-emerald-700 border-emerald-200',
+      success: darkMode ? 'bg-emerald-950/30 text-emerald-400 border-emerald-900/30' : 'bg-emerald-50 text-emerald-700 border-emerald-200',
       danger: darkMode ? 'bg-red-900/30 text-red-400 border-red-500/30' : 'bg-red-50 text-red-700 border-red-200',
       warning: darkMode ? 'bg-amber-900/30 text-amber-400 border-amber-500/30' : 'bg-amber-50 text-amber-700 border-amber-200',
       info: darkMode ? 'bg-blue-900/30 text-blue-400 border-blue-500/30' : 'bg-blue-50 text-blue-700 border-blue-200',
@@ -75,3 +86,4 @@ export const useSellerTheme = () => {
     themeClasses,
   };
 };
+

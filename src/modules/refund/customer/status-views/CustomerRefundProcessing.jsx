@@ -124,7 +124,7 @@ export default function CustomerRefundProcessing({
                       alt="Uploaded QR Code"
                       className="max-h-24 object-contain mb-1 rounded border"
                     />
-                    <span className="text-[9px] text-emerald-600 font-bold flex items-center gap-1">
+                    <span className="text-[9px] text-[#16A34A] font-bold flex items-center gap-1">
                       <CheckCircle2 size={12} /> QR Code Uploaded Successfully
                     </span>
                     <button
@@ -176,8 +176,8 @@ export default function CustomerRefundProcessing({
         </form>
       ) : (
         <div className="space-y-4 animate-in fade-in duration-200">
-          <div className="bg-emerald-50 border border-emerald-100 p-3 rounded-lg flex items-start gap-2.5 text-emerald-900 leading-normal font-semibold">
-            <CheckCircle2 size={16} className="text-emerald-600 shrink-0 mt-0.5" />
+          <div className="bg-[#16A34A]/10 border border-emerald-100 p-3 rounded-lg flex items-start gap-2.5 text-emerald-900 leading-normal font-semibold">
+            <CheckCircle2 size={16} className="text-[#16A34A] shrink-0 mt-0.5" />
             <div>
               You have submitted your payout details. The merchant is currently processing your refund payment. Once paid, the payment receipt screenshot will be verified by the Admin.
             </div>

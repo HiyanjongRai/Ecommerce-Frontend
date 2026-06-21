@@ -90,6 +90,9 @@ export const searchProducts = (query, params) =>
 export const getProductsByCategory = (categoryId, params) =>
   apiClient.get(`/products/category/${categoryId}`, { params });
 
+export const getCategories = () =>
+  apiClient.get('/categories');
+
 // ── CART ──────────────────────────────────────────────────────────────────────
 export const getCart = (userId) =>
   apiClient.get(`/cart/${userId}`);

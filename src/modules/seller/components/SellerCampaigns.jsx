@@ -1,7 +1,9 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { getSellerCampaigns, getSellerProducts, getSellerProfile, joinSellerCampaign, getProductDetail } from '../services/sellerService';
-import { normalizeList, resolveImageUrl } from './SellerSectionUtils';
+import { normalizeList, resolveImageUrl, SectionHeader } from './SellerSectionUtils';
 import { toast } from '../../../shared/contexts/ToastContext';
+import { useSellerTheme } from '../hooks/useSellerTheme';
+import { Megaphone, Calendar, Clock, Layers, Sparkles, Check, ChevronRight, Package, RefreshCw, Info } from 'lucide-react';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -45,46 +47,44 @@ const getProgressPct = (campaign) => {
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-const StatusBadge = ({ status }) => {
+const StatusBadge = ({ status, isDark }) => {
   const cfg = {
-    active:   { cls: 'bg-emerald-50 text-emerald-700 border-emerald-200', dot: 'bg-emerald-500 animate-pulse', label: 'Active Now' },
-    upcoming: { cls: 'bg-amber-50 text-amber-700 border-amber-200',       dot: 'bg-amber-400',               label: 'Coming Soon' },
-    ended:    { cls: 'bg-gray-100 text-gray-500 border-gray-200',         dot: 'bg-gray-400',                label: 'Ended' },
+    active:   { cls: isDark ? 'bg-[#16A34A]/100/10 text-[#2E5E2C] border-[#16A34A]/20' : 'bg-[#16A34A]/10 text-emerald-750 border-[#16A34A]/30', dot: 'bg-emerald-400 animate-pulse', label: 'Active Now' },
+    upcoming: { cls: isDark ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-amber-50 text-amber-750 border-amber-250',       dot: 'bg-amber-400',               label: 'Coming Soon' },
+    ended:    { cls: isDark ? 'bg-white/5 text-gray-500 border-white/10' : 'bg-gray-100 text-gray-500 border-gray-250',         dot: 'bg-gray-400',                label: 'Ended' },
   };
   const c = cfg[status] || cfg.upcoming;
   return (
-    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wide border ${c.cls}`}>
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[8.5px] font-black uppercase tracking-wider border ${c.cls}`}>
       <span className={`w-1.5 h-1.5 rounded-full ${c.dot}`} />
       {c.label}
     </span>
   );
 };
 
-const ModalStep = ({ current }) => (
-  <div className="flex items-center gap-1">
+const ModalStep = ({ current, isDark }) => (
+  <div className="flex items-center gap-1.5">
     {[1, 2].map((s, i) => {
       const isDone = current > s;
       const isActive = current === s;
       return (
         <React.Fragment key={s}>
-          <div className={`flex items-center gap-1.5 px-2 py-1 rounded-sm text-[10px] font-black transition-all ${
-            isActive ? 'bg-gray-900 text-white' :
-            isDone ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
-            'text-gray-400'
+          <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all border ${
+            isActive ? (isDark ? 'bg-white text-black border-transparent' : 'bg-gray-900 text-white border-transparent shadow-xs') :
+            isDone ? (isDark ? 'bg-[#16A34A]/15 text-[#16A34A] border-[#16A34A]/25' : 'bg-[#16A34A]/10 text-[#152F17] border-[#16A34A]/20') :
+            (isDark ? 'text-gray-550 border-white/5 bg-white/5' : 'text-gray-400 border-gray-150 bg-gray-50/50')
           }`}>
             <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-black flex-shrink-0 ${
-              isActive ? 'bg-white/20 text-white' :
-              isDone   ? 'bg-emerald-200 text-emerald-700' :
-              'bg-gray-100 text-gray-400'
+              isActive ? (isDark ? 'bg-black/10 text-black' : 'bg-white/20 text-white') :
+              isDone   ? (isDark ? 'bg-[#16A34A]/20 text-[#16A34A]' : 'bg-emerald-200 text-[#152F17]') :
+              (isDark ? 'bg-white/10 text-gray-500' : 'bg-gray-100 text-gray-400')
             }`}>
-              {isDone ? (
-                <svg className="w-2 h-2" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
-              ) : s}
+              {isDone ? <Check size={8} strokeWidth={3} /> : s}
             </span>
-            {s === 1 ? 'Select Product' : 'Set Price'}
+            {s === 1 ? 'Select Product' : 'Configure Price'}
           </div>
           {i === 0 && (
-            <svg className="w-2.5 h-2.5 text-gray-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7"/></svg>
+            <ChevronRight size={12} className={isDark ? 'text-gray-600' : 'text-gray-300'} />
           )}
         </React.Fragment>
       );
@@ -95,6 +95,9 @@ const ModalStep = ({ current }) => (
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 const SellerCampaigns = () => {
+  const { darkMode, themeClasses } = useSellerTheme();
+  const isDark = darkMode;
+
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [joinFlow, setJoinFlow] = useState(null);
@@ -131,14 +134,14 @@ const SellerCampaigns = () => {
     setProductVariants([]);
     try {
       const profileRes = await getSellerProfile();
-      const userId = profileRes.data?.userId;
-      if (userId) {
-        const productRes = await getSellerProducts(userId);
+      const sellerId = profileRes.data?.userId;
+      if (sellerId) {
+        const productRes = await getSellerProducts(sellerId);
         const active = normalizeList(productRes.data).filter(p => String(p.status).toUpperCase() === 'ACTIVE');
         setSellerProducts(active);
       }
     } catch {
-      showToast('Failed to load products', 'error');
+      showToast('Failed to load active products', 'error');
       setJoinFlow(null);
     } finally { setLoadingProducts(false); }
   };
@@ -157,9 +160,9 @@ const SellerCampaigns = () => {
   };
 
   const proceedToConfig = () => {
-    if (!selectedProduct) { showToast('Select a product first', 'warning'); return; }
+    if (!selectedProduct) { showToast('Please select a product first.', 'warning'); return; }
     if (productVariants.length > 0 && campaignConfig.selectedVariants.length === 0) {
-      showToast('Select at least one variant', 'warning'); return;
+      showToast('Please select at least one variant configuration.', 'warning'); return;
     }
     setJoinFlow(2);
   };
@@ -220,58 +223,79 @@ const SellerCampaigns = () => {
   const activeCampaigns = campaigns.filter(c => getCampaignStatus(c) === 'active').length;
   const upcomingCampaigns = campaigns.filter(c => getCampaignStatus(c) === 'upcoming').length;
 
-  const inputCls = "w-full bg-white border border-gray-200 rounded-sm px-3 py-1.5 text-[11px] font-semibold text-gray-700 placeholder-gray-300 outline-none focus:border-gray-400 transition-all";
+  const inputCls = `w-full border rounded-xl px-4 py-2.5 text-xs font-semibold focus:outline-none transition-all ${
+    isDark 
+      ? 'bg-[#111827] border-white/10 text-white placeholder-gray-650 focus:border-[#16A34A] focus:ring-2 focus:ring-[#16A34A]/15' 
+      : 'bg-white border-gray-200 text-gray-900 placeholder-gray-405 focus:border-[#16A34A] focus:ring-2 focus:ring-[#16A34A]/15'
+  }`;
 
   if (loading) return (
-    <div className="flex items-center justify-center h-48">
-      <div className="flex items-center gap-3 text-gray-400">
-        <svg className="animate-spin w-5 h-5 text-gray-700" fill="none" viewBox="0 0 24 24">
-          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
-        </svg>
-        <span className="text-sm font-semibold">Loading campaigns…</span>
-      </div>
+    <div className={`flex flex-col items-center justify-center h-64 gap-3 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+      <svg className="animate-spin w-6 h-6 text-[#16A34A]" fill="none" viewBox="0 0 24 24">
+        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+      </svg>
+      <span className="text-xs font-bold uppercase tracking-wider">Loading campaigns...</span>
     </div>
   );
 
   return (
-    <div className="space-y-4 max-w-[1400px]">
+    <div className={`space-y-4 max-w-[1400px] animate-in fade-in-50 duration-200 font-sans ${themeClasses.bg.primary}`}>
 
-      {/* ── Page Header ── */}
-      <div className="bg-white border border-gray-200 rounded-sm shadow-sm p-4">
-        <h1 className="text-sm font-black text-gray-900 tracking-tight">Campaign Opportunities</h1>
-        <p className="text-[11px] text-gray-400 font-medium mt-0.5">Join exclusive promotional campaigns to boost your sales visibility.</p>
-      </div>
+      {/* ── Page Header Banner ── */}
+      <SectionHeader
+        title="Campaign Opportunities"
+        subtitle="Participate in admin campaigns, storefront highlights, and holiday sales events."
+        tag="Exclusive Promotions"
+        action={
+          <button 
+            type="button" 
+            onClick={load} 
+            className="bg-white hover:bg-gray-150 text-gray-900 px-4 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 active:scale-95 border border-gray-200 shadow-sm h-10"
+          >
+            <RefreshCw size={12} className={`shrink-0 ${loading ? 'animate-spin' : ''}`} />
+            Sync Campaigns
+          </button>
+        }
+      />
 
-      {/* ── Stats Row ── */}
+      {/* ── Stats Summary Grid ── */}
       {campaigns.length > 0 && (
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-3 gap-4">
           {[
-            { label: 'Available',    value: campaigns.length,  positive: true },
-            { label: 'Active Now',   value: activeCampaigns,   positive: true },
-            { label: 'Coming Soon',  value: upcomingCampaigns, positive: true },
-          ].map(s => (
-            <div key={s.label} className="bg-white border border-gray-200 rounded-sm shadow-sm p-3.5 flex items-center justify-between">
-              <div>
-                <h3 className="text-[9px] font-black uppercase tracking-wider text-gray-400 mb-1">{s.label}</h3>
-                <div className="text-base font-black text-gray-900 leading-none">{s.value}</div>
+            { label: 'Total Events', value: campaigns.length, icon: Megaphone, color: isDark ? 'text-blue-450 bg-blue-500/10' : 'text-blue-700 bg-blue-50' },
+            { label: 'Running Active', value: activeCampaigns, icon: Clock, color: isDark ? 'text-emerald-450 bg-[#16A34A]/100/10' : 'text-[#152F17] bg-[#16A34A]/10' },
+            { label: 'Upcoming Sales', value: upcomingCampaigns, icon: Calendar, color: isDark ? 'text-amber-450 bg-amber-500/10' : 'text-amber-700 bg-amber-50' }
+          ].map(s => {
+            const IconComp = s.icon;
+            return (
+              <div key={s.label} className={`border rounded-2xl p-4 flex items-center justify-between shadow-[0_2px_10px_rgba(0,0,0,0.01)] transition-all hover:-translate-y-0.5 duration-300 ${
+                isDark ? 'bg-[#0b0c10] border-white/10' : 'bg-white border-gray-200'
+              }`}>
+                <div>
+                  <h3 className={`text-[10px] font-black uppercase tracking-wider mb-1.5 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>{s.label}</h3>
+                  <div className={`text-xl font-black leading-none ${isDark ? 'text-white' : 'text-gray-900'}`}>{s.value}</div>
+                </div>
+                <div className={`p-2.5 rounded-xl ${s.color}`}>
+                  <IconComp size={16} />
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
-      {/* ── Campaign Grid ── */}
+      {/* ── Campaigns Master Layout Grid ── */}
       {campaigns.length === 0 ? (
-        <div className="bg-white border border-gray-200 rounded-sm shadow-sm p-10 text-center">
-          <svg className="w-8 h-8 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z"/>
-          </svg>
-          <p className="text-xs font-semibold text-gray-500">No campaigns available</p>
-          <p className="text-[10px] text-gray-400 mt-1">Admin campaigns will appear here when they go live.</p>
+        <div className={`border rounded-2xl p-16 text-center transition-colors ${
+          isDark ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'
+        }`}>
+          <Megaphone size={36} className={`mx-auto mb-3.5 ${isDark ? 'text-gray-600' : 'text-gray-300'}`} />
+          <p className={`text-xs font-black uppercase tracking-wider ${isDark ? 'text-white' : 'text-gray-900'}`}>No campaigns available</p>
+          <p className={`text-[10px] font-semibold mt-1.5 ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>Admin-hosted campaigns will show up here as soon as they are launched.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {campaigns.map(campaign => {
             const image = resolveImageUrl(campaign.imagePath);
             const status = getCampaignStatus(campaign);
@@ -280,92 +304,94 @@ const SellerCampaigns = () => {
             const isEnded = status === 'ended';
 
             return (
-              <div key={campaign.id} className={`bg-white border border-gray-200 rounded-sm shadow-sm overflow-hidden flex flex-col transition-all hover:shadow-md ${isEnded ? 'opacity-70' : ''}`}>
-
-                {/* Banner */}
-                <div className="relative h-28 overflow-hidden">
+              <div 
+                key={campaign.id} 
+                className={`border rounded-2xl overflow-hidden flex flex-col shadow-[0_2px_10px_rgba(0,0,0,0.01)] transition-all hover:shadow-md group ${
+                  isEnded ? 'opacity-55 grayscale-[30%]' : ''
+                } ${
+                  isDark ? 'bg-[#0b0c10] border-white/10 hover:border-white/20' : 'bg-white border-gray-200 hover:border-gray-300'
+                }`}
+              >
+                {/* Image / Header Banner */}
+                <div className="relative h-32 overflow-hidden bg-gray-900">
                   {image ? (
-                    <img src={image} alt={campaign.name} className="w-full h-full object-cover" />
+                    <img src={image} alt={campaign.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                   ) : (
-                    <div className={`h-full flex items-center justify-center ${
-                      status === 'active' ? 'bg-gradient-to-br from-emerald-500 to-emerald-700' :
-                      status === 'upcoming' ? 'bg-gradient-to-br from-amber-400 to-amber-600' :
-                      'bg-gradient-to-br from-gray-300 to-gray-400'
+                    <div className={`h-full w-full flex items-center justify-center ${
+                      status === 'active' ? 'bg-gradient-to-br from-emerald-600 to-teal-700' :
+                      status === 'upcoming' ? 'bg-gradient-to-br from-amber-500 to-orange-600' :
+                      'bg-gradient-to-br from-gray-650 to-gray-800'
                     }`}>
-                      <svg className="w-10 h-10 text-white/50" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z"/>
-                      </svg>
+                      <Megaphone size={28} className="text-white/30" />
                     </div>
                   )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
 
+                  {/* Absolute Badge Tags */}
                   {campaign.discountType && campaign.discountValue && (
-                    <div className="absolute top-2 left-2 bg-white/95 text-gray-900 px-2 py-0.5 rounded-sm text-[9px] font-black shadow-sm">
+                    <div className="absolute top-3.5 left-3.5 bg-white text-gray-950 px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider shadow-md">
                       {campaign.discountType === 'PERCENTAGE' ? `${campaign.discountValue}% OFF` : `Rs. ${campaign.discountValue} OFF`}
                     </div>
                   )}
-                  <div className="absolute top-2 right-2"><StatusBadge status={status} /></div>
+                  
+                  <div className="absolute top-3.5 right-3.5">
+                    <StatusBadge status={status} isDark={isDark} />
+                  </div>
+                  
                   {timer && !isEnded && (
-                    <div className="absolute bottom-2 left-2">
-                      <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-sm ${
-                        timer.type === 'ends' && timer.days <= 3 ? 'bg-red-600 text-white' :
-                        timer.type === 'ends' ? 'bg-black/60 text-white' : 'bg-amber-500 text-white'
+                    <div className="absolute bottom-3.5 left-3.5">
+                      <span className={`text-[9.5px] font-black px-2.5 py-1 rounded-lg tracking-wider ${
+                        timer.type === 'ends' && timer.days <= 3 ? 'bg-red-650 text-white shadow-sm' :
+                        timer.type === 'ends' ? 'bg-black/60 text-white backdrop-blur-sm border border-white/[0.08]' : 'bg-amber-500 text-white'
                       }`}>
-                        {timer.type === 'ends' ? `${timer.days}d left` : `Starts in ${timer.days}d`}
+                        {timer.type === 'ends' ? `${timer.days} days remaining` : `Starts in ${timer.days} days`}
                       </span>
                     </div>
                   )}
                 </div>
 
-                {/* Body */}
-                <div className="p-3.5 flex flex-col flex-1 gap-2.5">
-                  <div>
-                    <h3 className="text-xs font-black text-gray-900">{campaign.name}</h3>
-                    <p className="text-[10px] text-gray-500 mt-0.5 line-clamp-2 leading-relaxed">
-                      {campaign.description || 'Exclusive campaign to boost product visibility and drive more sales.'}
+                {/* Card Info Content */}
+                <div className="p-5 flex flex-col flex-1 gap-4">
+                  <div className="space-y-1">
+                    <h3 className={`text-xs font-black truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>{campaign.name}</h3>
+                    <p className={`text-[11px] line-clamp-2 font-semibold leading-relaxed ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                      {campaign.description || 'Join this exclusive marketing event to feature your products on storefront lists and gain visibility.'}
                     </p>
                   </div>
 
                   {status === 'active' && (
-                    <div className="space-y-0.5">
-                      <div className="flex items-center justify-between text-[9px] font-black uppercase text-gray-400">
-                        <span>Progress</span><span>{progress}%</span>
+                    <div className="space-y-1.5 pt-1">
+                      <div className={`flex items-center justify-between text-[9px] font-black uppercase tracking-wider ${isDark ? 'text-gray-500' : 'text-gray-405'}`}>
+                        <span>Timeline Progress</span>
+                        <span>{progress}%</span>
                       </div>
-                      <div className="h-1 bg-gray-100 rounded-full overflow-hidden">
-                        <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${progress}%` }} />
+                      <div className={`h-1.5 rounded-full overflow-hidden ${isDark ? 'bg-white/10' : 'bg-gray-150'}`}>
+                        <div className="h-full bg-[#16A34A]/100 rounded-full transition-all duration-300" style={{ width: `${progress}%` }} />
                       </div>
                     </div>
                   )}
 
-                  <div className="grid grid-cols-2 gap-1.5 text-[9px]">
-                    <div className="bg-gray-50 border border-gray-100 rounded-sm px-2.5 py-1.5">
-                      <p className="font-black uppercase text-gray-400 mb-0.5">Start</p>
-                      <p className="font-bold text-gray-700">{formatDate(campaign.startTime)}</p>
+                  <div className="grid grid-cols-2 gap-2.5 text-[10px]">
+                    <div className={`border rounded-xl px-3 py-2 ${isDark ? 'bg-[#111827] border-white/5' : 'bg-gray-50 border-gray-100'}`}>
+                      <p className={`font-black uppercase tracking-widest text-[8px] mb-0.5 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Starts Date</p>
+                      <p className={`font-bold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{formatDate(campaign.startTime)}</p>
                     </div>
-                    <div className="bg-gray-50 border border-gray-100 rounded-sm px-2.5 py-1.5">
-                      <p className="font-black uppercase text-gray-400 mb-0.5">End</p>
-                      <p className="font-bold text-gray-700">{formatDate(campaign.endTime)}</p>
+                    <div className={`border rounded-xl px-3 py-2 ${isDark ? 'bg-[#111827] border-white/5' : 'bg-gray-50 border-gray-100'}`}>
+                      <p className={`font-black uppercase tracking-widest text-[8px] mb-0.5 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Ends Date</p>
+                      <p className={`font-bold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{formatDate(campaign.endTime)}</p>
                     </div>
                   </div>
-
-                  {campaign.discountType && (
-                    <div className="flex items-center gap-1.5 bg-green-50 border border-green-100 rounded-sm px-2.5 py-1.5">
-                      <p className="text-[10px] font-semibold text-green-700">
-                        {campaign.discountType === 'PERCENTAGE'
-                          ? `Up to ${campaign.discountValue}% off for customers`
-                          : `Rs. ${campaign.discountValue} off for customers`}
-                      </p>
-                    </div>
-                  )}
 
                   <button
                     onClick={() => startJoinCampaign(campaign)}
                     disabled={isEnded}
-                    className={`mt-auto w-full py-1.5 px-3 rounded-sm text-[10px] font-black uppercase tracking-wider transition-all ${
-                      isEnded ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-gray-900 hover:bg-black text-white'
+                    className={`mt-auto w-full py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer ${
+                      isEnded 
+                        ? (isDark ? 'bg-white/5 text-gray-700 cursor-not-allowed border border-white/5' : 'bg-gray-100 text-gray-400 cursor-not-allowed') 
+                        : (isDark ? 'bg-white text-black hover:bg-gray-150' : 'bg-gray-900 text-white hover:bg-black')
                     }`}
                   >
-                    {isEnded ? 'Campaign Ended' : 'Join This Campaign →'}
+                    {isEnded ? 'Campaign Closed' : 'Participate in Campaign'}
                   </button>
                 </div>
               </div>
@@ -374,194 +400,243 @@ const SellerCampaigns = () => {
         </div>
       )}
 
-      {/* ── MODAL ── */}
+      {/* ── Joing Form Step Modal Overlay ── */}
       {joinFlow !== null && selectedCampaign && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-[4px]" onClick={closeCampaignFlow} />
-          <div className="relative bg-white rounded-sm shadow-2xl border border-gray-200 w-full max-w-md flex flex-col max-h-[88vh]">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-xs" onClick={closeCampaignFlow} />
+          <div className={`relative rounded-2xl border w-full max-w-md flex flex-col max-h-[88vh] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 ${
+            isDark ? 'bg-[#0b0c10] border-white/10 text-white' : 'bg-white border-gray-200 text-gray-700'
+          }`}>
 
             {/* Modal Header */}
-            <div className="flex-shrink-0 px-4 py-3.5 border-b border-gray-100 flex items-center justify-between">
+            <div className={`flex-shrink-0 px-5 py-4 border-b flex items-center justify-between ${
+              isDark ? 'border-white/10 bg-[#111827]' : 'border-gray-100 bg-gray-50/50'
+            }`}>
               <div>
-                <h2 className="text-xs font-black text-gray-900">Join Campaign</h2>
-                <p className="text-[10px] text-gray-400 font-medium mt-0.5">{selectedCampaign.name}</p>
+                <h2 className={`text-sm font-black ${isDark ? 'text-white' : 'text-gray-905'}`}>Join Campaign</h2>
+                <p className={`text-[10px] font-bold mt-0.5 ${isDark ? 'text-[#16A34A]' : 'text-[#152F17]'}`}>{selectedCampaign.name}</p>
               </div>
-              <div className="flex items-center gap-3">
-                <ModalStep current={joinFlow} />
-                <button onClick={closeCampaignFlow} className="text-gray-400 hover:text-gray-700 hover:bg-gray-100 p-1.5 rounded-sm transition-colors">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+              <div className="flex items-center gap-4">
+                <ModalStep current={joinFlow} isDark={isDark} />
+                <button onClick={closeCampaignFlow} className={`p-1.5 rounded-lg transition-colors ${isDark ? 'text-gray-500 hover:text-white' : 'text-gray-400 hover:text-gray-900'}`}>
+                  ✕
                 </button>
               </div>
             </div>
 
-            {/* Step 1 */}
+            {/* Step 1: Select product */}
             {joinFlow === 1 && (
               <>
-                <div className="flex-1 overflow-y-auto p-4 space-y-3">
-                  <p className="text-[9px] font-black uppercase tracking-wider text-gray-400">Choose a product to enter in this campaign</p>
+                <div className="flex-1 overflow-y-auto p-5 space-y-4 custom-scrollbar">
+                  <p className={`text-[9px] font-black uppercase tracking-widest ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Select a product listing to enter</p>
 
                   {loadingProducts ? (
-                    <div className="space-y-2">{[1,2,3].map(i => <div key={i} className="h-10 bg-gray-100 rounded-sm animate-pulse" />)}</div>
+                    <div className="space-y-2">
+                      {[1, 2, 3].map(i => <div key={i} className={`h-12 rounded-xl animate-pulse ${isDark ? 'bg-white/5' : 'bg-gray-100'}`} />)}
+                    </div>
                   ) : sellerProducts.length === 0 ? (
-                    <div className="text-center py-8">
-                      <p className="text-xs font-semibold text-gray-500">No active products</p>
-                      <p className="text-[10px] text-gray-400 mt-1">Add and activate a product first.</p>
+                    <div className="text-center py-10">
+                      <p className={`text-xs font-black uppercase tracking-wider ${isDark ? 'text-white' : 'text-gray-900'}`}>No active products found</p>
+                      <p className={`text-[10px] font-semibold mt-1 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>You need active catalog listings before joining campaigns.</p>
                     </div>
                   ) : (
-                    <div className="space-y-1.5">
+                    <div className="space-y-2">
                       {sellerProducts.map(product => {
                         const isSelected = selectedProduct?.id === product.id;
                         return (
-                          <button key={product.id} type="button" onClick={() => handleProductSelect(product)}
-                            className={`w-full text-left flex items-center gap-3 p-2.5 rounded-sm border transition-all ${
-                              isSelected ? 'border-gray-400 bg-gray-50' : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50/50'
+                          <button 
+                            key={product.id} 
+                            type="button" 
+                            onClick={() => handleProductSelect(product)}
+                            className={`w-full text-left flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer ${
+                              isSelected 
+                                ? (isDark ? 'border-[#16A34A] bg-[#16A34A]/10 shadow-[0_2px_12px_rgba(16,185,129,0.05)]' : 'border-gray-900 bg-gray-50') 
+                                : (isDark ? 'border-white/5 hover:bg-white/5 hover:border-white/10' : 'border-gray-200 hover:bg-gray-50')
                             }`}
                           >
-                            <div className={`w-5 h-5 rounded-sm flex items-center justify-center flex-shrink-0 border ${isSelected ? 'bg-gray-900 border-gray-900' : 'border-gray-300'}`}>
+                            <div className={`w-5 h-5 rounded-lg flex items-center justify-center flex-shrink-0 border transition-all ${
+                              isSelected 
+                                ? (isDark ? 'bg-[#16A34A] border-[#16A34A]' : 'bg-gray-900 border-gray-900') 
+                                : (isDark ? 'border-gray-650 bg-transparent' : 'border-gray-300 bg-white')
+                            }`}>
                               {isSelected && <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="text-[11px] font-black text-gray-800 truncate">{product.name}</p>
-                              <p className="text-[9px] text-gray-400 font-medium">{product.stockQuantity ?? 0} in stock</p>
+                              <p className={`text-xs font-black truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>{product.name}</p>
+                              <p className={`text-[10px] font-semibold mt-0.5 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>{product.stockQuantity ?? 0} units left</p>
                             </div>
-                            <p className="text-[11px] font-black text-gray-700 flex-shrink-0">Rs. {(product.price || 0).toLocaleString()}</p>
+                            <p className={`text-xs font-black flex-shrink-0 ${isDark ? 'text-white' : 'text-gray-900'}`}>Rs. {(product.price || 0).toLocaleString()}</p>
                           </button>
                         );
                       })}
                     </div>
                   )}
 
+                  {/* Variants list selection */}
                   {selectedProduct && productVariants.length > 0 && (
-                    <div className="pt-3 border-t border-gray-100 space-y-1.5">
+                    <div className={`pt-4 border-t border-dashed space-y-3 ${isDark ? 'border-white/10' : 'border-gray-150'}`}>
                       <div className="flex items-center justify-between">
-                        <p className="text-[9px] font-black uppercase tracking-wider text-gray-500">Select Variants</p>
-                        <p className="text-[9px] text-gray-400">{campaignConfig.selectedVariants.length > 0 ? `${campaignConfig.selectedVariants.length} selected` : 'Empty = all variants'}</p>
+                        <p className={`text-[9px] font-black uppercase tracking-widest ${isDark ? 'text-gray-500' : 'text-gray-450'}`}>Select Variants to promote</p>
+                        <p className={`text-[9px] font-bold ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>{campaignConfig.selectedVariants.length > 0 ? `${campaignConfig.selectedVariants.length} selected` : 'None selected'}</p>
                       </div>
                       {loadingVariants ? (
-                        <div className="space-y-1.5">{[1,2].map(i => <div key={i} className="h-8 bg-gray-100 rounded-sm animate-pulse" />)}</div>
-                      ) : productVariants.map(variant => {
-                        const checked = campaignConfig.selectedVariants.includes(variant.id);
-                        return (
-                          <label key={variant.id} className={`flex items-center gap-2.5 p-2.5 rounded-sm border cursor-pointer transition-colors ${checked ? 'border-gray-400 bg-gray-50' : 'border-gray-200 hover:bg-gray-50/50'}`}>
-                            <input type="checkbox" checked={checked} onChange={() => toggleVariant(variant.id, variant.price)} className="w-3.5 h-3.5 rounded-sm accent-gray-900" />
-                            <div className="flex-1 min-w-0">
-                              <p className="text-[11px] font-bold text-gray-800 truncate">{variant.sku || `Variant ${variant.id}`}</p>
-                              <p className="text-[9px] text-gray-400">{variant.stockQuantity ?? 0} in stock</p>
-                            </div>
-                            <p className="text-[11px] font-black text-gray-700">Rs. {(variant.price || 0).toLocaleString()}</p>
-                          </label>
-                        );
-                      })}
+                        <div className="space-y-2">
+                          {[1, 2].map(i => <div key={i} className={`h-10 rounded-xl animate-pulse ${isDark ? 'bg-white/5' : 'bg-gray-100'}`} />)}
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          {productVariants.map(variant => {
+                            const checked = campaignConfig.selectedVariants.includes(variant.id);
+                            return (
+                              <label 
+                                key={variant.id} 
+                                className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
+                                  checked 
+                                    ? (isDark ? 'border-[#16A34A] bg-[#16A34A]/5 shadow-[0_2px_12px_rgba(16,185,129,0.04)]' : 'border-gray-400 bg-gray-50') 
+                                    : (isDark ? 'border-white/5 hover:bg-white/5' : 'border-gray-200 hover:bg-gray-55')
+                                }`}
+                              >
+                                <div className="relative flex items-center">
+                                  <input type="checkbox" checked={checked} onChange={() => toggleVariant(variant.id, variant.price)} className="peer sr-only" />
+                                  <div className={`w-5 h-5 rounded-lg border flex items-center justify-center transition-all ${
+                                    checked ? 'bg-[#16A34A] border-[#16A34A]' : (isDark ? 'border-gray-650 bg-transparent' : 'border-gray-300 bg-white')
+                                  }`}>
+                                    {checked && <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>}
+                                  </div>
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className={`text-xs font-black truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>{variant.sku || `Variant ID: ${variant.id}`}</p>
+                                  <p className={`text-[10px] font-semibold mt-0.5 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>{variant.stockQuantity ?? 0} in stock</p>
+                                </div>
+                                <p className={`text-xs font-black ${isDark ? 'text-white' : 'text-gray-900'}`}>Rs. {(variant.price || 0).toLocaleString()}</p>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
 
-                <div className="flex-shrink-0 px-4 py-3 border-t border-gray-100 bg-gray-50 flex gap-2.5">
-                  <button onClick={closeCampaignFlow} className="flex-1 py-1.5 border border-gray-200 rounded-sm text-[10px] font-black text-gray-600 hover:bg-gray-100 transition-colors">Cancel</button>
-                  <button onClick={proceedToConfig} disabled={!selectedProduct} className="flex-1 py-1.5 bg-gray-900 hover:bg-black text-white rounded-sm text-[10px] font-black uppercase tracking-wider disabled:opacity-40 transition-colors">
+                <div className={`flex-shrink-0 px-5 py-4 border-t flex gap-3 ${
+                  isDark ? 'border-white/10 bg-[#111827]' : 'border-gray-100 bg-gray-50'
+                }`}>
+                  <button onClick={closeCampaignFlow} className={`flex-1 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border cursor-pointer ${isDark ? 'border-white/15 text-gray-300 hover:bg-white/5' : 'border-gray-200 text-gray-700 hover:bg-gray-100'}`}>Cancel</button>
+                  <button onClick={proceedToConfig} disabled={!selectedProduct} className={`flex-1 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all disabled:opacity-40 cursor-pointer ${isDark ? 'bg-[#16A34A] text-white hover:bg-[#059669]' : 'bg-gray-900 text-white hover:bg-black'}`}>
                     Continue →
                   </button>
                 </div>
               </>
             )}
 
-            {/* Step 2 */}
+            {/* Step 2: Configure Price */}
             {joinFlow === 2 && (
               <>
-                <div className="flex-1 overflow-y-auto p-4 space-y-3.5">
-
+                <div className="flex-1 overflow-y-auto p-5 space-y-5 custom-scrollbar">
                   {/* Summary */}
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-2 gap-3">
                     {[
-                      { label: 'Product', value: selectedProduct.name, sub: campaignConfig.selectedVariants.length > 0 ? `${campaignConfig.selectedVariants.length} variant(s)` : productVariants.length > 0 ? 'All variants' : 'Single product' },
-                      { label: 'Campaign', value: selectedCampaign.name, sub: selectedCampaign.discountType ? (selectedCampaign.discountType === 'PERCENTAGE' ? `${selectedCampaign.discountValue}% off` : `Rs. ${selectedCampaign.discountValue} off`) : null },
+                      { label: 'Selected Product', value: selectedProduct.name, sub: campaignConfig.selectedVariants.length > 0 ? `${campaignConfig.selectedVariants.length} variants` : productVariants.length > 0 ? 'All variants' : 'Base listing' },
+                      { label: 'Campaign Rule', value: selectedCampaign.name, sub: selectedCampaign.discountType ? (selectedCampaign.discountType === 'PERCENTAGE' ? `${selectedCampaign.discountValue}% OFF` : `Rs. ${selectedCampaign.discountValue} OFF`) : null },
                     ].map(s => (
-                      <div key={s.label} className="bg-gray-50 border border-gray-200 rounded-sm p-2.5">
-                        <p className="text-[9px] font-black uppercase tracking-wider text-gray-400">{s.label}</p>
-                        <p className="text-[11px] font-black text-gray-900 mt-0.5 truncate">{s.value}</p>
-                        {s.sub && <p className="text-[9px] text-gray-500 font-medium">{s.sub}</p>}
+                      <div key={s.label} className={`border rounded-xl p-3 ${isDark ? 'bg-[#111827] border-white/5' : 'bg-gray-50 border-gray-150'}`}>
+                        <p className={`text-[8.5px] font-black uppercase tracking-widest ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>{s.label}</p>
+                        <p className={`text-[11px] font-black mt-1 truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>{s.value}</p>
+                        {s.sub && <p className={`text-[9px] font-bold mt-0.5 ${isDark ? 'text-[#16A34A]' : 'text-[#152F17]'}`}>{s.sub}</p>}
                       </div>
                     ))}
                   </div>
 
-                  {/* Price reference */}
-                  <div className="bg-blue-50 border border-blue-100 rounded-sm px-3 py-2 text-[10px] text-blue-700 font-semibold">
-                    {campaignConfig.selectedVariants.length > 0 ? `Highest variant price: Rs. ${maxPrice.toLocaleString()}` : `Original price: Rs. ${maxPrice.toLocaleString()}`} — your campaign price must be lower.
+                  {/* Price reference message */}
+                  <div className={`border rounded-xl px-4 py-3 text-[10px] font-black uppercase tracking-widest ${
+                    isDark ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' : 'bg-blue-50 border-blue-150 text-blue-700'
+                  }`}>
+                    {campaignConfig.selectedVariants.length > 0 ? `Max Variant base Price: Rs. ${maxPrice.toLocaleString()}` : `Base Price: Rs. ${maxPrice.toLocaleString()}`} — campaign price must be lower.
                   </div>
 
-                  {/* Sale Price */}
-                  <div className="space-y-1">
-                    <label className="block text-[9px] font-black uppercase tracking-wider text-gray-500">Campaign Sale Price *</label>
+                  {/* Sale Price input */}
+                  <div className="space-y-1.5">
+                    <label className={`block text-[10px] font-black uppercase tracking-widest ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Campaign Sale Price *</label>
                     <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-gray-400">Rs.</span>
+                      <span className={`absolute left-4 top-1/2 -translate-y-1/2 text-xs font-black ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>Rs.</span>
                       <input
                         type="number"
                         value={campaignConfig.salePrice}
                         onChange={e => setCampaignConfig(prev => ({ ...prev, salePrice: e.target.value }))}
-                        placeholder="Enter discounted price"
+                        placeholder="Enter discount campaign price"
                         min="0" step="0.01"
-                        className={`${inputCls} pl-8 ${campaignConfig.salePrice && !priceValid ? 'border-red-400 focus:border-red-500' : priceValid ? 'border-emerald-400' : ''}`}
+                        className={`${inputCls} pl-10 ${campaignConfig.salePrice && !priceValid ? 'border-red-500 focus:border-red-600' : priceValid ? (isDark ? 'border-[#16A34A]' : 'border-emerald-400') : ''}`}
                       />
                     </div>
                     {campaignConfig.salePrice && (
-                      <p className={`text-[10px] font-semibold ${priceValid ? 'text-green-600' : 'text-red-500'}`}>
+                      <p className={`text-[10px] font-black tracking-wide ${priceValid ? (isDark ? 'text-[#16A34A]' : 'text-[#16A34A]') : (isDark ? 'text-red-400' : 'text-red-500')}`}>
                         {priceValid
-                          ? `✓ Customer saves Rs. ${saving.toLocaleString()} (${savingPct}% off)`
-                          : salePrice <= 0 ? 'Price must be greater than zero' : `Must be less than Rs. ${maxPrice.toLocaleString()}`}
+                          ? `✓ Customer markdown savings: Rs. ${saving.toLocaleString()} (${savingPct}% off)`
+                          : salePrice <= 0 ? 'Price must be greater than zero' : `Must be less than base price Rs. ${maxPrice.toLocaleString()}`}
                       </p>
                     )}
                   </div>
 
-                  {/* Visual price comparison */}
+                  {/* Visual pricing comparison */}
                   {priceValid && (
-                    <div className="bg-green-50 border border-green-200 rounded-sm p-2.5 grid grid-cols-3 gap-1 text-center">
+                    <div className={`border rounded-xl p-3 grid grid-cols-3 gap-2 text-center transition-all ${
+                      isDark ? 'bg-emerald-950/10 border-[#16A34A]/20' : 'bg-[#16A34A]/10 border-[#16A34A]/20'
+                    }`}>
                       <div>
-                        <p className="text-[9px] font-black uppercase text-gray-400">Original</p>
-                        <p className="text-xs font-black text-gray-500 line-through">Rs. {maxPrice.toLocaleString()}</p>
+                        <p className={`text-[8.5px] font-black uppercase tracking-widest ${isDark ? 'text-gray-500' : 'text-gray-450'}`}>Base Price</p>
+                        <p className={`text-xs font-black line-through ${isDark ? 'text-gray-650' : 'text-gray-500'}`}>Rs. {maxPrice.toLocaleString()}</p>
                       </div>
-                      <div className="flex items-center justify-center text-green-500 font-black">→</div>
+                      <div className={`flex items-center justify-center font-black ${isDark ? 'text-[#16A34A]' : 'text-[#e8f3e9]0'}`}>→</div>
                       <div>
-                        <p className="text-[9px] font-black uppercase text-green-600">Campaign</p>
-                        <p className="text-xs font-black text-green-700">Rs. {salePrice.toLocaleString()}</p>
+                        <p className={`text-[8.5px] font-black uppercase tracking-widest ${isDark ? 'text-[#16A34A]' : 'text-[#16A34A]'}`}>Promo Price</p>
+                        <p className={`text-xs font-black ${isDark ? 'text-white' : 'text-[#152F17]'}`}>Rs. {salePrice.toLocaleString()}</p>
                       </div>
-                      <div className="col-span-3 border-t border-green-200 pt-1.5 mt-0.5">
-                        <p className="text-[9px] font-black text-green-800">Customer saves Rs. {saving.toLocaleString()} · {savingPct}% discount</p>
+                      <div className={`col-span-3 border-t pt-2 mt-1 border-dashed ${isDark ? 'border-[#16A34A]/20' : 'border-[#16A34A]/20'}`}>
+                        <p className={`text-[9.5px] font-black uppercase tracking-wider ${isDark ? 'text-[#16A34A]' : 'text-emerald-805'}`}>
+                          Customer Discount: Rs. {saving.toLocaleString()} · {savingPct}% savings
+                        </p>
                       </div>
                     </div>
                   )}
 
-                  {/* Stock Limit */}
-                  <div className="space-y-1">
-                    <label className="block text-[9px] font-black uppercase tracking-wider text-gray-500">Stock Limit <span className="normal-case text-gray-400 font-medium tracking-normal">— Optional</span></label>
+                  {/* Stock Limit config */}
+                  <div className="space-y-1.5">
+                    <label className={`block text-[10px] font-black uppercase tracking-widest ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Stock Limit <span className="normal-case font-semibold tracking-normal opacity-70">— Optional</span></label>
                     <input
                       type="number"
                       value={campaignConfig.stockLimit}
                       onChange={e => setCampaignConfig(prev => ({ ...prev, stockLimit: e.target.value }))}
-                      placeholder="Leave blank for no limit"
+                      placeholder="e.g. 20 (Leave blank for infinite)"
                       min="1"
                       className={inputCls}
                     />
-                    <p className="text-[9px] text-gray-400 font-medium">Cap how many units are available at the campaign price.</p>
+                    <p className={`text-[10px] font-semibold ${isDark ? 'text-gray-555' : 'text-gray-400'}`}>Limit count of items available at promotional rates.</p>
                   </div>
 
-                  {/* Warning */}
-                  <div className="bg-amber-50 border border-amber-100 rounded-sm px-3 py-2 flex items-start gap-2">
-                    <svg className="w-3.5 h-3.5 text-amber-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/></svg>
-                    <p className="text-[10px] text-amber-700 font-semibold">Make sure your product has at least 10 units in stock before joining.</p>
+                  {/* Stock recommendation warning info */}
+                  <div className={`border p-4 rounded-xl flex items-start gap-2.5 ${
+                    isDark ? 'bg-amber-955/20 border-amber-500/20 text-amber-400' : 'bg-amber-50 border-amber-100 text-amber-800'
+                  }`}>
+                    <Info size={16} className={`shrink-0 mt-0.5 ${isDark ? 'text-amber-450' : 'text-amber-600'}`} />
+                    <p className="text-[10px] font-semibold leading-normal">
+                      We recommend maintaining a minimum inventory stock level of at least 10 units for promoted items to ensure optimal delivery fulfillment rates.
+                    </p>
                   </div>
                 </div>
 
-                <div className="flex-shrink-0 px-4 py-3 border-t border-gray-100 bg-gray-50 flex gap-2.5">
-                  <button onClick={() => setJoinFlow(1)} className="flex items-center gap-1 px-3 py-1.5 border border-gray-200 rounded-sm text-[10px] font-black text-gray-600 hover:bg-gray-100 transition-colors">
+                <div className={`flex-shrink-0 px-5 py-4 border-t flex gap-3 ${
+                  isDark ? 'border-white/10 bg-[#111827]' : 'border-gray-100 bg-gray-50'
+                }`}>
+                  <button onClick={() => setJoinFlow(1)} className={`flex items-center justify-center gap-1.5 px-4 py-2.5 border rounded-xl text-[10px] font-black uppercase tracking-widest transition-colors cursor-pointer ${isDark ? 'border-white/15 text-gray-300 hover:bg-white/5' : 'border-gray-200 text-gray-750 hover:bg-gray-105'}`}>
                     ← Back
                   </button>
                   <button
                     onClick={handleJoinCampaign}
                     disabled={joining || !priceValid}
-                    className="flex-1 py-1.5 bg-gray-900 hover:bg-black disabled:opacity-40 text-white rounded-sm text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-colors"
+                    className={`flex-1 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-colors disabled:opacity-40 cursor-pointer ${isDark ? 'bg-[#16A34A] text-white hover:bg-[#059669]' : 'bg-gray-900 text-white hover:bg-black'}`}
                   >
                     {joining ? (
-                      <><svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>Submitting…</>
+                      <><svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>Submitting…</>
                     ) : 'Confirm & Join Campaign'}
                   </button>
                 </div>

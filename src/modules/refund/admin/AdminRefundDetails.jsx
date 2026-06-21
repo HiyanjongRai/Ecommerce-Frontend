@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
-import { ChevronDown, ChevronUp, AlertTriangle, CreditCard, CheckCircle, User, ShoppingBag, FileText } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ChevronDown, ChevronUp, AlertTriangle, CreditCard, CheckCircle, User, ShoppingBag, FileText, Package } from 'lucide-react';
 import AdminArbitration from './status-views/AdminArbitration';
 import AdminDirectDisburse from './status-views/AdminDirectDisburse';
 import AdminPayoutVerification from './status-views/AdminPayoutVerification';
+import { getAdminOrderDetail } from '../../admin/services/adminService';
+import { BASE_URL } from '../../../shared/api/apiClient';
+
 
 const money = (v) => v != null ? `NPR ${Number(v).toLocaleString()}` : '—';
 const dateLabel = (v) => v ? new Date(v).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
@@ -12,7 +15,7 @@ const STATUS_BADGES = {
   UNDER_REVIEW: 'bg-amber-50 text-amber-700 border-amber-200',
   MORE_EVIDENCE_REQUESTED: 'bg-red-50 text-red-600 border-red-200',
   OFFER_MADE: 'bg-indigo-50 text-indigo-700 border-indigo-200',
-  SELLER_APPROVED: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  SELLER_APPROVED: 'bg-[#16A34A]/10 text-[#152F17] border-[#16A34A]/20',
   RETURN_PENDING: 'bg-indigo-50 text-indigo-700 border-indigo-200',
   RETURN_SHIPPED: 'bg-sky-50 text-sky-700 border-sky-200',
   RETURN_RECEIVED: 'bg-teal-50 text-teal-700 border-teal-200',
@@ -20,16 +23,33 @@ const STATUS_BADGES = {
   INSPECTION_COMPLETE: 'bg-purple-50 text-purple-700 border-purple-200',
   REFUND_PROCESSING: 'bg-orange-50 text-orange-700 border-orange-200',
   PENDING_ADMIN_VERIFICATION: 'bg-purple-50 text-purple-700 border-purple-200',
-  REFUND_COMPLETED: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+  REFUND_COMPLETED: 'bg-[#16A34A]/20 text-emerald-800 border-[#16A34A]/30',
   SELLER_REJECTED: 'bg-red-100 text-red-700 border-red-300',
   CLOSED: 'bg-gray-150 text-gray-500 border-gray-300',
   ADMIN_REVIEW: 'bg-pink-50 text-pink-700 border-pink-200',
-  EXCHANGE_COMPLETED: 'bg-emerald-100 text-emerald-800 border-emerald-300'
+  EXCHANGE_COMPLETED: 'bg-[#16A34A]/20 text-emerald-800 border-[#16A34A]/30'
 };
 
 export default function AdminRefundDetails({ refund, onActionCompleted, themeClasses }) {
   const [open, setOpen] = useState(false);
   const [error, setError] = useState('');
+  const [orderDetail, setOrderDetail] = useState(null);
+
+  useEffect(() => {
+    const hasMissingImages = !refund.productImage || refund.items?.some(item => !item.imagePath);
+    if (refund.orderId && hasMissingImages) {
+      getAdminOrderDetail(refund.orderId)
+        .then(res => setOrderDetail(res.data))
+        .catch(err => console.error('Failed to load admin order details for fallback', err));
+    }
+  }, [refund.orderId, refund.productImage, refund.items]);
+
+  const getImgUrl = (path) => {
+    if (!path) return null;
+    if (path.startsWith('http://') || path.startsWith('https://')) return path;
+    return `${BASE_URL}${path.startsWith('/') ? '' : '/'}${path}`;
+  };
+
 
   const badgeClass = STATUS_BADGES[refund.status] || 'bg-gray-50 text-gray-600 border-gray-200';
   const needsArbitration = refund.status === 'ADMIN_REVIEW';
@@ -69,7 +89,7 @@ export default function AdminRefundDetails({ refund, onActionCompleted, themeCla
 
   return (
     <div className={`rounded-xl border transition-all ${
-      open ? 'border-emerald-500 shadow-md' : themeClasses.border.primary
+      open ? 'border-[#16A34A] shadow-md' : themeClasses.border.primary
     } ${themeClasses.card}`}>
       {/* Summary Header Row */}
       <button
@@ -84,6 +104,14 @@ export default function AdminRefundDetails({ refund, onActionCompleted, themeCla
           ) : (
             <CheckCircle size={16} className="text-gray-400 shrink-0" />
           )}
+          <div className="w-24 h-24 rounded-lg border flex items-center justify-center p-1 bg-gray-50 border-gray-150 shrink-0 overflow-hidden">
+            {(() => {
+              const matchingOi = orderDetail?.items?.find(oi => oi.id === refund.items?.[0]?.orderItemId || oi.productId === refund.items?.[0]?.productId) || orderDetail?.items?.[0];
+              const imgPath = refund.productImage || refund.items?.[0]?.imagePath || matchingOi?.imagePath || matchingOi?.productImage;
+              if (!imgPath) return <Package size={22} className="text-gray-400" />;
+              return <img src={getImgUrl(imgPath)} alt="" className="max-w-full max-h-full object-contain" />;
+            })()}
+          </div>
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="font-mono text-xs font-black text-gray-800">{refund.refundNumber}</span>
@@ -101,7 +129,7 @@ export default function AdminRefundDetails({ refund, onActionCompleted, themeCla
                 </span>
               )}
             </div>
-            <p className="text-[10px] text-gray-550 font-semibold mt-0.5">
+            <p className="text-[10px] text-gray-555 font-semibold mt-0.5">
               Order #{refund.orderNumber || refund.orderId} &bull; Customer: {refund.customerName}
             </p>
           </div>
@@ -133,7 +161,7 @@ export default function AdminRefundDetails({ refund, onActionCompleted, themeCla
             </div>
             <div>
               <span className="text-[9px] font-black uppercase tracking-widest text-gray-400 block mb-0.5">Resolution Request</span>
-              <span className="uppercase text-emerald-700">{refund.type}</span>
+              <span className="uppercase text-[#152F17]">{refund.type}</span>
             </div>
             <div>
               <span className="text-[9px] font-black uppercase tracking-widest text-gray-400 block mb-0.5">Submitted Date</span>
@@ -146,11 +174,48 @@ export default function AdminRefundDetails({ refund, onActionCompleted, themeCla
             {refund.returnRequired != null && (
               <div>
                 <span className="text-[9px] font-black uppercase tracking-widest text-gray-400 block mb-0.5">Return Requirement</span>
-                <span className={`font-bold ${refund.returnRequired ? 'text-indigo-600' : 'text-emerald-600'}`}>
+                <span className={`font-bold ${refund.returnRequired ? 'text-indigo-600' : 'text-[#16A34A]'}`}>
                   {refund.returnRequired ? 'Need Return' : 'No Return (Direct Refund)'}
                 </span>
               </div>
             )}
+            <div>
+              <span className="text-[9px] font-black uppercase tracking-widest text-gray-400 block mb-0.5">Items Selected</span>
+              <span className="font-bold">{refund.items?.length || 1} Item(s)</span>
+            </div>
+          </div>
+
+          {/* Disputed Items with images */}
+          <div className="border border-gray-150 p-3.5 rounded-xl space-y-3 bg-gray-50/30">
+            <span className="text-[9px] font-black uppercase tracking-widest text-gray-400 block">Disputed Items details</span>
+            <div className="space-y-3">
+              {refund.items?.map((item, idx) => {
+                const matchingOi = orderDetail?.items?.find(oi => oi.id === item.orderItemId || oi.productId === item.productId);
+                const imgPath = item.imagePath || matchingOi?.imagePath || matchingOi?.productImage;
+                return (
+                  <div key={idx} className="flex items-center gap-3">
+                    <div className="w-24 h-24 rounded-lg border flex items-center justify-center p-1 bg-white border-gray-200 shrink-0 overflow-hidden">
+                      {imgPath ? (
+                        <img 
+                          src={getImgUrl(imgPath)} 
+                          alt="" 
+                          className="max-w-full max-h-full object-contain" 
+                        />
+                      ) : (
+                        <Package size={22} className="text-gray-400" />
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1 leading-tight">
+                      <p className="font-bold text-gray-900 truncate">{item.productName || 'Disputed Item'}</p>
+                      <p className="text-[10px] text-gray-400 mt-0.5 font-bold">
+                        Qty: <span className="text-gray-700">{item.quantity}</span> &bull; 
+                        Refund: <span className="text-gray-700">NPR {Number(item.refundAmount || 0).toLocaleString()}</span>
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">

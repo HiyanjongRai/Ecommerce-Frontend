@@ -1,6 +1,13 @@
 import React, { useState } from 'react';
 import { createRefund, uploadRefundFile } from '../../../shared/api/refundApi';
 import { Upload, X, ShieldAlert } from 'lucide-react';
+import { BASE_URL } from '../../../shared/api/apiClient';
+
+const getImgUrl = (path) => {
+  if (!path) return null;
+  if (path.startsWith('http://') || path.startsWith('https://')) return path;
+  return `${BASE_URL}${path.startsWith('/') ? '' : '/'}${path}`;
+};
 
 export default function CreateRefundModal({ isOpen, onClose, order, onCreated }) {
   const [type, setType] = useState('REFUND');
@@ -10,8 +17,33 @@ export default function CreateRefundModal({ isOpen, onClose, order, onCreated })
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  
+  const [selectedItems, setSelectedItems] = useState(() => {
+    const init = {};
+    if (order && order.items) {
+      order.items.forEach(item => {
+        init[item.id] = { selected: false, quantity: 1, maxQuantity: item.quantity };
+      });
+    }
+    return init;
+  });
 
   if (!isOpen || !order) return null;
+
+  const toggleItem = (itemId) => {
+    setSelectedItems(prev => ({
+      ...prev,
+      [itemId]: { ...prev[itemId], selected: !prev[itemId].selected }
+    }));
+  };
+
+  const changeQuantity = (itemId, delta) => {
+    setSelectedItems(prev => {
+      const current = prev[itemId];
+      const newQ = Math.max(1, Math.min(current.maxQuantity, current.quantity + delta));
+      return { ...prev, [itemId]: { ...current, quantity: newQ } };
+    });
+  };
 
   const handleFileChange = async (e) => {
     const selectedFiles = Array.from(e.target.files);
@@ -54,12 +86,23 @@ export default function CreateRefundModal({ isOpen, onClose, order, onCreated })
     setError('');
 
     try {
+      const itemsPayload = Object.entries(selectedItems)
+        .filter(([_, data]) => data.selected)
+        .map(([id, data]) => ({ orderItemId: Number(id), quantity: data.quantity }));
+
+      if (itemsPayload.length === 0) {
+        setError('Please select at least one item.');
+        setSubmitting(false);
+        return;
+      }
+
       const payload = {
         orderId: order.orderId,
         type,
         reason,
         description,
-        fileUrls: files.map(f => f.url)
+        fileUrls: files.map(f => f.url),
+        items: itemsPayload
       };
 
       const res = await createRefund(payload);
@@ -123,6 +166,46 @@ export default function CreateRefundModal({ isOpen, onClose, order, onCreated })
                   {opt.label}
                 </button>
               ))}
+            </div>
+          </div>
+
+          {/* Select Items */}
+          <div>
+            <label className="mb-1.5 block text-[10px] font-black uppercase tracking-wider text-gray-500">
+              Select Items to Return / Refund
+            </label>
+            <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
+              {order.items?.map(item => {
+                const state = selectedItems[item.id] || { selected: false, quantity: 1, maxQuantity: 1 };
+                return (
+                  <div key={item.id} className={`flex items-center gap-3 p-2 rounded-lg border transition-colors ${state.selected ? 'border-emerald-500 bg-emerald-50' : 'border-gray-100 bg-gray-50'}`}>
+                    <input 
+                      type="checkbox" 
+                      className="w-4 h-4 text-emerald-600 rounded border-gray-300 focus:ring-emerald-500"
+                      checked={state.selected}
+                      onChange={() => toggleItem(item.id)}
+                    />
+                    <div className="w-10 h-10 bg-white rounded flex-shrink-0 border border-gray-100 overflow-hidden flex items-center justify-center">
+                      {item.imagePath ? (
+                        <img src={getImgUrl(item.imagePath)} alt={item.productName} className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-[10px] text-gray-400">No img</span>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-bold text-gray-900 truncate">{item.productName}</p>
+                      <p className="text-[10px] font-semibold text-gray-500 truncate">{item.variantLabel || 'Standard'}</p>
+                    </div>
+                    {state.selected && state.maxQuantity > 1 && (
+                      <div className="flex items-center gap-2 bg-white rounded-md border border-emerald-200 px-1 py-0.5">
+                        <button type="button" onClick={() => changeQuantity(item.id, -1)} disabled={state.quantity <= 1} className="w-5 h-5 flex items-center justify-center text-gray-500 hover:bg-gray-100 rounded disabled:opacity-50 font-bold">-</button>
+                        <span className="text-xs font-bold w-4 text-center">{state.quantity}</span>
+                        <button type="button" onClick={() => changeQuantity(item.id, 1)} disabled={state.quantity >= state.maxQuantity} className="w-5 h-5 flex items-center justify-center text-gray-500 hover:bg-gray-100 rounded disabled:opacity-50 font-bold">+</button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
 

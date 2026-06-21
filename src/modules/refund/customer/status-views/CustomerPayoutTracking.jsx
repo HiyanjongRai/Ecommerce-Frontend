@@ -63,7 +63,7 @@ export default function CustomerPayoutTracking({
       <div className="flex gap-3">
         <button
           onClick={handleAccept}
-          className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-all shadow-xs cursor-pointer"
+          className="px-5 py-2.5 bg-[#152F17] hover:bg-[#0D1E0F] text-white rounded-lg text-xs font-bold transition-all shadow-xs cursor-pointer"
         >
           Accept Offer
         </button>

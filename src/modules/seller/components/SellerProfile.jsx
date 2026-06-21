@@ -2,16 +2,24 @@ import React, { useState, useEffect } from 'react';
 import { getSellerProfile, updateSellerProfile } from '../services/sellerService';
 import { BASE_URL } from '../../../shared/api/apiConfig';
 import { LoadingState, SectionHeader } from './SellerSectionUtils';
+import { useSellerTheme } from '../hooks/useSellerTheme';
 
 const toImageUrl = (path) => {
   if (!path) return null;
   return path.startsWith('http') ? path : `${BASE_URL}${path.startsWith('/') ? '' : '/'}${path}`;
 };
 
-const inputCls = 'w-full bg-white border border-gray-200 rounded-sm px-3 py-2 text-xs font-semibold text-gray-800 placeholder-gray-300 outline-none focus:border-gray-400 transition-colors';
-const labelCls = 'block text-[9px] font-black uppercase tracking-wider text-gray-400 mb-1';
-
 const SellerProfile = () => {
+  const { darkMode, themeClasses } = useSellerTheme();
+  const isDark = darkMode;
+
+  const inputCls = `w-full rounded-xl px-4 py-2.5 text-xs font-semibold focus:outline-none transition-colors border ${
+    isDark 
+      ? 'bg-[#111827] border-white/10 text-white placeholder-gray-600 focus:border-[#16A34A]' 
+      : 'bg-white border-gray-200 text-[#222529] placeholder-gray-400 focus:border-[#16A34A]'
+  }`;
+  const labelCls = `block text-[10px] font-black uppercase tracking-widest mb-1.5 ${isDark ? 'text-gray-500' : 'text-gray-400'}`;
+
   const [profile, setProfile] = useState({
     storeName: '',
     description: '',
@@ -106,44 +114,45 @@ const SellerProfile = () => {
   if (loading) return <LoadingState label="Loading store profile…" />;
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 max-w-[1400px]">
+    <form onSubmit={handleSubmit} className={`space-y-4 max-w-[1400px] animate-in fade-in-50 duration-200 font-sans ${themeClasses.bg.primary}`}>
 
       {/* Page Header */}
-      <div className="flex items-start justify-between gap-4">
-        <SectionHeader
-          title="Store Profile"
-          subtitle="Manage your public store details, logo, and delivery configuration."
-        />
-        <button
-          type="submit"
-          disabled={saving}
-          className="flex-shrink-0 flex items-center gap-1.5 bg-gray-900 hover:bg-black disabled:opacity-60 text-white text-[9px] font-black uppercase tracking-wider px-4 py-1.5 rounded-sm transition-colors"
-        >
-          {saving ? (
-            <>
-              <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
-              </svg>
-              Saving…
-            </>
-          ) : (
-            <>
-              <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-              </svg>
-              Save Changes
-            </>
-          )}
-        </button>
-      </div>
+      <SectionHeader
+        title="Store Profile"
+        subtitle="Manage your public store details, logo, and delivery configuration."
+        tag="Store Settings"
+        action={
+          <button
+            type="submit"
+            disabled={saving}
+            className="bg-white hover:bg-gray-150 text-gray-900 disabled:opacity-50 px-4 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-colors shadow-sm h-10 flex items-center gap-1.5"
+          >
+            {saving ? (
+              <>
+                <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                </svg>
+                Saving…
+              </>
+            ) : (
+              <>
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                Save Changes
+              </>
+            )}
+          </button>
+        }
+      />
 
       {/* Alert */}
       {message.text && (
-        <div className={`p-3 rounded-sm border text-xs font-bold flex items-center gap-2 ${
+        <div className={`p-4 border rounded-xl text-xs font-black flex items-center gap-3 tracking-wide uppercase ${
           message.type === 'success'
-            ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
-            : 'bg-red-50 border-red-200 text-red-800'
+            ? (isDark ? 'bg-[#16A34A]/10 border-[#16A34A]/20 text-[#16A34A]' : 'bg-[#16A34A]/10 border-[#16A34A]/20 text-emerald-800')
+            : (isDark ? 'bg-red-500/10 border-red-500/20 text-red-400' : 'bg-red-50 border-red-200 text-red-800')
         }`}>
           <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             {message.type === 'success'
@@ -161,9 +170,9 @@ const SellerProfile = () => {
         <div className="lg:col-span-2 space-y-4">
 
           {/* Basic Information */}
-          <div className="bg-white border border-gray-200 rounded-sm shadow-sm overflow-hidden">
-            <div className="px-4 py-3 border-b border-gray-100">
-              <p className="text-[9px] font-black uppercase tracking-wider text-gray-400">Basic Information</p>
+          <div className={`border rounded-2xl shadow-[0_2px_10px_rgba(0,0,0,0.02)] overflow-hidden transition-colors ${isDark ? 'bg-[#0b0c10] border-white/10' : 'bg-white border-gray-200'}`}>
+            <div className={`px-4 py-3 border-b ${isDark ? 'border-white/10 bg-[#111827]' : 'border-gray-100'}`}>
+              <p className={`text-[10px] font-black uppercase tracking-wider ${isDark ? 'text-white/40' : 'text-gray-400'}`}>Basic Information</p>
             </div>
             <div className="p-4 space-y-3.5">
               <div>
@@ -214,50 +223,50 @@ const SellerProfile = () => {
           </div>
 
           {/* Delivery Configuration */}
-          <div className="bg-white border border-gray-200 rounded-sm shadow-sm overflow-hidden">
-            <div className="px-4 py-3 border-b border-gray-100">
-              <p className="text-[9px] font-black uppercase tracking-wider text-gray-400">Delivery Configuration</p>
+          <div className={`border rounded-2xl shadow-[0_2px_10px_rgba(0,0,0,0.02)] overflow-hidden transition-colors ${isDark ? 'bg-[#0b0c10] border-white/10' : 'bg-white border-gray-200'}`}>
+            <div className={`px-4 py-3 border-b ${isDark ? 'border-white/10 bg-[#111827]' : 'border-gray-100'}`}>
+              <p className={`text-[10px] font-black uppercase tracking-wider ${isDark ? 'text-white/40' : 'text-gray-400'}`}>Delivery Configuration</p>
             </div>
             <div className="p-4 space-y-3.5">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
                   <label className={labelCls}>Inside Valley Delivery (Rs.)</label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[9px] font-black text-gray-400">Rs.</span>
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-gray-400">Rs.</span>
                     <input
                       type="number" name="insideValleyDeliveryFee"
                       value={profile.insideValleyDeliveryFee} onChange={handleInputChange}
-                      className={`${inputCls} pl-8`}
+                      className={`${inputCls} pl-10`}
                     />
                   </div>
                 </div>
                 <div>
                   <label className={labelCls}>Outside Valley Delivery (Rs.)</label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[9px] font-black text-gray-400">Rs.</span>
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-gray-400">Rs.</span>
                     <input
                       type="number" name="outsideValleyDeliveryFee"
                       value={profile.outsideValleyDeliveryFee} onChange={handleInputChange}
-                      className={`${inputCls} pl-8`}
+                      className={`${inputCls} pl-10`}
                     />
                   </div>
                 </div>
               </div>
 
               {/* Free Shipping Toggle */}
-              <label className="flex items-center gap-3 bg-gray-50 border border-gray-200 rounded-sm px-4 py-3 cursor-pointer hover:bg-gray-100/70 transition-colors">
+              <label className={`flex items-center gap-3 border rounded-xl px-4 py-3 cursor-pointer transition-colors ${isDark ? 'bg-white/5 border-white/10 hover:bg-white/10' : 'bg-gray-50 border-gray-200 hover:bg-gray-100/70'}`}>
                 <div className="relative flex-shrink-0">
                   <input
                     type="checkbox" name="freeShippingEnabled"
                     checked={profile.freeShippingEnabled} onChange={handleInputChange}
                     className="sr-only peer"
                   />
-                  <div className="w-10 h-5 bg-gray-200 rounded-full peer-checked:bg-emerald-500 transition-colors" />
+                  <div className="w-10 h-5 bg-gray-200 rounded-full peer-checked:bg-[#16A34A]/100 transition-colors" />
                   <div className="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform peer-checked:translate-x-5" />
                 </div>
                 <div>
-                  <span className="text-xs font-black text-gray-900">Enable Free Shipping</span>
-                  <span className="block text-[10px] text-gray-400 font-medium">Automatically waive delivery fee above a minimum order</span>
+                  <span className={`text-xs font-black ${isDark ? 'text-white' : 'text-gray-900'}`}>Enable Free Shipping</span>
+                  <span className={`block text-[10px] font-semibold ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Automatically waive delivery fee above a minimum order</span>
                 </div>
               </label>
 
@@ -265,15 +274,15 @@ const SellerProfile = () => {
                 <div>
                   <label className={labelCls}>Free Shipping Minimum Order (Rs.)</label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[9px] font-black text-gray-400">Rs.</span>
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-gray-400">Rs.</span>
                     <input
                       type="number" name="freeShippingMinOrder"
                       value={profile.freeShippingMinOrder} onChange={handleInputChange}
-                      className={`${inputCls} pl-8 bg-emerald-50/40 border-emerald-200`}
+                      className={`${inputCls} pl-10 ${isDark ? 'bg-[#16A34A]/5 border-[#16A34A]/30' : 'bg-[#16A34A]/10/40 border-[#16A34A]/20'}`}
                       placeholder="e.g. 5000"
                     />
                   </div>
-                  <p className="text-[10px] text-gray-400 font-medium mt-1.5">
+                  <p className={`text-[10px] font-semibold mt-1.5 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
                     Orders above this amount get free shipping automatically. Set to 0 to disable.
                   </p>
                 </div>
@@ -284,14 +293,14 @@ const SellerProfile = () => {
 
         {/* ── Right: Logo ── */}
         <div className="space-y-4">
-          <div className="bg-white border border-gray-200 rounded-sm shadow-sm overflow-hidden">
-            <div className="px-4 py-3 border-b border-gray-100">
-              <p className="text-[9px] font-black uppercase tracking-wider text-gray-400">Store Logo</p>
+          <div className={`border rounded-2xl shadow-[0_2px_10px_rgba(0,0,0,0.02)] overflow-hidden transition-colors ${isDark ? 'bg-[#0b0c10] border-white/10' : 'bg-white border-gray-200'}`}>
+            <div className={`px-4 py-3 border-b ${isDark ? 'border-white/10 bg-[#111827]' : 'border-gray-100'}`}>
+              <p className={`text-[10px] font-black uppercase tracking-wider ${isDark ? 'text-white/40' : 'text-gray-400'}`}>Store Logo</p>
             </div>
             <div className="p-4 flex flex-col items-center gap-3">
               {/* Logo preview */}
               <div className="relative group cursor-pointer">
-                <div className="w-24 h-24 rounded-sm border-2 border-gray-200 bg-gray-100 flex items-center justify-center overflow-hidden">
+                <div className={`w-24 h-24 rounded-xl border-2 overflow-hidden flex items-center justify-center ${isDark ? 'bg-[#111827] border-white/20' : 'bg-gray-100 border-gray-200'}`}>
                   {logoPreview ? (
                     <img src={logoPreview} alt="Store Logo" className="w-full h-full object-cover" />
                   ) : (
@@ -300,14 +309,14 @@ const SellerProfile = () => {
                     </svg>
                   )}
                 </div>
-                <label className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer rounded-sm">
+                <label className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer rounded-xl">
                   <span className="text-white text-[8px] font-black uppercase tracking-widest">Change</span>
                   <input type="file" className="hidden" accept="image/*" onChange={handleLogoChange} />
                 </label>
               </div>
 
               {/* Upload button */}
-              <label className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider text-gray-600 border border-gray-200 px-3 py-1.5 rounded-sm hover:bg-gray-50 transition-colors cursor-pointer">
+              <label className={`flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider px-4 py-2.5 rounded-xl border transition-colors cursor-pointer ${isDark ? 'text-white border-white/20 hover:bg-white/10' : 'text-gray-600 border-gray-200 hover:bg-gray-50'}`}>
                 <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/>
                 </svg>
@@ -315,12 +324,12 @@ const SellerProfile = () => {
                 <input type="file" className="hidden" accept="image/*" onChange={handleLogoChange} />
               </label>
 
-              <p className="text-[9px] text-gray-400 font-medium text-center">
+              <p className={`text-[9px] font-semibold text-center ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
                 Recommended: 400×400px · Max 2MB
               </p>
 
               {logoFile && (
-                <p className="text-[9px] text-emerald-700 font-black text-center border border-emerald-200 bg-emerald-50 rounded-sm px-2 py-1">
+                <p className="text-[9px] text-[#16A34A] font-black text-center border border-[#16A34A]/25 bg-[#16A34A]/10 rounded-xl px-3 py-1">
                   ✓ New logo selected
                 </p>
               )}
@@ -328,9 +337,9 @@ const SellerProfile = () => {
           </div>
 
           {/* Quick Tips card */}
-          <div className="bg-white border border-gray-200 rounded-sm shadow-sm overflow-hidden">
-            <div className="px-4 py-3 border-b border-gray-100">
-              <p className="text-[9px] font-black uppercase tracking-wider text-gray-400">Tips</p>
+          <div className={`border rounded-2xl shadow-[0_2px_10px_rgba(0,0,0,0.02)] overflow-hidden transition-colors ${isDark ? 'bg-[#0b0c10] border-white/10' : 'bg-white border-gray-200'}`}>
+            <div className={`px-4 py-3 border-b ${isDark ? 'border-white/10 bg-[#111827]' : 'border-gray-100'}`}>
+              <p className={`text-[10px] font-black uppercase tracking-wider ${isDark ? 'text-white/40' : 'text-gray-400'}`}>Tips</p>
             </div>
             <div className="p-4 space-y-2.5">
               {[
@@ -340,8 +349,8 @@ const SellerProfile = () => {
                 'Enable free shipping above a threshold to boost conversion.',
               ].map((tip, i) => (
                 <div key={i} className="flex items-start gap-2">
-                  <div className="w-1 h-1 rounded-full bg-gray-400 flex-shrink-0 mt-1.5" />
-                  <p className="text-[10px] text-gray-500 font-medium leading-relaxed">{tip}</p>
+                  <div className={`w-1 h-1 rounded-full flex-shrink-0 mt-1.5 ${isDark ? 'bg-white/40' : 'bg-gray-400'}`} />
+                  <p className={`text-[10px] font-semibold leading-relaxed ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{tip}</p>
                 </div>
               ))}
             </div>

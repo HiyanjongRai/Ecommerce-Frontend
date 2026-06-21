@@ -376,8 +376,8 @@ const ProductDetails = () => {
       )}
 
       {/* Breadcrumb Path */}
-      <div className="bg-white border-b border-gray-100 shadow-xs">
-        <div className="max-w-4xl mx-auto px-4 py-2.5 flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-wider text-slate-400">
+      <div className="bg-white border-b border-gray-100 shadow-xs mt-3 mb-4">
+        <div className="max-w-4xl mx-auto px-4 pb-2 flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-wider text-slate-400">
           <Link to="/" className="hover:text-emerald-600 transition-colors">Home</Link>
           <ChevronRight className="w-2.5 h-2.5 text-slate-300" />
           <Link to="/products" className="hover:text-emerald-600 transition-colors">{product.category || 'Shop'}</Link>

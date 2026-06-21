@@ -202,7 +202,7 @@ const SellerPublicProfile = () => {
                     </strong>
                   </div>
                   {profile.freeShippingEnabled && (
-                    <div className="pt-2 border-t border-gray-200 mt-2 text-[10px] text-emerald-600 font-bold text-center">
+                    <div className="pt-2 border-t border-gray-200 mt-2 text-[10px] text-[#16A34A] font-bold text-center">
                       🚚 Free Shipping on orders over Rs. {profile.freeShippingMinOrder || 0}
                     </div>
                   )}
@@ -286,7 +286,7 @@ const SellerPublicProfile = () => {
                 </div>
               )}
               {msgSuccess && (
-                <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-600 text-[11px] font-semibold">
+                <div className="p-3 bg-[#16A34A]/10 border border-[#16A34A]/20 rounded-xl text-[#16A34A] text-[11px] font-semibold">
                   🎉 Message sent successfully! Close modal...
                 </div>
               )}

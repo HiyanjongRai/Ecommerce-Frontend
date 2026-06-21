@@ -33,6 +33,20 @@ const BREADCRUMBS = {
   '/customer/disputes':      'My Disputes',
 };
 
+const SUBTITLES = {
+  '/customer/dashboard':     'Welcome back! View your overall loyalty points and order history.',
+  '/customer/cart':          'Review your selected items and proceed to checkout.',
+  '/customer/wishlist':      'Keep track of the products you love.',
+  '/customer/orders':        'View and track all your orders, returns, and refunds.',
+  '/customer/reviews':       'Share your experience and review purchased products.',
+  '/customer/profile':       'Update your account information, email, and password.',
+  '/customer/addresses':     'Manage your shipping and billing address information.',
+  '/customer/loyalty':       'Check your loyalty tiers and reward point status.',
+  '/customer/messages':      'Communicate directly with store support and merchants.',
+  '/customer/notifications': 'Stay updated with active status alerts and news.',
+  '/customer/disputes':      'Track and manage your dispute and refund claims.',
+};
+
 const CustomerLayout = () => {
   const { user, loading, unreadNotifs } = useCustomer();
   const location = useLocation();
@@ -48,6 +62,18 @@ const CustomerLayout = () => {
     setDarkMode(prev => {
       const next = !prev;
       localStorage.setItem('customer-theme', next ? 'dark' : 'light');
+      return next;
+    });
+  };
+
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    return localStorage.getItem('customer-sidebar-collapsed') === 'true';
+  });
+
+  const toggleSidebarCollapse = () => {
+    setSidebarCollapsed(prev => {
+      const next = !prev;
+      localStorage.setItem('customer-sidebar-collapsed', String(next));
       return next;
     });
   };
@@ -75,7 +101,7 @@ const CustomerLayout = () => {
       <div className={`customer-page min-h-screen bg-gray-50 font-sans transition-colors duration-250 ${darkMode ? 'theme-dark' : ''}`}>
       <style>{`
         .customer-page {
-          background-color: #FFFFFF !important;
+          background-color: #F8FAF7 !important;
           color: #111827 !important;
         }
         .customer-page .text-blue-600,
@@ -302,108 +328,27 @@ const CustomerLayout = () => {
         .animate-slide-in {
           animation: slideIn 0.25s ease-out forwards;
         }
-
-        /* ── Compact Sizing Overrides for all Customer Pages ── */
-        .customer-page {
-          font-size: 0.8rem !important;
-        }
-        .customer-page .text-3xl { font-size: 1.25rem !important; }
-        .customer-page .text-2xl { font-size: 1.15rem !important; }
-        .customer-page .text-xl { font-size: 1.05rem !important; }
-        .customer-page .text-lg { font-size: 0.95rem !important; }
-        .customer-page .text-base { font-size: 0.85rem !important; }
-        .customer-page .text-sm { font-size: 0.75rem !important; }
-        .customer-page .text-xs { font-size: 0.7rem !important; }
-        .customer-page .text-\[10px\] { font-size: 0.65rem !important; }
-
-        .customer-page .p-8 { padding: 1.25rem !important; }
-        .customer-page .p-6 { padding: 1rem !important; }
-        .customer-page .p-5 { padding: 0.875rem !important; }
-        .customer-page .p-4 { padding: 0.75rem !important; }
-        .customer-page .p-3 { padding: 0.5rem !important; }
-        .customer-page .p-2.5 { padding: 0.4rem !important; }
-        .customer-page .p-2 { padding: 0.35rem !important; }
-        .customer-page .p-1.5 { padding: 0.25rem !important; }
-
-        .customer-page .py-12 { padding-top: 1.5rem !important; padding-bottom: 1.5rem !important; }
-        .customer-page .py-10 { padding-top: 1.25rem !important; padding-bottom: 1.25rem !important; }
-        .customer-page .py-8 { padding-top: 1rem !important; padding-bottom: 1rem !important; }
-        .customer-page .py-6 { padding-top: 0.75rem !important; padding-bottom: 0.75rem !important; }
-        .customer-page .py-5 { padding-top: 0.625rem !important; padding-bottom: 0.625rem !important; }
-        .customer-page .py-4 { padding-top: 0.5rem !important; padding-bottom: 0.5rem !important; }
-        .customer-page .py-3 { padding-top: 0.375rem !important; padding-bottom: 0.375rem !important; }
-        .customer-page .py-2.5 { padding-top: 0.3rem !important; padding-bottom: 0.3rem !important; }
-        .customer-page .py-2 { padding-top: 0.25rem !important; padding-bottom: 0.25rem !important; }
-        .customer-page .py-1.5 { padding-top: 0.175rem !important; padding-bottom: 0.175rem !important; }
-
-        .customer-page .px-8 { padding-left: 1.25rem !important; padding-right: 1.25rem !important; }
-        .customer-page .px-6 { padding-left: 1rem !important; padding-right: 1rem !important; }
-        .customer-page .px-5 { padding-left: 0.875rem !important; padding-right: 0.875rem !important; }
-        .customer-page .px-4 { padding-left: 0.625rem !important; padding-right: 0.625rem !important; }
-        .customer-page .px-3 { padding-left: 0.5rem !important; padding-right: 0.5rem !important; }
-        .customer-page .px-2.5 { padding-left: 0.375rem !important; padding-right: 0.375rem !important; }
-        .customer-page .px-2 { padding-left: 0.25rem !important; padding-right: 0.25rem !important; }
-
-        .customer-page .gap-8 { gap: 1.25rem !important; }
-        .customer-page .gap-6 { gap: 1rem !important; }
-        .customer-page .gap-5 { gap: 0.875rem !important; }
-        .customer-page .gap-4 { gap: 0.75rem !important; }
-        .customer-page .gap-3 { gap: 0.5rem !important; }
-        .customer-page .gap-2 { gap: 0.35rem !important; }
-
-        .customer-page .mb-8 { margin-bottom: 1.25rem !important; }
-        .customer-page .mb-6 { margin-bottom: 1rem !important; }
-        .customer-page .mb-5 { margin-bottom: 0.875rem !important; }
-        .customer-page .mb-4 { margin-bottom: 0.625rem !important; }
-        .customer-page .mb-3 { margin-bottom: 0.5rem !important; }
-        .customer-page .mb-2 { margin-bottom: 0.35rem !important; }
-        .customer-page .mb-1.5 { margin-bottom: 0.25rem !important; }
-
-        .customer-page .mt-8 { margin-top: 1.25rem !important; }
-        .customer-page .mt-6 { margin-top: 1rem !important; }
-        .customer-page .mt-5 { margin-top: 0.875rem !important; }
-        .customer-page .mt-4 { margin-top: 0.625rem !important; }
-        .customer-page .mt-3 { margin-top: 0.5rem !important; }
-        .customer-page .mt-2 { margin-top: 0.35rem !important; }
-
-        .customer-page th, .customer-page td {
-          padding: 0.4rem 0.5rem !important;
-        }
-
-        .customer-page input, .customer-page select, .customer-page textarea {
-          padding-top: 0.35rem !important;
-          padding-bottom: 0.35rem !important;
-          font-size: 0.75rem !important;
-        }
-
-        .customer-page button {
-          padding-top: 0.35rem !important;
-          padding-bottom: 0.35rem !important;
-          font-size: 0.75rem !important;
-        }
-
-        .customer-page .w-16 { width: 3rem !important; }
-        .customer-page .h-16 { height: 3rem !important; }
-        .customer-page .w-12 { width: 2.25rem !important; }
-        .customer-page .h-12 { height: 2.25rem !important; }
-        .customer-page .w-10 { width: 1.75rem !important; }
-        .customer-page .h-10 { height: 1.75rem !important; }
-        .customer-page .w-8 { width: 1.5rem !important; }
-        .customer-page .h-8 { height: 1.5rem !important; }
       `}</style>
       {/* Breadcrumb Banner */}
-      <div className={`${darkMode ? 'theme-dark' : ''} bg-white border-b border-gray-100`}>
-        <div className="max-w-[1440px] mx-auto px-6 py-1.5">
-          <nav className="flex items-center gap-2 text-xs text-gray-400 mb-0.5 uppercase tracking-wider font-semibold">
-            <Link to="/" className="hover:text-emerald-600 transition-colors">Home</Link>
-            <span>›</span>
-            <span className="hover:text-emerald-600 cursor-pointer transition-colors">Shop</span>
-            <span>›</span>
-            <span className="text-gray-600">{currentLabel}</span>
-          </nav>
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <h1 className="text-xl font-black text-gray-800 tracking-tight">{currentLabel}</h1>
+      <div className={`${darkMode ? 'theme-dark' : ''} bg-white border-b border-[#E5E7EB] py-4 mb-6 shadow-xs`}>
+        <div className="max-w-[1440px] mx-auto px-6">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            {/* Left Column: Breadcrumbs, Title, Subtitle */}
+            <div className="space-y-1">
+              <nav className="flex items-center gap-2 text-[13px] font-medium text-[#6B7280] mb-1.5">
+                <Link to="/" className="hover:text-emerald-600 transition-colors">Home</Link>
+                <span className="text-gray-300">/</span>
+                <span className="hover:text-emerald-600 cursor-pointer transition-colors">Shop</span>
+                <span className="text-gray-300">/</span>
+                <span className="text-gray-500">{currentLabel}</span>
+              </nav>
+              <h1 className="text-3xl font-bold text-slate-800 leading-tight tracking-tight">{currentLabel}</h1>
+              {SUBTITLES[location.pathname] && (
+                <p className="text-[13px] text-gray-500 font-medium">{SUBTITLES[location.pathname]}</p>
+              )}
+            </div>
+            {/* Right Column: Notification Bell */}
+            <div className="flex items-center gap-3 shrink-0">
               <NotificationButton
                 count={unreadNotifs}
                 onClick={() => navigate('/customer/notifications')}
@@ -418,11 +363,13 @@ const CustomerLayout = () => {
         <div className="flex gap-4 items-start">
           {/* Sidebar */}
           {!isCheckoutOrCart && (
-            <aside className="w-52 flex-shrink-0">
+            <aside className={`${sidebarCollapsed ? 'w-[72px]' : 'w-56'} flex-shrink-0 transition-all duration-300`}>
               <CustomerSidebar 
                 currentPath={location.pathname} 
                 darkMode={darkMode}
                 toggleDarkMode={toggleDarkMode}
+                isCollapsed={sidebarCollapsed}
+                onToggleCollapse={toggleSidebarCollapse}
               />
             </aside>
           )}

@@ -1,28 +1,92 @@
 import React from 'react';
 import { RefreshCw, Scale, HelpCircle, ChevronRight, Clock, Truck, CheckCircle, AlertTriangle, Handshake } from 'lucide-react';
+import { BASE_URL } from '../../../shared/api/apiClient';
+import { getOrderDetail } from '../../../shared/api/customerApi';
+
+const getImgUrl = (path) => {
+  if (!path) return null;
+  if (path.startsWith('http://') || path.startsWith('https://')) return path;
+  return `${BASE_URL}${path.startsWith('/') ? '' : '/'}${path}`;
+};
+
+const orderDetailCache = {};
+
+function CustomerRefundListProductCell({ refund }) {
+  const [resolvedImg, setResolvedImg] = React.useState(refund.productImage || refund.items?.[0]?.imagePath || null);
+
+  React.useEffect(() => {
+    if (refund.productImage || refund.items?.[0]?.imagePath) {
+      return;
+    }
+
+    const orderId = refund.orderId;
+    if (!orderId) return;
+
+    if (orderDetailCache[orderId]) {
+      orderDetailCache[orderId].then(data => {
+        if (data) {
+          const match = data.items?.find(oi => oi.id === refund.items?.[0]?.orderItemId || oi.productId === refund.items?.[0]?.productId) || data.items?.[0];
+          if (match?.imagePath) setResolvedImg(match.imagePath);
+          else if (match?.productImage) setResolvedImg(match.productImage);
+        }
+      });
+      return;
+    }
+
+    const promise = getOrderDetail(orderId)
+      .then(res => res.data)
+      .catch(() => null);
+
+    orderDetailCache[orderId] = promise;
+
+    promise.then(data => {
+      if (data) {
+        const match = data.items?.find(oi => oi.id === refund.items?.[0]?.orderItemId || oi.productId === refund.items?.[0]?.productId) || data.items?.[0];
+        if (match?.imagePath) setResolvedImg(match.imagePath);
+        else if (match?.productImage) setResolvedImg(match.productImage);
+      }
+    });
+  }, [refund]);
+
+  const meta = getStatusMeta(refund.status);
+  const Icon = meta.icon;
+
+  return (
+    <div className={`w-24 h-24 rounded-lg flex items-center justify-center border shrink-0 overflow-hidden ${
+      resolvedImg ? 'bg-gray-50 border-gray-150' : meta.badge
+    }`}>
+      {resolvedImg ? (
+        <img src={getImgUrl(resolvedImg)} alt="" className="max-w-full max-h-full object-contain" />
+      ) : (
+        <Icon size={24} strokeWidth={2.5} />
+      )}
+    </div>
+  );
+}
+
 
 const STATUS_META = {
   REQUEST_CREATED: { label: 'Request Created', badge: 'bg-blue-50 text-blue-600 border-blue-200', icon: Clock },
   UNDER_REVIEW: { label: 'Under Review', badge: 'bg-amber-50 text-amber-600 border-amber-200', icon: Scale },
   MORE_EVIDENCE_REQUESTED: { label: 'Evidence Required', badge: 'bg-red-50 text-red-500 border-red-200', icon: AlertTriangle },
   OFFER_MADE: { label: 'Offer Pending', badge: 'bg-indigo-50 text-indigo-600 border-indigo-200', icon: Handshake },
-  SELLER_APPROVED: { label: 'Approved by Seller', badge: 'bg-[#e6f7ec] text-[#10B981] border-[#bbf7d0]', icon: CheckCircle },
+  SELLER_APPROVED: { label: 'Approved by Seller', badge: 'bg-[#e8f3e9] text-[#10B981] border-[#bbf7d0]', icon: CheckCircle },
   RETURN_PENDING: { label: 'Return Pending', badge: 'bg-indigo-50 text-indigo-600 border-indigo-200', icon: Truck },
   RETURN_SHIPPED: { label: 'Return Shipped', badge: 'bg-sky-50 text-sky-600 border-sky-200', icon: Truck },
-  RETURN_RECEIVED: { label: 'Return Received', badge: 'bg-[#e6f7ec] text-[#10B981] border-[#bbf7d0]', icon: CheckCircle },
+  RETURN_RECEIVED: { label: 'Return Received', badge: 'bg-[#e8f3e9] text-[#10B981] border-[#bbf7d0]', icon: CheckCircle },
   PRODUCT_INSPECTION: { label: 'Product Inspection', badge: 'bg-violet-50 text-violet-600 border-violet-200', icon: Scale },
   INSPECTION_COMPLETE: { label: 'Inspection Complete', badge: 'bg-purple-50 text-purple-600 border-purple-200', icon: CheckCircle },
   REFUND_PROCESSING: { label: 'Refund Processing', badge: 'bg-orange-50 text-orange-600 border-orange-200', icon: Clock },
-  REFUND_COMPLETED: { label: 'Refund Completed', badge: 'bg-[#e6f7ec] text-[#10B981] border-[#bbf7d0]', icon: CheckCircle },
+  REFUND_COMPLETED: { label: 'Refund Completed', badge: 'bg-[#e8f3e9] text-[#10B981] border-[#bbf7d0]', icon: CheckCircle },
   SELLER_REJECTED: { label: 'Rejected by Seller', badge: 'bg-red-50 text-red-500 border-red-200', icon: AlertTriangle },
-  CUSTOMER_ACCEPTS: { label: 'Offer Accepted', badge: 'bg-[#e6f7ec] text-[#10B981] border-[#bbf7d0]', icon: CheckCircle },
+  CUSTOMER_ACCEPTS: { label: 'Offer Accepted', badge: 'bg-[#e8f3e9] text-[#10B981] border-[#bbf7d0]', icon: CheckCircle },
   CLOSED: { label: 'Closed', badge: 'bg-gray-100 text-gray-500 border-gray-200', icon: CheckCircle },
   ADMIN_REVIEW: { label: 'Admin Reviewing', badge: 'bg-pink-50 text-pink-600 border-pink-200', icon: Scale },
-  ADMIN_APPROVED_REFUND: { label: 'Approved by Admin', badge: 'bg-[#e6f7ec] text-[#10B981] border-[#bbf7d0]', icon: CheckCircle },
+  ADMIN_APPROVED_REFUND: { label: 'Approved by Admin', badge: 'bg-[#e8f3e9] text-[#10B981] border-[#bbf7d0]', icon: CheckCircle },
   ADMIN_REJECTED_REFUND: { label: 'Rejected by Admin', badge: 'bg-red-50 text-red-500 border-red-200', icon: AlertTriangle },
   REPLACEMENT_PREPARING: { label: 'Replacement Preparing', badge: 'bg-violet-50 text-violet-600 border-violet-200', icon: Clock },
   REPLACEMENT_SHIPPED: { label: 'Replacement Shipped', badge: 'bg-sky-50 text-sky-600 border-sky-200', icon: Truck },
-  EXCHANGE_COMPLETED: { label: 'Exchange Completed', badge: 'bg-[#e6f7ec] text-[#10B981] border-[#bbf7d0]', icon: CheckCircle }
+  EXCHANGE_COMPLETED: { label: 'Exchange Completed', badge: 'bg-[#e8f3e9] text-[#10B981] border-[#bbf7d0]', icon: CheckCircle }
 };
 
 const getStatusMeta = (status) => STATUS_META[status] || { label: status, badge: 'bg-gray-50 text-gray-500 border-gray-200', icon: HelpCircle };
@@ -52,7 +116,7 @@ export default function CustomerRefundList({
           </div>
           <button
             onClick={onRefresh}
-            className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-gray-600 hover:text-[#10B981] hover:border-[#10B981] hover:bg-emerald-50 transition-colors px-3 py-1.5 border border-gray-200 rounded-lg shadow-[0_2px_10px_rgba(0,0,0,0.02)] cursor-pointer"
+            className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-gray-600 hover:text-[#10B981] hover:border-[#10B981] hover:bg-[#16A34A]/10 transition-colors px-3 py-1.5 border border-gray-200 rounded-lg shadow-[0_2px_10px_rgba(0,0,0,0.02)] cursor-pointer"
           >
             <RefreshCw size={12} />
             Refresh
@@ -84,10 +148,8 @@ export default function CustomerRefundList({
                 className="w-full text-left px-5 py-3 hover:bg-gray-50/60 transition-colors flex items-center justify-between gap-3 group cursor-pointer"
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  {/* Status Icon Box */}
-                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center border shrink-0 ${meta.badge}`}>
-                    <Icon size={18} strokeWidth={2.5} />
-                  </div>
+                  {/* Product Image or Fallback Status Icon Box */}
+                  <CustomerRefundListProductCell refund={r} />
                   
                   {/* Info */}
                   <div className="min-w-0">
@@ -111,7 +173,7 @@ export default function CustomerRefundList({
                 </div>
 
                 {/* Arrow Button */}
-                <div className="w-7 h-7 rounded-full bg-white border border-gray-100 flex items-center justify-center group-hover:bg-emerald-50 group-hover:border-emerald-100 transition-colors shadow-sm shrink-0">
+                <div className="w-7 h-7 rounded-full bg-white border border-gray-100 flex items-center justify-center group-hover:bg-[#16A34A]/10 group-hover:border-emerald-100 transition-colors shadow-sm shrink-0">
                   <ChevronRight size={14} className="text-gray-400 group-hover:text-[#10B981] transition-colors" />
                 </div>
               </button>

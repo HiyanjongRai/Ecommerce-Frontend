@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getSellerNotifications, markSellerNotifRead } from '../services/sellerService';
 import { LoadingState, SectionHeader } from './SellerSectionUtils';
+import { useSellerTheme } from '../hooks/useSellerTheme';
 
 const NotifIcon = ({ type }) => {
   const cls = "w-5 h-5 flex-shrink-0";
@@ -24,16 +25,18 @@ const NotifIcon = ({ type }) => {
   }
 };
 
-const getIconColor = (type) => {
+// getIconColor and NotifMenu are defined locally/adapted to dark mode inside the component scope or pass isDark.
+
+const getIconColor = (type, isDark) => {
   switch (type) {
-    case 'ORDER': return 'text-emerald-600 bg-emerald-50';
-    case 'DELIVERY': return 'text-blue-600 bg-blue-50';
-    case 'PAYMENT': return 'text-purple-600 bg-purple-50';
+    case 'ORDER': return isDark ? 'text-[#16A34A] bg-[#16A34A]/15' : 'text-[#16A34A] bg-[#16A34A]/10';
+    case 'DELIVERY': return isDark ? 'text-blue-400 bg-blue-500/10' : 'text-blue-600 bg-blue-50';
+    case 'PAYMENT': return isDark ? 'text-purple-400 bg-purple-500/10' : 'text-purple-600 bg-purple-50';
     case 'PROMO':
-    case 'CAMPAIGN_ALERT': return 'text-orange-600 bg-orange-50';
-    case 'SELLER_ALERT': return 'text-amber-600 bg-amber-50';
-    case 'MESSAGE_RECEIVED': return 'text-teal-600 bg-teal-50';
-    default: return 'text-gray-600 bg-gray-50';
+    case 'CAMPAIGN_ALERT': return isDark ? 'text-orange-400 bg-orange-500/10' : 'text-orange-600 bg-orange-50';
+    case 'SELLER_ALERT': return isDark ? 'text-amber-400 bg-amber-500/10' : 'text-amber-600 bg-amber-50';
+    case 'MESSAGE_RECEIVED': return isDark ? 'text-teal-400 bg-teal-500/10' : 'text-teal-600 bg-teal-50';
+    default: return isDark ? 'text-gray-400 bg-white/5' : 'text-gray-600 bg-gray-50';
   }
 };
 
@@ -50,8 +53,8 @@ const getTarget = (notif) => {
   return '/seller/dashboard';
 };
 
-// ─── Kebab Menu ───────────────────────────────────────────────────────────────
-const NotifMenu = ({ notif, onMarkRead, onDismiss, onNavigate }) => {
+// ─── Kebab Menu ───
+const NotifMenu = ({ notif, onMarkRead, onDismiss, onNavigate, isDark }) => {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
 
@@ -69,7 +72,7 @@ const NotifMenu = ({ notif, onMarkRead, onDismiss, onNavigate }) => {
       <button
         type="button"
         onClick={(e) => { e.stopPropagation(); setOpen(v => !v); }}
-        className="w-7 h-7 flex items-center justify-center rounded-sm text-gray-300 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+        className={`w-7 h-7 flex items-center justify-center rounded-xl transition-colors cursor-pointer ${isDark ? 'text-white/40 hover:text-white hover:bg-white/10' : 'text-gray-300 hover:text-gray-600 hover:bg-gray-100'}`}
         title="More options"
       >
         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
@@ -81,13 +84,19 @@ const NotifMenu = ({ notif, onMarkRead, onDismiss, onNavigate }) => {
 
       {/* Dropdown */}
       {open && (
-        <div className="absolute right-0 top-8 z-50 bg-white border border-gray-200 rounded-sm shadow-lg min-w-[160px] py-1 overflow-hidden">
+        <div className={`absolute right-0 top-8 z-50 rounded-xl border shadow-lg min-w-[160px] py-1 overflow-hidden transition-all ${
+          isDark 
+            ? 'bg-[#0b0c10] border-white/10 shadow-[0_4px_24px_rgba(0,0,0,0.5)]' 
+            : 'bg-white border-gray-200 shadow-md'
+        }`}>
 
           {/* Go to related page */}
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); setOpen(false); onNavigate(); }}
-            className="w-full flex items-center gap-2.5 px-3 py-2 text-[11px] font-bold text-gray-700 hover:bg-gray-50 transition-colors text-left"
+            className={`w-full flex items-center gap-2.5 px-3 py-2 text-[11px] font-black uppercase tracking-wider transition-colors text-left cursor-pointer ${
+              isDark ? 'text-white/80 hover:bg-white/5 hover:text-white' : 'text-gray-700 hover:bg-gray-50'
+            }`}
           >
             <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/>
@@ -100,24 +109,28 @@ const NotifMenu = ({ notif, onMarkRead, onDismiss, onNavigate }) => {
             <button
               type="button"
               onClick={(e) => { e.stopPropagation(); setOpen(false); onMarkRead(); }}
-              className="w-full flex items-center gap-2.5 px-3 py-2 text-[11px] font-bold text-gray-700 hover:bg-gray-50 transition-colors text-left"
+              className={`w-full flex items-center gap-2.5 px-3 py-2 text-[11px] font-black uppercase tracking-wider transition-colors text-left cursor-pointer ${
+                isDark ? 'text-[#16A34A] hover:bg-white/5' : 'text-[#152F17] hover:bg-gray-50'
+              }`}
             >
-              <svg className="w-3.5 h-3.5 text-emerald-500" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+              <svg className={`w-3.5 h-3.5 ${isDark ? 'text-[#16A34A]' : 'text-[#e8f3e9]0'}`} fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
               </svg>
               Mark as read
             </button>
           )}
 
-          <div className="border-t border-gray-100 my-1"/>
+          <div className={`border-t my-1 ${isDark ? 'border-white/5' : 'border-gray-100'}`}/>
 
           {/* Dismiss (remove from list) */}
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); setOpen(false); onDismiss(); }}
-            className="w-full flex items-center gap-2.5 px-3 py-2 text-[11px] font-bold text-red-600 hover:bg-red-50 transition-colors text-left"
+            className={`w-full flex items-center gap-2.5 px-3 py-2 text-[11px] font-black uppercase tracking-wider transition-colors text-left cursor-pointer ${
+              isDark ? 'text-red-400 hover:bg-red-500/10' : 'text-red-600 hover:bg-red-50'
+            }`}
           >
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+            <svg className="w-3.5 h-3.5 text-red-500" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/>
             </svg>
             Dismiss
@@ -130,6 +143,9 @@ const NotifMenu = ({ notif, onMarkRead, onDismiss, onNavigate }) => {
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 const SellerNotifications = () => {
+  const { darkMode, themeClasses } = useSellerTheme();
+  const isDark = darkMode;
+
   const [notifs, setNotifs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -186,26 +202,28 @@ const SellerNotifications = () => {
   if (loading) return <LoadingState label="Loading notifications…" />;
 
   return (
-    <div className="space-y-4 max-w-[1400px]">
-      {/* Page Header */}
-      <div className="flex items-start justify-between gap-4">
-        <SectionHeader
-          title="Notifications"
-          subtitle="Order alerts, inventory warnings, and store updates."
-        />
-        {unreadCount > 0 && (
-          <button
-            onClick={markAll}
-            className="flex-shrink-0 text-[9px] font-black uppercase tracking-wider text-gray-600 border border-gray-200 px-3 py-1.5 rounded-sm hover:bg-gray-50 transition-colors"
-          >
-            Mark All Read ({unreadCount})
-          </button>
-        )}
-      </div>
+    <div className={`space-y-4 max-w-[1400px] animate-in fade-in-50 duration-200 font-sans ${themeClasses.bg.primary}`}>
+      
+      {/* ── Page Header ── */}
+      <SectionHeader
+        title="Notifications"
+        subtitle="Order alerts, inventory warnings, and store updates."
+        tag="Activity Center"
+        action={
+          unreadCount > 0 && (
+            <button
+              onClick={markAll}
+              className="bg-white hover:bg-gray-150 text-gray-900 px-4 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-colors shadow-sm h-10 flex items-center"
+            >
+              Mark All Read ({unreadCount})
+            </button>
+          )
+        }
+      />
 
       {error && (
-        <div className="p-3 bg-red-50 border border-red-200 rounded-sm text-xs font-bold text-red-700 flex items-center gap-2">
-          <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+        <div className={`p-4 border rounded-xl text-xs font-black flex items-center gap-3 tracking-wide uppercase ${isDark ? 'bg-red-500/10 border-red-500/20 text-red-400' : 'bg-red-50 border-red-200 text-red-700'}`}>
+          <svg className="w-5 h-5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
           </svg>
           {error}
@@ -213,23 +231,27 @@ const SellerNotifications = () => {
       )}
 
       {!error && notifs.length === 0 ? (
-        <div className="bg-white border border-gray-200 rounded-sm p-10 text-center shadow-sm">
-          <div className="w-10 h-10 bg-gray-100 rounded-sm flex items-center justify-center mx-auto mb-3">
-            <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"/></svg>
+        <div className={`border rounded-2xl p-10 text-center shadow-sm transition-colors ${isDark ? 'bg-[#0b0c10] border-white/10' : 'bg-white border-gray-200'}`}>
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-3 ${isDark ? 'bg-white/5 border border-white/10 text-white/40' : 'bg-gray-100 text-gray-400'}`}>
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"/></svg>
           </div>
-          <h3 className="text-xs font-black text-gray-800 uppercase tracking-wider mb-1">No notifications yet</h3>
-          <p className="text-[10px] text-gray-400 font-medium">Order alerts, inventory warnings, and campaign updates will appear here.</p>
+          <h3 className={`text-xs font-black uppercase tracking-wider mb-1 ${isDark ? 'text-white' : 'text-gray-800'}`}>No notifications yet</h3>
+          <p className="text-[10px] text-gray-500 font-semibold">Order alerts, inventory warnings, and campaign updates will appear here.</p>
         </div>
       ) : (
-        <div className="bg-white border border-gray-200 rounded-sm shadow-sm overflow-hidden">
-          <div className="divide-y divide-gray-50">
+        <div className={`border rounded-2xl shadow-sm overflow-hidden transition-colors ${isDark ? 'bg-[#0b0c10] border-white/10' : 'bg-white border-gray-200'}`}>
+          <div className={`divide-y ${isDark ? 'divide-white/5' : 'divide-gray-50'}`}>
             {visibleNotifs.map(n => (
               <div
                 key={n.id}
-                className={`flex gap-3 items-start p-3.5 transition-colors hover:bg-gray-50/60 ${!n.isRead ? 'bg-emerald-50/20' : 'bg-white'}`}
+                className={`flex gap-3 items-start p-3.5 transition-colors ${
+                  !n.isRead 
+                    ? (isDark ? 'bg-[#16A34A]/5 hover:bg-[#16A34A]/10' : 'bg-[#16A34A]/10/20 hover:bg-[#16A34A]/10/35') 
+                    : (isDark ? 'bg-transparent hover:bg-white/5' : 'bg-white hover:bg-gray-50/60')
+                }`}
               >
                 {/* Icon */}
-                <div className={`w-8 h-8 rounded-sm flex items-center justify-center flex-shrink-0 mt-0.5 ${getIconColor(n.type)}`}>
+                <div className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5 ${getIconColor(n.type, isDark)}`}>
                   <NotifIcon type={n.type} />
                 </div>
 
@@ -237,22 +259,22 @@ const SellerNotifications = () => {
                 <button
                   type="button"
                   onClick={() => handleClick(n)}
-                  className="flex-1 min-w-0 text-left"
+                  className="flex-1 min-w-0 text-left cursor-pointer"
                 >
-                  <p className={`text-xs mb-1 leading-snug ${!n.isRead ? 'font-black text-gray-900' : 'font-semibold text-gray-600'}`}>
+                  <p className={`text-xs mb-1 leading-snug ${!n.isRead ? `font-black ${isDark ? 'text-[#16A34A]' : 'text-gray-900'}` : `font-semibold ${isDark ? 'text-white/65' : 'text-gray-600'}`}`}>
                     {n.title || n.message}
                   </p>
                   {n.title && n.message && (
-                    <p className="text-xs text-gray-400 font-medium leading-relaxed">{n.message}</p>
+                    <p className={`text-[11px] font-semibold leading-relaxed ${isDark ? 'text-gray-400' : 'text-gray-400'}`}>{n.message}</p>
                   )}
-                  <span className="block mt-2 text-[10px] text-gray-400 font-bold uppercase tracking-wider">
+                  <span className={`block mt-2 text-[9px] font-bold uppercase tracking-wider ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
                     {n.createdAt ? new Date(n.createdAt).toLocaleString('en-GB') : ''}
                   </span>
                 </button>
 
                 {/* Unread dot */}
                 {!n.isRead && (
-                  <div className="w-2 h-2 bg-emerald-600 rounded-full flex-shrink-0 mt-2.5 animate-pulse" />
+                  <div className="w-2 h-2 bg-[#152F17] rounded-full flex-shrink-0 mt-2.5 animate-pulse" />
                 )}
 
                 {/* Kebab menu */}
@@ -261,6 +283,7 @@ const SellerNotifications = () => {
                   onMarkRead={() => handleRead(n.id)}
                   onDismiss={() => handleDismiss(n.id)}
                   onNavigate={() => navigate(getTarget(n))}
+                  isDark={isDark}
                 />
               </div>
             ))}
@@ -271,7 +294,9 @@ const SellerNotifications = () => {
             <button
               type="button"
               onClick={() => setVisibleCount(v => v + 6)}
-              className="w-full flex items-center justify-center gap-2 py-3 border-t border-gray-100 text-[10px] font-black uppercase tracking-wider text-gray-500 hover:bg-gray-50 hover:text-gray-800 transition-colors"
+              className={`w-full flex items-center justify-center gap-2 py-3 border-t text-[10px] font-black uppercase tracking-wider transition-colors ${
+                isDark ? 'border-white/5 text-gray-400 hover:bg-white/5 hover:text-white' : 'border-gray-100 text-gray-500 hover:bg-gray-50 hover:text-gray-800'
+              }`}
             >
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7"/>
@@ -282,7 +307,9 @@ const SellerNotifications = () => {
             <button
               type="button"
               onClick={() => setVisibleCount(6)}
-              className="w-full flex items-center justify-center gap-2 py-3 border-t border-gray-100 text-[10px] font-black uppercase tracking-wider text-gray-400 hover:bg-gray-50 transition-colors"
+              className={`w-full flex items-center justify-center gap-2 py-3 border-t text-[10px] font-black uppercase tracking-wider transition-colors ${
+                isDark ? 'border-white/5 text-gray-400 hover:bg-white/5 hover:text-white' : 'border-gray-100 text-gray-400 hover:bg-gray-50'
+              }`}
             >
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7"/>

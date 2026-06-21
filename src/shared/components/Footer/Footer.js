@@ -185,15 +185,13 @@ export default function Footer({ isVerdant = false }) {
           <p className="text-gray-500 text-[11px]">
             © {new Date().getFullYear()} {isVerdant ? 'Verdant Marketplace' : 'Jhapcham eCommerce'}. All Rights Reserved.
           </p>
-          <div className="flex items-center gap-2 flex-wrap justify-center">
-            {['VISA', 'Mastercard', 'PayPal', 'Stripe', 'eSewa', 'Khalti'].map((method) => (
-              <span 
-                key={method}
-                className="bg-neutral-800 text-gray-400 px-2.5 py-1 rounded font-black uppercase text-[9px] tracking-widest border border-gray-700 shadow-sm"
-              >
-                {method}
-              </span>
-            ))}
+          <div className="flex items-center gap-3 flex-wrap justify-center">
+            <div className="bg-white px-2.5 py-1 rounded shadow-sm transition-transform hover:-translate-y-0.5 cursor-pointer">
+              <img src="/Assets/Payment%20logo/esewa.png?v=2" alt="eSewa" className="h-5 w-auto object-contain" />
+            </div>
+            <div className="bg-white px-2.5 py-1 rounded shadow-sm transition-transform hover:-translate-y-0.5 cursor-pointer">
+              <img src="/Assets/Payment%20logo/khalti.png?v=2" alt="Khalti" className="h-5 w-auto object-contain" />
+            </div>
           </div>
         </div>
       </div>

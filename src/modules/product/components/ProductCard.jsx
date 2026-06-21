@@ -136,17 +136,17 @@ const ProductCard = ({ product, onAddToCartSuccess, isSmall = false, variant = '
 
   if (variant === 'verdant') {
     return (
-      <div className="group relative bg-white border border-gray-200 rounded-xl p-1.5 transition-all duration-300 hover:shadow-[0_5px_15px_rgba(16,185,129,0.05)] hover:-translate-y-0.5 flex flex-col justify-between text-left h-full select-none w-full">
+      <div className="group relative bg-white border border-gray-150 rounded-2xl p-3.5 transition-all duration-300 hover:shadow-[0_12px_30px_rgba(16,185,129,0.08)] hover:-translate-y-1 flex flex-col justify-between text-left h-full select-none w-full">
         
         {/* Product Image */}
-        <div className="relative w-full aspect-square bg-white rounded-lg mb-1 overflow-hidden flex items-center justify-center border border-gray-150">
+        <div className="relative w-full aspect-square bg-white rounded-xl mb-3 overflow-hidden flex items-center justify-center border border-gray-100">
           {showSaleBadge && (
-            <span className="absolute top-1 left-1 border border-red-200 bg-white text-red-600 text-[6.5px] font-black uppercase tracking-wider px-1 py-0.2 rounded-xs z-10 shadow-sm">
+            <span className="absolute top-2 left-2 border border-red-200 bg-white text-red-600 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-lg z-10 shadow-sm">
               {saleLabel || 'SALE'}
             </span>
           )}
           {showDiscountBadge && (
-            <span className="absolute top-1 left-1 border border-emerald-200 bg-white text-emerald-600 text-[6.5px] font-black uppercase tracking-wider px-1 py-0.2 rounded-xs z-10 shadow-sm">
+            <span className="absolute top-2 left-2 border border-emerald-250 bg-white text-emerald-700 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-lg z-10 shadow-sm">
               -{Math.round(discount)}%
             </span>
           )}
@@ -155,14 +155,14 @@ const ProductCard = ({ product, onAddToCartSuccess, isSmall = false, variant = '
           <button
             onClick={handleToggleWishlist}
             disabled={wishing}
-            className={`absolute top-1 right-1 z-20 p-0.5 rounded-full shadow-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 ${
+            className={`absolute top-2 right-2 z-20 w-8 h-8 rounded-full shadow-md border bg-white/90 backdrop-blur-xs flex items-center justify-center transition-all duration-200 focus:outline-none hover:scale-105 focus:ring-2 focus:ring-emerald-500 ${
               isWished
-                ? 'bg-emerald-600 text-white'
-                : 'bg-white/90 text-gray-500 hover:bg-emerald-600 hover:text-white'
+                ? 'border-emerald-200 text-red-500 bg-emerald-50'
+                : 'border-gray-200 text-gray-400 hover:bg-emerald-50 hover:text-red-500'
             }`}
             title={isWished ? 'Remove from Wishlist' : 'Add to Wishlist'}
           >
-            <Heart className="w-2 h-2" />
+            <Heart className={`w-4 h-4 ${isWished ? 'fill-current text-red-500' : ''}`} />
           </button>
           
           {resolvedImageUrl ? (
@@ -172,7 +172,7 @@ const ProductCard = ({ product, onAddToCartSuccess, isSmall = false, variant = '
               className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500" 
             />
           ) : (
-            <span className="text-lg select-none">📦</span>
+            <span className="text-2xl select-none">📦</span>
           )}
 
         </div>
@@ -180,34 +180,34 @@ const ProductCard = ({ product, onAddToCartSuccess, isSmall = false, variant = '
         {/* Product Details */}
         <div className="flex-1 flex flex-col justify-between">
           <div>
-            <span className="text-[6.5px] font-bold uppercase tracking-widest mb-0.5 block text-gray-400">
+            <span className="text-[10px] font-bold uppercase tracking-wider mb-1 block text-gray-400">
               {hasVariantOptions ? 'Variant Options' : product.brand || product.category || 'Product'}
             </span>
             <Link to={getProductLink(product)} className="block">
-              <h4 className="font-sans font-bold text-[9.5px] text-slate-800 leading-tight line-clamp-2 min-h-[22px] mb-0.5">
+              <h4 className="font-sans font-bold text-sm text-slate-800 leading-tight line-clamp-2 min-h-[38px] mb-1.5 hover:text-emerald-600 transition-colors">
                 {product.name}
               </h4>
             </Link>
 
             {/* Ratings */}
             {((product.averageRating || product.rating) > 0) ? (
-              <div className="flex items-center gap-0.5 text-[7px] font-bold text-amber-500 mb-0.5">
-                <span>★</span> {(product.averageRating || product.rating).toFixed(1)}
-                <span className="font-normal text-gray-400 text-[6.5px]">({liveReviewCount})</span>
+              <div className="flex items-center gap-0.5 text-xs font-semibold text-amber-500 mb-1.5">
+                <span className="text-[14px]">★</span> {(product.averageRating || product.rating).toFixed(1)}
+                <span className="font-normal text-gray-400 text-[11px] ml-1">({liveReviewCount})</span>
               </div>
             ) : (
-              <div className="h-1.5" />
+              <div className="h-4" />
             )}
 
             {/* Pricing */}
-            <div className="flex items-baseline gap-0.5 mb-1 flex-wrap">
-              <span className="text-[9.5px] font-bold text-emerald-600">
+            <div className="flex items-baseline gap-1.5 mb-2.5 flex-wrap">
+              <span className="text-[15px] font-extrabold text-emerald-600">
                 {showPriceRange
                   ? `Rs. ${minPrice.toLocaleString()} - ${maxPrice.toLocaleString()}`
                   : `Rs. ${price.toLocaleString()}`}
               </span>
               {hasDiscount && original && (
-                <span className="text-[7px] font-bold line-through text-gray-400">
+                <span className="text-xs font-semibold line-through text-gray-400">
                   Rs. {original.toLocaleString()}
                 </span>
               )}
@@ -218,7 +218,7 @@ const ProductCard = ({ product, onAddToCartSuccess, isSmall = false, variant = '
           {hasVariantOptions ? (
             <Link
               to={getProductLink(product)}
-              className="w-full mt-0.5 py-0.5 border border-emerald-600 text-emerald-600 hover:bg-emerald-600 hover:text-white text-[8px] font-bold rounded-pill text-center transition-colors duration-250 focus:ring-2 focus:ring-emerald-500/20 outline-none block"
+              className="w-full mt-1.5 py-2 border border-emerald-600 text-emerald-600 hover:bg-emerald-600 hover:text-white text-xs font-bold rounded-xl text-center transition-colors duration-250 focus:ring-2 focus:ring-emerald-500/20 outline-none block"
             >
               Select Options
             </Link>
@@ -226,13 +226,13 @@ const ProductCard = ({ product, onAddToCartSuccess, isSmall = false, variant = '
             <button
               onClick={handleAddToCart}
               disabled={adding}
-              className={`w-full mt-0.5 py-0.5 border text-[8px] font-bold rounded-pill transition-colors duration-250 flex items-center justify-center gap-0.5 focus:ring-2 focus:ring-emerald-500/20 outline-none ${
+              className={`w-full mt-1.5 py-2 border text-xs font-bold rounded-xl transition-all duration-250 flex items-center justify-center gap-1.5 focus:ring-2 focus:ring-emerald-500/20 outline-none ${
                 added 
                   ? 'bg-emerald-50 text-emerald-600 border-emerald-100 hover:bg-emerald-50' 
-                  : 'bg-emerald-600 text-white border-emerald-600 hover:bg-emerald-700 hover:border-emerald-700'
+                  : 'bg-emerald-600 text-white border-emerald-600 hover:bg-emerald-700 hover:border-emerald-700 shadow-sm hover:shadow'
               }`}
             >
-              <ShoppingBag className="w-2 h-2" />
+              <ShoppingBag className="w-4 h-4" />
               <span>{adding ? '…' : added ? '✓ Added' : 'Add to Cart'}</span>
             </button>
           )}
@@ -242,20 +242,20 @@ const ProductCard = ({ product, onAddToCartSuccess, isSmall = false, variant = '
   }
 
   return (
-    <div className={`group relative ${darkMode ? 'bg-zinc-950 border-zinc-800' : 'bg-white border-gray-200'} border rounded-xl ${isSmall ? 'p-1' : 'p-1.5'} flex flex-col justify-between transition-all duration-200 ${darkMode ? 'text-gray-100' : 'text-slate-900'} text-[9.5px] shadow-sm w-full`}>
+    <div className={`group relative ${darkMode ? 'bg-zinc-950 border-zinc-800 text-gray-105' : 'bg-white border-gray-200 text-slate-900'} border rounded-2xl p-3.5 flex flex-col justify-between transition-all duration-300 hover:shadow-[0_12px_30px_rgba(0,0,0,0.08)] hover:-translate-y-1 w-full`}>
       
       {/* Product Image */}
       <Link 
         to={getProductLink(product)} 
-        className={`relative aspect-square w-full ${darkMode ? 'bg-zinc-950' : 'bg-white'} flex items-center justify-center overflow-hidden ${darkMode ? 'border-zinc-800' : 'border-gray-100'} border-b ${isSmall ? 'mb-0.5' : 'mb-1'} block`}
+        className={`relative aspect-square w-full ${darkMode ? 'bg-zinc-950' : 'bg-white'} flex items-center justify-center overflow-hidden rounded-xl ${darkMode ? 'border-zinc-800' : 'border-gray-100'} border mb-2 block`}
       >
         {showSaleBadge && (
-          <span className="absolute top-1 left-1 border border-red-200 bg-white text-red-600 text-[6.5px] font-black uppercase tracking-wider px-1 py-0.2 rounded-xs z-10 shadow-sm">
+          <span className="absolute top-2 left-2 border border-red-205 bg-white text-red-600 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-lg z-10 shadow-sm">
             {saleLabel || 'SALE'}
           </span>
         )}
         {showDiscountBadge && (
-          <span className="absolute top-1 left-1 border border-red-200 bg-white text-red-600 text-[6.5px] font-black uppercase tracking-wider px-1 py-0.2 rounded-xs z-10 shadow-sm">
+          <span className="absolute top-2 left-2 border border-red-205 bg-white text-red-650 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-lg z-10 shadow-sm">
             -{Math.round(discount)}%
           </span>
         )}
@@ -264,70 +264,62 @@ const ProductCard = ({ product, onAddToCartSuccess, isSmall = false, variant = '
         <button
           onClick={handleToggleWishlist}
           disabled={wishing}
-          className={`absolute top-1 right-1 z-10 p-0.5 rounded-full shadow-md border transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1 ${
+          className={`absolute top-2 right-2 z-10 w-8 h-8 rounded-full shadow-md border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1 flex items-center justify-center ${
             isWished
               ? darkMode
-                ? 'bg-red-500/90 border-red-400 text-white focus:ring-red-400'
+                ? 'bg-red-500/95 border-red-400 text-white focus:ring-red-400'
                 : 'bg-red-50 border-red-200 text-red-500 focus:ring-red-300'
               : darkMode
-                ? 'bg-zinc-800 border-zinc-600 text-gray-300 hover:bg-red-500 hover:border-red-400 hover:text-white focus:ring-zinc-500'
-                : 'bg-white border-gray-200 text-gray-400 hover:bg-red-50 hover:border-red-200 hover:text-red-500 focus:ring-gray-300'
+                ? 'bg-zinc-900/90 border-zinc-700 text-gray-300 hover:bg-red-500 hover:border-red-400 hover:text-white focus:ring-zinc-500'
+                : 'bg-white/90 border-gray-205 text-gray-400 hover:bg-red-50 hover:border-red-200 hover:text-red-500 focus:ring-gray-305'
           }`}
           title={isWished ? 'Remove from Wishlist' : 'Add to Wishlist'}
           aria-label={isWished ? 'Remove from Wishlist' : 'Add to Wishlist'}
         >
-          {isWished ? (
-            <svg className={`w-2.5 h-2.5 ${darkMode ? 'text-red-400' : 'text-red-500'} fill-current animate-in zoom-in`} viewBox="0 0 24 24">
-              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-            </svg>
-          ) : (
-            <svg className="w-2.5 h-2.5 transition-transform group-hover/wishlist:scale-110" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-            </svg>
-          )}
+          <Heart className={`w-4 h-4 ${isWished ? 'fill-current' : ''}`} />
         </button>
         {resolvedImageUrl ? (
           <img 
             src={resolvedImageUrl} 
             alt={product.name} 
-            className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300" 
+            className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-350" 
           />
         ) : (
-          <span className={`text-xl select-none ${darkMode ? 'text-zinc-700' : 'text-gray-300'}`}>🛍️</span>
+          <span className={`text-2xl select-none ${darkMode ? 'text-zinc-700' : 'text-gray-300'}`}>🛍️</span>
         )}
       </Link>
  
       {/* Product Metadata */}
       <div className="flex-1 flex flex-col justify-between">
         <div>
-          <span className={`text-[6px] font-black uppercase tracking-widest mb-0.5 block ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+          <span className={`text-[10px] font-bold uppercase tracking-wider mb-1 block ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
             {hasVariantOptions ? 'Variant product' : product.brand || product.category || 'Shop'}
           </span>
           <Link to={getProductLink(product)} className="block">
-            <h4 className={`text-[9.5px] font-bold ${darkMode ? 'text-gray-100 group-hover:text-emerald-400' : 'text-slate-900 group-hover:text-emerald-600'} transition-colors line-clamp-2 ${isSmall ? 'mb-0.5 min-h-[18px]' : 'mb-1 min-h-[22px]'} leading-tight`}>
+            <h4 className={`text-sm font-bold ${darkMode ? 'text-gray-100 group-hover:text-emerald-400' : 'text-slate-800 group-hover:text-[#16A34A]'} transition-colors line-clamp-2 mb-1.5 min-h-[38px] leading-tight`}>
               {product.name}
             </h4>
           </Link>
  
           {/* Ratings */}
           {((product.averageRating || product.rating) > 0) ? (
-            <div className={`flex items-center gap-0.5 text-[7px] font-semibold text-[#e0a800] ${isSmall ? 'mb-0.5' : 'mb-1'}`}>
-              <span className="text-[9px]">★</span> {(product.averageRating || product.rating).toFixed(1)}
-              <span className={`font-normal ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>( {liveReviewCount} )</span>
+            <div className="flex items-center gap-0.5 text-xs font-semibold text-amber-500 mb-1.5">
+              <span className="text-[14px]">★</span> {(product.averageRating || product.rating).toFixed(1)}
+              <span className={`font-normal text-[11px] ml-1 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>({liveReviewCount})</span>
             </div>
           ) : (
-            <div className={isSmall ? "h-1" : "h-1.5"} />
+            <div className="h-4" />
           )}
  
           {/* Pricing */}
-          <div className={`flex items-baseline gap-0.5 ${isSmall ? 'mb-1' : 'mb-1.5'} flex-wrap`}>
-            <span className={`text-[9.5px] font-extrabold ${darkMode ? 'text-emerald-400' : 'text-slate-900'}`}>
+          <div className="flex items-baseline gap-1.5 mb-2.5 flex-wrap">
+            <span className={`text-[15px] font-extrabold ${darkMode ? 'text-emerald-400' : 'text-slate-900'}`}>
               {showPriceRange
                 ? `Rs. ${minPrice.toLocaleString()} - ${maxPrice.toLocaleString()}`
                 : `Rs. ${price.toLocaleString()}`}
             </span>
             {hasDiscount && original && (
-              <span className={`text-[7px] font-bold line-through ${darkMode ? 'text-gray-600' : 'text-gray-400'}`}>
+              <span className={`text-xs font-semibold line-through ${darkMode ? 'text-gray-650' : 'text-gray-400'}`}>
                 Rs. {original.toLocaleString()}
               </span>
             )}
@@ -338,10 +330,10 @@ const ProductCard = ({ product, onAddToCartSuccess, isSmall = false, variant = '
         {hasVariantOptions ? (
           <Link
             to={getProductLink(product)}
-            className={`w-full text-[7px] font-black uppercase tracking-wider ${isSmall ? 'py-0.5' : 'py-1'} rounded-lg border transition-colors duration-150 flex items-center justify-center font-bold ${
+            className={`w-full py-2 rounded-xl border text-xs font-bold uppercase tracking-wider transition-colors duration-150 flex items-center justify-center ${
               darkMode 
-                ? 'border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-white' 
-                : 'border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white'
+                ? 'border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white' 
+                : 'border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white shadow-2xs'
             }`}
           >
             Select Options
@@ -350,21 +342,21 @@ const ProductCard = ({ product, onAddToCartSuccess, isSmall = false, variant = '
           <button
             onClick={handleAddToCart}
             disabled={adding}
-            className={`w-full text-[7px] font-black uppercase tracking-wider ${isSmall ? 'py-0.5' : 'py-1'} rounded-lg border transition-colors duration-150 ${
+            className={`w-full py-2 rounded-xl border text-xs font-bold uppercase tracking-wider transition-all duration-150 flex items-center justify-center gap-1.5 ${
               added 
                 ? darkMode 
                   ? 'bg-emerald-900 text-emerald-300 border-emerald-700 hover:bg-emerald-800' 
                   : 'bg-green-50 text-green-600 border-green-200 hover:bg-green-100'
                 : darkMode
-                  ? 'bg-emerald-600 text-white border-emerald-600 hover:bg-emerald-700 hover:border-emerald-700'
-                  : 'bg-slate-900 text-white border-slate-900 hover:bg-slate-800'
+                  ? 'bg-[#16A34A] text-white border-transparent hover:bg-[#15803D]'
+                  : 'bg-slate-900 text-white border-transparent hover:bg-slate-800 shadow-sm'
             }`}
           >
-            {adding ? '…' : added ? '✓ Added' : 'Add to Cart'}
+            <ShoppingBag className="w-4 h-4" />
+            <span>{adding ? '…' : added ? '✓ Added' : 'Add to Cart'}</span>
           </button>
         )}
       </div>
-
     </div>
   );
 };

@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getCurrentUser, getCart, getNotifications, getWishlist } from '../../../shared/api/customerApi';
+import { getCurrentUser, getCart, getNotifications, getWishlist, logout } from '../../../shared/api/customerApi';
 import { getAccessToken, clearAuthStorage } from '../../../shared/api/authStorage';
 
 const EMPTY_CUSTOMER = {
@@ -55,7 +55,7 @@ export const CustomerProvider = ({ children }) => {
   }, [user?.id]);
 
   const loadNotifs = useCallback(async () => {
-    if (!user) return;
+    if (!user?.id) return;
     try {
       const res = await getNotifications();
       const notifs = res.data || [];
@@ -86,7 +86,12 @@ export const CustomerProvider = ({ children }) => {
   const refreshNotifs = () => loadNotifs();
   const refreshWishlist = () => loadWishlist();
 
-  const logoutUser = () => {
+  const logoutUser = async () => {
+    try {
+      await logout();
+    } catch (err) {
+      console.error("Logout backend request failed", err);
+    }
     clearAuthStorage();
     setUser(EMPTY_CUSTOMER);
     setCartCount(0);

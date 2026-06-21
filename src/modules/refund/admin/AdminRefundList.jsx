@@ -75,7 +75,7 @@ export default function AdminRefundList({
       {/* List content */}
       {loading ? (
         <div className="py-16 text-center text-gray-450">
-          <RefreshCw size={24} className="animate-spin mx-auto mb-3 text-emerald-500" />
+          <RefreshCw size={24} className="animate-spin mx-auto mb-3 text-[#e8f3e9]0" />
           <p className="text-xs font-black uppercase tracking-wider">Loading refunds desk...</p>
         </div>
       ) : displayRefunds.length === 0 ? (

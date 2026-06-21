@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 import { useCustomer } from '../../../modules/customer/contexts/CustomerContext';
 import LoginModal from '../../../modules/auth/components/LoginModal';
-import { getCart, getWishlist, removeCartItem, removeFromWishlist, addToCart, getActivePromos, searchProducts } from '../../api/customerApi';
+import { getCart, getWishlist, removeCartItem, removeFromWishlist, addToCart, getActivePromos, searchProducts, getCategories } from '../../api/customerApi';
 import { getProductLink } from '../../utils/slugHelper';
 import { toast } from 'react-toastify';
 
@@ -63,6 +63,8 @@ export default function Navbar() {
   const [activeMegaTab, setActiveMegaTab] = useState('Shop All');
   const [activePromos, setActivePromos] = useState([]);
   const [timeLeft, setTimeLeft] = useState(6 * 3600 + 44 * 60 + 12); // synced with homepage promo card
+  const [categories, setCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState('All');
 
   const cartRef = useRef(null);
   const accountRef = useRef(null);
@@ -148,6 +150,19 @@ export default function Navbar() {
       });
   }, []);
 
+  // Fetch dynamic categories
+  useEffect(() => {
+    getCategories()
+      .then((res) => {
+        const list = res.data || res || [];
+        setCategories(Array.isArray(list) ? list : []);
+      })
+      .catch((err) => {
+        console.error("Failed to load categories in navbar", err);
+        setCategories([]);
+      });
+  }, []);
+
   // Search Autocomplete suggestions debounce
   useEffect(() => {
     const term = searchQuery.trim();
@@ -191,19 +206,29 @@ export default function Navbar() {
     const isRefund = /^ref-/i.test(query);
     const isOrder = /^jhc-/i.test(query) || /^#/i.test(query) || /^\d+$/.test(query);
 
+    let redirectUrl = '';
     if (role === 'SELLER') {
-      navigate(`/seller/orders?orderId=${encodeURIComponent(query)}`);
+      redirectUrl = `/seller/orders?orderId=${encodeURIComponent(query)}`;
     } else if (role === 'ADMIN') {
-      navigate(`/admin/orders?orderId=${encodeURIComponent(query)}`);
+      redirectUrl = `/admin/orders?orderId=${encodeURIComponent(query)}`;
     } else if (role === 'CUSTOMER') {
       if (isOrder) {
-        navigate(`/customer/orders?orderId=${encodeURIComponent(query)}`);
+        redirectUrl = `/customer/orders?orderId=${encodeURIComponent(query)}`;
       } else {
-        navigate(`/product-list?q=${encodeURIComponent(query)}`);
+        redirectUrl = `/product-list?q=${encodeURIComponent(query)}`;
+        if (selectedCategory && selectedCategory !== 'All') {
+          redirectUrl += `&category=${encodeURIComponent(selectedCategory)}`;
+        }
       }
     } else {
-      navigate(`/product-list?q=${encodeURIComponent(query)}`);
+      redirectUrl = `/product-list?q=${encodeURIComponent(query)}`;
+      if (selectedCategory && selectedCategory !== 'All') {
+        redirectUrl += `&category=${encodeURIComponent(selectedCategory)}`;
+      }
     }
+
+    setIsSearchSuggestionsOpen(false);
+    navigate(redirectUrl);
   };
 
   const getDashboardUrl = () => {
@@ -221,11 +246,7 @@ export default function Navbar() {
   };
 
   const handleUserIconClick = () => {
-    if (!isLoggedIn) {
-      setIsLoginModalOpen(true);
-    } else {
-      setIsAccountDropdownOpen(!isAccountDropdownOpen);
-    }
+    setIsAccountDropdownOpen(!isAccountDropdownOpen);
   };
 
   const handleRemoveCartItem = async (e, cartItemId) => {
@@ -275,199 +296,171 @@ export default function Navbar() {
      RENDER VERDANT NAVBAR (Botanical specimen theme)
      =========================================================================== */
   return (
-      <header className="w-full bg-white border-b border-gray-200 sticky top-0 z-50 font-inter">
-        {/* 1. Announcement Bar */}
-        {isAnnouncementVisible && (
-          <div className="bg-slate-900 text-white text-[11px] py-1.5 px-4 flex justify-between items-center transition-all duration-300">
-            <div className="flex-1 text-center font-medium tracking-wide font-inter">
-              🎁 Free shipping on orders over <strong>Rs. 2,000</strong>. Special packaging for all premium products.
-            </div>
-            <button 
-              onClick={() => setIsAnnouncementVisible(false)}
-              className="text-white/70 hover:text-white p-1 transition-colors outline-none focus:ring-1 focus:ring-emerald-500/20 rounded-xs"
-              aria-label="Dismiss Announcement"
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
+    <header className="w-full bg-white border-b border-gray-200 sticky top-0 z-50 font-inter">
+      {/* 1. Announcement Bar */}
+      {isAnnouncementVisible && (
+        <div className="h-9 bg-[#0F172A] text-white text-[13px] font-medium px-4 flex justify-between items-center transition-all duration-300">
+          <div className="flex-1 text-center font-inter leading-none">
+            🎁 Free shipping on orders over <strong>Rs. 2,000</strong>. Special packaging for all premium products.
           </div>
-        )}
-
-        {/* 2. Utility Nav Row */}
-        <div className="bg-gray-50 text-gray-500 text-[10.5px] py-1 px-6 border-b border-gray-200 hidden lg:block">
-          <div className="max-w-[1440px] mx-auto flex justify-between items-center">
-            {/* Left Utility Links */}
-            <div className="flex items-center gap-6">
-              <Link to="/customer/orders" className="hover:text-emerald-600 flex items-center gap-1.5 transition-colors outline-none focus:ring-1 focus:ring-emerald-500/20 rounded-xs">
-                <Package className="w-3.5 h-3.5" />
-                <span>Track Order</span>
-              </Link>
-            </div>
-
-            {/* Right Utility Links */}
-            <div className="flex items-center gap-6">
-              <Link to="/help" className="hover:text-emerald-600 flex items-center gap-1.5 transition-colors outline-none focus:ring-1 focus:ring-emerald-500/20 rounded-xs">
-                <HelpCircle className="w-3.5 h-3.5" />
-                <span>Help & FAQs</span>
-              </Link>
-              <div className="flex items-center gap-1.5 text-gray-400 select-none" title="All prices in Nepali Rupees">
-                <Globe className="w-3.5 h-3.5" />
-                <span className="font-semibold">NPR</span>
-              </div>
-
-              {!(user?.role === 'SELLER' || user?.role === 'ADMIN') && (
-                <Link
-                  to="/register"
-                  className="flex items-center gap-1 text-amber-600 hover:text-amber-700 font-semibold transition-colors"
-                  title="Start selling on Jhapcham"
-                >
-                  <span>Sell on Jhapcham</span>
-                </Link>
-              )}
-
-              <div className="flex items-center gap-3 border-l border-gray-200 pl-6">
-                <a href="https://facebook.com" target="_blank" rel="noreferrer" className="hover:text-emerald-600 transition-colors"><Facebook className="w-3.5 h-3.5" /></a>
-                <a href="https://twitter.com" target="_blank" rel="noreferrer" className="hover:text-emerald-600 transition-colors"><Twitter className="w-3.5 h-3.5" /></a>
-                <a href="https://instagram.com" target="_blank" rel="noreferrer" className="hover:text-emerald-600 transition-colors"><Instagram className="w-3.5 h-3.5" /></a>
-              </div>
-            </div>
-          </div>
+          <button 
+            onClick={() => setIsAnnouncementVisible(false)}
+            className="text-white/70 hover:text-white p-1 transition-colors outline-none focus:ring-1 focus:ring-emerald-500/20 rounded-xs flex items-center justify-center"
+            aria-label="Dismiss Announcement"
+          >
+            <X className="w-4 h-4" />
+          </button>
         </div>
+      )}
 
-        {/* 3. Main Navbar */}
-        <div className="bg-white py-2 px-6 border-b border-gray-200">
-          <div className="max-w-[1440px] mx-auto flex items-center justify-between gap-4">
-            
-            {/* Logo */}
-            <Link to="/" className="flex items-center gap-1.5 flex-shrink-0 group outline-none focus:ring-2 focus:ring-emerald-500/20 rounded-xs">
-              <span className="font-inter font-black text-2xl text-slate-900 tracking-tight transition-colors group-hover:text-emerald-600">
-                Jhapcham<span className="text-emerald-500 font-bold">.</span>
-              </span>
-            </Link>
+      {/* 2. Main Navbar */}
+      <div className="bg-white py-3 px-6 border-b border-gray-100">
+        <div className="max-w-[1440px] mx-auto flex items-center justify-between gap-4">
+          
+          {/* Logo */}
+          <Link to="/" className="flex items-center gap-1.5 flex-shrink-0 group outline-none focus:ring-2 focus:ring-emerald-500/20 rounded-xs">
+            <span className="font-inter font-bold text-2xl text-slate-900 tracking-tight transition-colors group-hover:text-[#16A34A]">
+              Jhapcham<span className="text-[#16A34A] font-bold">.</span>
+            </span>
+          </Link>
 
-            {/* Search Pill */}
-            <form ref={searchRef} onSubmit={handleSearch} className="flex-1 max-w-2xl relative hidden md:block">
-              <div className="relative flex items-center border border-gray-300 hover:border-emerald-500 focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-500/20 rounded-pill bg-white overflow-hidden transition-all">
-                <input 
-                  type="text" 
-                  placeholder="Search for products, brands, or categories..." 
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onFocus={() => { if (searchQuery.trim().length >= 2) setIsSearchSuggestionsOpen(true); }}
-                  className="w-full px-4 py-1.5 text-xs bg-transparent outline-none text-slate-800 placeholder-gray-400 focus:outline-none"
-                />
-                <button type="submit" className="p-2 text-gray-400 hover:text-emerald-600 transition-colors outline-none">
-                  <Search className="w-3.5 h-3.5" />
-                </button>
+          {/* Search Pill */}
+          <form ref={searchRef} onSubmit={handleSearch} className="flex-1 max-w-[700px] relative hidden md:block">
+            <div className="flex items-center border border-[#E5E7EB] rounded-full bg-white h-[52px] shadow-[0_4px_12px_rgba(0,0,0,0.05)] focus-within:border-[#16A34A] focus-within:ring-2 focus-within:ring-emerald-500/20 overflow-hidden transition-all">
+              <div className="flex items-center bg-gray-50 border-r border-gray-200 px-4 h-full">
+                <select 
+                  value={selectedCategory} 
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  className="bg-transparent text-xs font-bold text-slate-700 outline-none cursor-pointer focus:outline-none pr-1 max-w-[120px] truncate"
+                >
+                  <option value="All">All Categories</option>
+                  {(categories.length > 0 ? categories : ['Fashion', 'Electronics', 'Home', 'Beauty', 'Health']).map((cat) => {
+                    const name = cat.name || (typeof cat === 'string' ? cat : '');
+                    if (!name) return null;
+                    return (
+                      <option key={name} value={name}>
+                        {name}
+                      </option>
+                    );
+                  })}
+                </select>
               </div>
+              <input 
+                type="text" 
+                placeholder="Search for products, brands, or categories..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => { if (searchQuery.trim().length >= 2) setIsSearchSuggestionsOpen(true); }}
+                className="w-full px-5 text-sm bg-transparent outline-none text-slate-800 placeholder-gray-400 focus:outline-none"
+              />
+              <button type="submit" className="h-full px-5 text-gray-400 hover:text-[#16A34A] transition-colors outline-none flex items-center justify-center border-l border-gray-100">
+                <Search className="w-5 h-5" />
+              </button>
+            </div>
 
-              {/* Autocomplete Dropdown suggestions */}
-              {isSearchSuggestionsOpen && (
-                <div className="absolute left-0 right-0 mt-1.5 bg-white border border-gray-200 rounded-lg shadow-lg z-[100] overflow-hidden font-inter text-slate-800 max-h-80 overflow-y-auto animate-in fade-in slide-in-from-top-1 duration-150">
-                  {loadingSuggestions ? (
-                    <div className="flex items-center gap-2 px-4 py-3 text-xs text-gray-400 font-semibold">
-                      <svg className="animate-spin h-3.5 w-3.5 text-emerald-600" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
-                      </svg>
-                      <span>Searching for matches…</span>
-                    </div>
-                  ) : suggestions.length > 0 ? (
-                    <div className="divide-y divide-gray-100">
-                      {suggestions.map((product) => {
-                        const productUrl = getProductLink(product);
-                        const img = product.imagePaths?.[0] || product.imagePath || product.thumbnail || null;
-                        const resolvedImg = img ? (img.startsWith('http') ? img : `${BASE_URL}${img.startsWith('/') ? '' : '/'}${img}`) : null;
-                        const originalPrice = product.price || product.originalPrice || product.minPrice || 0;
-                        const finalPrice = product.salePrice || product.finalPrice || originalPrice;
+            {/* Autocomplete Dropdown suggestions */}
+            {isSearchSuggestionsOpen && (
+              <div className="absolute left-0 right-0 mt-1.5 bg-white border border-gray-200 rounded-2xl shadow-lg z-[100] overflow-hidden font-inter text-slate-800 max-h-80 overflow-y-auto animate-in fade-in slide-in-from-top-1 duration-150">
+                {loadingSuggestions ? (
+                  <div className="flex items-center gap-2 px-4 py-3 text-xs text-gray-400 font-semibold">
+                    <svg className="animate-spin h-3.5 w-3.5 text-[#16A34A]" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                    </svg>
+                    <span>Searching for matches…</span>
+                  </div>
+                ) : suggestions.length > 0 ? (
+                  <div className="divide-y divide-gray-100">
+                    {suggestions.map((product) => {
+                      const productUrl = getProductLink(product);
+                      const img = product.imagePaths?.[0] || product.imagePath || product.thumbnail || null;
+                      const resolvedImg = img ? (img.startsWith('http') ? img : `${BASE_URL}${img.startsWith('/') ? '' : '/'}${img}`) : null;
+                      const originalPrice = product.price || product.originalPrice || product.minPrice || 0;
+                      const finalPrice = product.salePrice || product.finalPrice || originalPrice;
 
-                        return (
-                          <Link 
-                            key={product.id || product.productId}
-                            to={productUrl}
-                            onClick={() => setIsSearchSuggestionsOpen(false)}
-                            className="flex items-center gap-3 px-4 py-2.5 hover:bg-emerald-50/45 transition-colors group text-left"
-                          >
-                            <div className="w-9 h-9 rounded bg-white border border-gray-100 flex-shrink-0 flex items-center justify-center overflow-hidden">
-                              {resolvedImg ? (
-                                <img src={resolvedImg} alt="" className="w-full h-full object-contain" />
-                              ) : (
-                                <span className="text-sm">📦</span>
-                              )}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="font-bold text-xs text-slate-800 truncate group-hover:text-emerald-700 transition-colors">
-                                {product.name}
-                              </p>
-                              {product.brand && (
-                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{product.brand}</p>
-                              )}
-                            </div>
-                            <div className="text-right flex-shrink-0">
-                              <p className="text-xs font-extrabold text-emerald-600 font-mono">Rs. {Number(finalPrice).toLocaleString()}</p>
-                              {finalPrice < originalPrice && (
-                                <p className="text-[9px] text-gray-400 line-through font-mono">Rs. {Number(originalPrice).toLocaleString()}</p>
-                              )}
-                            </div>
-                          </Link>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <div className="px-4 py-3 text-xs text-gray-400 font-semibold italic text-center">
-                      No matching products found.
-                    </div>
-                  )}
-                </div>
-              )}
-            </form>
+                      return (
+                        <Link 
+                          key={product.id || product.productId}
+                          to={productUrl}
+                          onClick={() => setIsSearchSuggestionsOpen(false)}
+                          className="flex items-center gap-3 px-4 py-2.5 hover:bg-emerald-50/45 transition-colors group text-left"
+                        >
+                          <div className="w-9 h-9 rounded bg-white border border-gray-100 flex-shrink-0 flex items-center justify-center overflow-hidden">
+                            {resolvedImg ? (
+                              <img src={resolvedImg} alt="" className="w-full h-full object-contain" />
+                            ) : (
+                              <span className="text-sm">📦</span>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-bold text-xs text-slate-800 truncate group-hover:text-emerald-700 transition-colors">
+                              {product.name}
+                            </p>
+                            {product.brand && (
+                              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{product.brand}</p>
+                            )}
+                          </div>
+                          <div className="text-right flex-shrink-0">
+                            <p className="text-xs font-extrabold text-emerald-600 font-mono">Rs. {Number(finalPrice).toLocaleString()}</p>
+                            {finalPrice < originalPrice && (
+                              <p className="text-[9px] text-gray-400 line-through font-mono">Rs. {Number(originalPrice).toLocaleString()}</p>
+                            )}
+                          </div>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="px-4 py-3 text-xs text-gray-400 font-semibold italic text-center">
+                    No matching products found.
+                  </div>
+                )}
+              </div>
+            )}
+          </form>
 
-            {/* Icons Actions Row */}
-            <div className="flex items-center gap-4">
-              
+          {/* Icons Actions Row */}
+          <div className="flex items-center gap-4">
+            
+            <div className="flex items-center gap-4 bg-gray-50 border border-gray-100 px-4 py-1.5 rounded-full">
               {/* Wishlist */}
               <button 
                 onClick={() => {
                   if (!isLoggedIn) setIsLoginModalOpen(true);
                   else setIsWishlistOpen(true);
                 }}
-                className="flex flex-col items-center gap-1 text-slate-800 hover:text-emerald-600 transition-colors relative group focus:outline-none focus:ring-2 focus:ring-emerald-500/20 p-1 rounded-xs"
+                className="flex items-center justify-center text-slate-850 hover:text-[#16A34A] transition-colors relative focus:outline-none p-0.5"
                 title="View Wishlist"
               >
-                <div className="relative">
-                  <Heart className="w-5 h-5" />
-                  {wishlistIds?.size > 0 && (
-                    <span className="absolute -top-1.5 -right-1.5 bg-emerald-600 text-white text-[8px] font-bold rounded-full w-4 h-4 flex items-center justify-center shadow-sm">
-                      {wishlistIds.size}
-                    </span>
-                  )}
-                </div>
-                <span className="text-[9px] font-bold uppercase tracking-wider hidden lg:inline">Wishlist</span>
+                <Heart className="w-5 h-5" />
+                {wishlistIds?.size > 0 && (
+                  <span className="absolute -top-1 -right-1.5 bg-[#16A34A] text-white text-[11px] font-bold rounded-full h-[18px] min-w-[18px] px-1 flex items-center justify-center shadow-sm leading-none">
+                    {wishlistIds.size}
+                  </span>
+                )}
               </button>
 
               {/* Cart */}
-              <div className="relative" ref={cartRef}>
+              <div className="relative flex items-center" ref={cartRef}>
                 <button 
                   onClick={() => {
                     if (!isLoggedIn) setIsLoginModalOpen(true);
                     else setIsCartOpen(!isCartOpen);
                   }}
-                  className="flex flex-col items-center gap-1 text-slate-800 hover:text-emerald-600 transition-colors relative group focus:outline-none focus:ring-2 focus:ring-emerald-500/20 p-1 rounded-xs"
+                  className="flex items-center justify-center text-slate-850 hover:text-[#16A34A] transition-colors relative focus:outline-none p-0.5"
                   title="Cart Bag"
                 >
-                  <div className="relative">
-                    <ShoppingCart className="w-5 h-5" />
-                    {cartCount > 0 && (
-                      <span className="absolute -top-1.5 -right-1.5 bg-emerald-600 text-white text-[8px] font-bold rounded-full w-4 h-4 flex items-center justify-center animate-pulse shadow-sm">
-                        {cartCount}
-                      </span>
-                    )}
-                  </div>
-                  <span className="text-[9px] font-bold uppercase tracking-wider hidden lg:inline">Cart</span>
+                  <ShoppingCart className="w-5 h-5" />
+                  {cartCount > 0 && (
+                    <span className="absolute -top-1 -right-1.5 bg-[#16A34A] text-white text-[11px] font-bold rounded-full h-[18px] min-w-[18px] px-1 flex items-center justify-center animate-pulse shadow-sm leading-none">
+                      {cartCount}
+                    </span>
+                  )}
                 </button>
 
                 {/* Cart Dropdown */}
                 {isCartOpen && (
-                  <div className="absolute right-0 mt-3 w-80 bg-white border border-gray-200 rounded-card shadow-lg z-50 p-4 font-inter text-slate-800 animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div className="absolute right-[-48px] mt-44 w-80 bg-white border border-gray-200 rounded-2xl shadow-xl z-50 p-4 font-inter text-slate-800 animate-in fade-in slide-in-from-top-2 duration-200">
                     <div className="flex justify-between items-center border-b border-gray-200 pb-2 mb-3">
                       <h4 className="font-inter font-bold text-sm">Shopping Bag ({cartCount})</h4>
                       <button onClick={() => setIsCartOpen(false)} className="text-gray-400 hover:text-slate-800"><X className="w-4 h-4" /></button>
@@ -517,7 +510,7 @@ export default function Navbar() {
                           <Link 
                             to="/customer/cart" 
                             onClick={() => setIsCartOpen(false)}
-                            className="block w-full py-2.5 bg-emerald-600 text-white text-center text-xs font-bold rounded-pill hover:bg-emerald-700 transition-colors focus:ring-2 focus:ring-emerald-500/20"
+                            className="block w-full py-2.5 bg-[#16A34A] text-white text-center text-xs font-bold rounded-full hover:bg-emerald-700 transition-colors focus:ring-2 focus:ring-emerald-500/20"
                           >
                             Checkout Bag
                           </Link>
@@ -532,310 +525,381 @@ export default function Navbar() {
                 )}
               </div>
 
-              {/* Account Dropdown */}
-              <div className="relative" ref={accountRef}>
+              {/* Account Dropdown Trigger */}
+              <div className="relative flex items-center" ref={accountRef}>
                 <button 
                   onClick={handleUserIconClick}
-                  className="flex flex-col items-center gap-1 text-slate-800 hover:text-emerald-600 transition-colors relative group focus:outline-none focus:ring-2 focus:ring-emerald-500/20 p-1 rounded-xs"
+                  className="flex items-center justify-center text-slate-850 hover:text-[#16A34A] transition-colors relative focus:outline-none"
                   title={isLoggedIn ? 'Account Options' : 'Sign In'}
                 >
-                  <div className="w-8 h-8 rounded-full border border-slate-800 flex items-center justify-center overflow-hidden">
+                  <div className="w-6 h-6 rounded-full border border-slate-300 flex items-center justify-center overflow-hidden bg-white">
                     {avatarUrl ? (
                       <img src={avatarUrl} alt={accountLabel} className="w-full h-full object-cover" />
                     ) : (
-                      <User className="w-4 h-4 text-slate-800" />
+                      <User className="w-3.5 h-3.5 text-slate-600" />
                     )}
                   </div>
-                  <span className="text-[9px] font-bold uppercase tracking-wider hidden lg:inline">{isLoggedIn ? 'Account' : 'Login'}</span>
                 </button>
 
-                {isLoggedIn && isAccountDropdownOpen && (
-                  <div className="absolute right-0 mt-3 w-56 bg-white border border-gray-200 rounded-card shadow-lg z-50 overflow-hidden font-inter text-slate-800 animate-in fade-in slide-in-from-top-2 duration-200">
-                    <div className="p-3 border-b border-gray-200 bg-emerald-50/50 flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center text-white text-xs font-bold">
-                        {accountInitial}
+                {/* Account Dropdown Options */}
+                {isAccountDropdownOpen && (
+                  <div className="absolute right-[-12px] mt-72 w-60 bg-white border border-gray-200 rounded-2xl shadow-xl z-50 overflow-hidden font-inter text-slate-800 animate-in fade-in slide-in-from-top-2 duration-200">
+                    {isLoggedIn ? (
+                      <div className="p-3.5 border-b border-gray-150 bg-gray-50 flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-full bg-[#16A34A] flex items-center justify-center text-white text-xs font-bold">
+                          {accountInitial}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="font-bold text-xs truncate leading-tight text-slate-800">{accountLabel}</p>
+                          <span className="text-[9px] font-bold text-emerald-600 uppercase tracking-wider">Verified User</span>
+                        </div>
                       </div>
-                      <div className="min-w-0">
-                        <p className="font-bold text-xs truncate leading-tight">{accountLabel}</p>
-                        <span className="text-[9px] font-bold text-emerald-600 uppercase tracking-wider">Verified User</span>
+                    ) : (
+                      <div className="p-3.5 border-b border-gray-150 bg-gray-50 text-center">
+                        <p className="text-[11px] text-gray-500 mb-2 font-medium">Welcome to Jhapcham</p>
+                        <button
+                          onClick={() => {
+                            setIsAccountDropdownOpen(false);
+                            setIsLoginModalOpen(true);
+                          }}
+                          className="w-full py-1.5 bg-[#16A34A] text-white text-xs font-bold rounded-lg hover:bg-emerald-700 transition-colors shadow-xs"
+                        >
+                          Sign In / Register
+                        </button>
                       </div>
-                    </div>
+                    )}
                     <div className="py-1 text-xs">
-                      {user?.role === 'SELLER' ? (
+                      {isLoggedIn && (
                         <>
-                          <Link to="/seller/dashboard" onClick={() => setIsAccountDropdownOpen(false)} className="block px-4 py-2.5 hover:bg-emerald-50 hover:text-emerald-600 transition-colors">
-                            Seller Dashboard
-                          </Link>
-                          <Link to="/seller/profile" onClick={() => setIsAccountDropdownOpen(false)} className="block px-4 py-2.5 hover:bg-emerald-50 hover:text-emerald-600 transition-colors">
-                            Store Profile
-                          </Link>
-                          <Link to="/seller/products" onClick={() => setIsAccountDropdownOpen(false)} className="block px-4 py-2.5 hover:bg-emerald-50 hover:text-emerald-600 transition-colors">
-                            My Products
-                          </Link>
-                          <Link to="/seller/orders" onClick={() => setIsAccountDropdownOpen(false)} className="block px-4 py-2.5 hover:bg-emerald-50 hover:text-emerald-600 transition-colors">
-                            Manage Orders
-                          </Link>
-                          <Link to="/seller/settings" onClick={() => setIsAccountDropdownOpen(false)} className="block px-4 py-2.5 hover:bg-emerald-50 hover:text-emerald-600 transition-colors">
-                            Store Settings
-                          </Link>
-                        </>
-                      ) : user?.role === 'ADMIN' ? (
-                        <>
-                          <Link to="/admin/dashboard" onClick={() => setIsAccountDropdownOpen(false)} className="block px-4 py-2.5 hover:bg-emerald-50 hover:text-emerald-600 transition-colors">
-                            Admin Dashboard
-                          </Link>
-                          <Link to="/admin/users" onClick={() => setIsAccountDropdownOpen(false)} className="block px-4 py-2.5 hover:bg-emerald-50 hover:text-emerald-600 transition-colors">
-                            Manage Users
-                          </Link>
-                          <Link to="/admin/sellers" onClick={() => setIsAccountDropdownOpen(false)} className="block px-4 py-2.5 hover:bg-emerald-50 hover:text-emerald-600 transition-colors">
-                            Manage Sellers
-                          </Link>
-                          <Link to="/admin/settings" onClick={() => setIsAccountDropdownOpen(false)} className="block px-4 py-2.5 hover:bg-emerald-50 hover:text-emerald-600 transition-colors">
-                            Admin Settings
-                          </Link>
-                        </>
-                      ) : (
-                        <>
-                          <Link to="/customer/dashboard" onClick={() => setIsAccountDropdownOpen(false)} className="block px-4 py-2.5 hover:bg-emerald-50 hover:text-emerald-600 transition-colors">
-                            My Dashboard
-                          </Link>
-                          <Link to="/customer/profile" onClick={() => setIsAccountDropdownOpen(false)} className="block px-4 py-2.5 hover:bg-emerald-50 hover:text-emerald-600 transition-colors">
-                            My Profile
-                          </Link>
-                          <Link to="/customer/orders" onClick={() => setIsAccountDropdownOpen(false)} className="block px-4 py-2.5 hover:bg-emerald-50 hover:text-emerald-600 transition-colors">
-                            My Orders
-                          </Link>
+                          {user?.role === 'SELLER' ? (
+                            <>
+                              <Link to="/seller/dashboard" onClick={() => setIsAccountDropdownOpen(false)} className="block px-4 py-2 hover:bg-emerald-50/50 hover:text-emerald-600 transition-colors font-medium">
+                                Seller Dashboard
+                              </Link>
+                              <Link to="/seller/profile" onClick={() => setIsAccountDropdownOpen(false)} className="block px-4 py-2 hover:bg-emerald-50/50 hover:text-emerald-600 transition-colors font-medium">
+                                Store Profile
+                              </Link>
+                              <Link to="/seller/products" onClick={() => setIsAccountDropdownOpen(false)} className="block px-4 py-2 hover:bg-emerald-50/50 hover:text-emerald-600 transition-colors font-medium">
+                                My Products
+                              </Link>
+                              <Link to="/seller/orders" onClick={() => setIsAccountDropdownOpen(false)} className="block px-4 py-2 hover:bg-emerald-50/50 hover:text-emerald-600 transition-colors font-medium">
+                                Manage Orders
+                              </Link>
+                              <Link to="/seller/settings" onClick={() => setIsAccountDropdownOpen(false)} className="block px-4 py-2 hover:bg-emerald-50/50 hover:text-emerald-600 transition-colors font-medium">
+                                Store Settings
+                              </Link>
+                            </>
+                          ) : user?.role === 'ADMIN' ? (
+                            <>
+                              <Link to="/admin/dashboard" onClick={() => setIsAccountDropdownOpen(false)} className="block px-4 py-2 hover:bg-emerald-50/50 hover:text-emerald-600 transition-colors font-medium">
+                                Admin Dashboard
+                              </Link>
+                              <Link to="/admin/users" onClick={() => setIsAccountDropdownOpen(false)} className="block px-4 py-2 hover:bg-emerald-50/50 hover:text-emerald-600 transition-colors font-medium">
+                                Manage Users
+                              </Link>
+                              <Link to="/admin/sellers" onClick={() => setIsAccountDropdownOpen(false)} className="block px-4 py-2 hover:bg-emerald-50/50 hover:text-emerald-600 transition-colors font-medium">
+                                Manage Sellers
+                              </Link>
+                              <Link to="/admin/settings" onClick={() => setIsAccountDropdownOpen(false)} className="block px-4 py-2 hover:bg-emerald-50/50 hover:text-emerald-600 transition-colors font-medium">
+                                Admin Settings
+                              </Link>
+                            </>
+                          ) : (
+                            <>
+                              <Link to="/customer/dashboard" onClick={() => setIsAccountDropdownOpen(false)} className="block px-4 py-2 hover:bg-emerald-50/50 hover:text-emerald-600 transition-colors font-medium">
+                                My Dashboard
+                              </Link>
+                              <Link to="/customer/profile" onClick={() => setIsAccountDropdownOpen(false)} className="block px-4 py-2 hover:bg-emerald-50/50 hover:text-emerald-600 transition-colors font-medium">
+                                My Profile
+                              </Link>
+                              <Link to="/customer/orders" onClick={() => setIsAccountDropdownOpen(false)} className="block px-4 py-2 hover:bg-emerald-50/50 hover:text-emerald-600 transition-colors font-medium">
+                                My Orders
+                              </Link>
+                            </>
+                          )}
+                          <div className="border-t border-gray-100 my-1" />
                         </>
                       )}
-                      <button 
-                        onClick={() => { logoutUser(); setIsAccountDropdownOpen(false); }}
-                        className="w-full text-left px-4 py-2.5 border-t border-gray-100 hover:bg-slate-900 hover:text-white text-red-600 transition-colors font-semibold"
-                      >
-                        Sign Out
-                      </button>
+
+                      {/* Utility items merged into Account dropdown */}
+                      <Link to="/customer/orders" onClick={() => setIsAccountDropdownOpen(false)} className="px-4 py-2 hover:bg-emerald-50/50 hover:text-emerald-600 flex items-center gap-2 transition-colors text-gray-650">
+                        <Package className="w-3.5 h-3.5 text-gray-400" />
+                        <span>Track Order</span>
+                      </Link>
+
+                      <Link to="/help" onClick={() => setIsAccountDropdownOpen(false)} className="px-4 py-2 hover:bg-emerald-50/50 hover:text-emerald-600 flex items-center gap-2 transition-colors text-gray-650">
+                        <HelpCircle className="w-3.5 h-3.5 text-gray-400" />
+                        <span>Help & FAQs</span>
+                      </Link>
+
+                      {!(user?.role === 'SELLER' || user?.role === 'ADMIN') && (
+                        <Link to="/register" onClick={() => setIsAccountDropdownOpen(false)} className="px-4 py-2 hover:bg-emerald-50/50 hover:text-emerald-600 flex items-center gap-2 transition-colors text-amber-600 font-semibold">
+                          <User className="w-3.5 h-3.5 text-amber-500" />
+                          <span>Sell on Jhapcham</span>
+                        </Link>
+                      )}
+
+                      <div className="px-4 py-2 flex items-center gap-2 text-gray-400 select-none">
+                        <Globe className="w-3.5 h-3.5" />
+                        <span className="text-gray-500 font-medium">Currency: <strong className="text-slate-700">NPR</strong></span>
+                      </div>
+
+                      {isLoggedIn && (
+                        <button 
+                          onClick={() => { logoutUser(); setIsAccountDropdownOpen(false); }}
+                          className="w-full text-left px-4 py-2 border-t border-gray-100 hover:bg-slate-900 hover:text-white text-red-600 transition-colors font-semibold"
+                        >
+                          Sign Out
+                        </button>
+                      )}
                     </div>
                   </div>
                 )}
               </div>
 
-
-
-              {/* Shop Sale Button */}
-              <Link 
-                to="/product-list?onSale=true" 
-                className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2 rounded-pill tracking-wide transition-colors focus:ring-2 focus:ring-emerald-500/20 hidden sm:inline-block outline-none"
-              >
-                Shop Sale
-              </Link>
-
-              {/* Mobile Toggle */}
-              <button 
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} 
-                className="md:hidden text-slate-800 hover:text-emerald-600 p-1.5 outline-none rounded focus:ring-2 focus:ring-emerald-500/20"
-                aria-label="Toggle Menu"
-              >
-                {isMobileMenuOpen ? <X className="w-5.5 h-5.5" /> : <Menu className="w-5.5 h-5.5" />}
-              </button>
-
             </div>
+
+            {/* Shop Sale Button (Redesigned CTA) */}
+            <Link 
+              to="/product-list?onSale=true" 
+              className="bg-[#16A34A] hover:bg-emerald-700 text-white text-xs font-semibold h-11 px-6 rounded-full tracking-wide transition-all duration-200 flex items-center justify-center shadow-xs hover:shadow-md hidden sm:inline-flex outline-none"
+            >
+              Today's Deals
+            </Link>
+
+            {/* Mobile Toggle */}
+            <button 
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} 
+              className="md:hidden text-slate-800 hover:text-[#16A34A] p-1.5 outline-none rounded-full focus:ring-2 focus:ring-emerald-500/20 flex items-center justify-center"
+              aria-label="Toggle Menu"
+            >
+              {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+
           </div>
         </div>
+      </div>
 
-        {/* 4. Mega Category Navigation */}
-        <div className="bg-white border-b border-gray-200 py-1.5 px-6">
-          <div className="max-w-[1440px] mx-auto flex items-center justify-between gap-6 overflow-hidden">
-            {/* Scrollable Mega Links */}
-            <div className="flex items-center gap-6 overflow-x-auto no-scrollbar scroll-smooth pr-6 py-1 flex-1">
-              {[
-                { name: 'Shop All', path: '/product-list', tag: null },
-                { name: 'Promo Codes', path: '/promo', tag: 'HOT', hasDropdown: true },
-                { name: 'Campaign Deals', path: '/promo/landing', tag: 'NEW' },
-                { name: 'Flash Sale', path: '/product-list?onSale=true', tag: 'SALE' },
-                { name: 'Top Seller', path: '/top-sellers', tag: 'HOT' },
-              ].map((tab) => {
-                const active = activeMegaTab === tab.name;
-                return (
-                  <div key={tab.name} className="relative group/promo">
+      {/* 3. Reorganized Category Navigation & Flash Sale Countdown Timer */}
+      <div className="bg-white border-b border-gray-200 py-1.5 px-6">
+        <div className="max-w-[1440px] mx-auto flex items-center justify-between gap-6 overflow-hidden">
+          {/* Category links and timer pill row */}
+          <div className="flex items-center gap-6 overflow-x-auto no-scrollbar scroll-smooth pr-6 py-1 flex-1">
+            {/* Primary Category Links */}
+            {[
+              { name: 'Shop All', path: '/product-list' },
+              { name: 'Flash Sale', path: '/product-list?onSale=true', isFlashSale: true },
+              { name: 'Top Seller', path: '/top-sellers' },
+            ].map((tab) => {
+              const active = activeMegaTab === tab.name;
+              return (
+                <div key={tab.name} className="relative flex items-center">
+                  {tab.isFlashSale ? (
+                    <Link
+                      to={tab.path}
+                      onClick={() => setActiveMegaTab(tab.name)}
+                      className="h-9 px-4 rounded-full bg-[#0F172A] hover:bg-slate-800 text-white transition-all flex items-center gap-1.5 font-bold text-xs select-none shadow-sm hover:scale-[1.02] active:scale-95"
+                    >
+                      <span className="text-amber-400">🔥 {tab.name}</span>
+                      <span className="text-gray-400 font-normal">|</span>
+                      <span className="text-amber-300 font-mono font-semibold tabular-nums tracking-wide">Ends In {formatCountdown(timeLeft)}</span>
+                    </Link>
+                  ) : (
                     <button 
                       onClick={() => {
                         setActiveMegaTab(tab.name);
                         navigate(tab.path);
                       }}
-                      className="flex items-center gap-1.5 pb-1 relative group focus:outline-none whitespace-nowrap text-xs font-bold text-slate-800"
+                      className="flex items-center pb-1 relative group focus:outline-none whitespace-nowrap text-xs font-semibold text-slate-700 tracking-tight"
                     >
-                      <span className={`transition-colors duration-150 ${active ? 'text-emerald-600' : 'hover:text-emerald-600'}`}>
+                      <span className={`transition-all duration-200 ${active ? 'text-[#16A34A] font-bold' : 'hover:text-[#16A34A]'}`}>
                         {tab.name}
                       </span>
-                      {tab.tag && (
-                        <span className={`text-[8px] px-1.5 py-0.5 rounded-xs font-black uppercase tracking-wider ${
-                          tab.tag === 'NEW' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-amber-500 text-white'
-                        }`}>
-                          {tab.tag}
-                        </span>
-                      )}
-                      <span className={`absolute bottom-0 left-0 w-full h-0.5 bg-emerald-600 transform transition-transform duration-200 origin-left ${active ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}`} />
+                      <span className={`absolute bottom-0 left-0 w-full h-0.5 bg-[#16A34A] transform transition-transform duration-200 origin-left ${active ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}`} />
                     </button>
-                    
-                    {/* Hover Dropdown for Promo Codes */}
-                    {tab.hasDropdown && activePromos.length > 0 && (
-                      <div className="absolute left-0 mt-2 w-72 bg-white border border-gray-200 rounded-card shadow-lg z-50 p-4 hidden group-hover/promo:block font-inter text-slate-800 animate-in fade-in duration-200">
-                        <div className="flex justify-between items-center border-b border-gray-200 pb-2 mb-3">
-                          <h4 className="font-bold text-xs uppercase tracking-wider">Active Promo Codes ({activePromos.length})</h4>
-                        </div>
-                        <div className="max-h-60 overflow-y-auto space-y-2.5 pr-1">
-                          {activePromos.map((promo) => (
-                            <div key={promo.id} className="p-2.5 bg-emerald-50/50 border border-emerald-100 rounded-card text-[11px] flex flex-col gap-1">
-                              <div className="flex justify-between items-center">
-                                <span className="font-mono font-bold text-emerald-600 uppercase tracking-wider">{promo.code}</span>
-                                <span className="font-black text-slate-800">
-                                  {promo.discountType === 'PERCENTAGE' ? `${promo.discountValue}% OFF` : `Rs. ${promo.discountValue} OFF`}
-                                </span>
-                              </div>
-                              <p className="text-[10px] text-gray-500 truncate" title={promo.description || promo.title}>
-                                {promo.description || promo.title}
-                              </p>
-                              {promo.minOrderValue > 0 && (
-                                <span className="text-[9px] text-gray-400">Min. order: Rs. {promo.minOrderValue.toLocaleString()}</span>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                        <div className="border-t border-gray-200 pt-2 mt-2">
-                          <Link 
-                            to="/promo" 
-                            onClick={() => setActiveMegaTab('Promo Codes')}
-                            className="block w-full py-1.5 bg-emerald-600 text-white text-center text-[10px] font-bold rounded-pill hover:bg-emerald-700 transition-colors"
-                          >
-                            Go to Promo Center
-                          </Link>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+                  )}
+                </div>
+              );
+            })}
 
-            <Link to="/product-list?onSale=true" className="flex-shrink-0 flex items-center gap-2 text-slate-800 border-l border-gray-200 pl-6 py-1 text-xs font-bold select-none hidden sm:flex hover:opacity-80 transition-opacity" title="View all sale products">
-              <span className="text-amber-500 text-[10px] uppercase tracking-wider font-black">🔥 Flash Sale Ends In:</span>
-              <span className="font-mono bg-slate-900 text-amber-400 px-2.5 py-1 rounded-xs tabular-nums text-xs">
-                {formatCountdown(timeLeft)}
-              </span>
-            </Link>
+            {/* Separator Line */}
+            <div className="h-4 w-[1px] bg-gray-200 self-center hidden sm:block" />
+
+            {/* Secondary Category Links */}
+            {[
+              { name: 'Campaign Deals', path: '/promo/landing' },
+              { name: 'Promo Codes', path: '/promo', hasDropdown: true },
+            ].map((tab) => {
+              const active = activeMegaTab === tab.name;
+              return (
+                <div key={tab.name} className="relative group/promo">
+                  <button 
+                    onClick={() => {
+                      setActiveMegaTab(tab.name);
+                      navigate(tab.path);
+                    }}
+                    className="flex items-center pb-1 relative group focus:outline-none whitespace-nowrap text-xs font-semibold text-slate-500 hover:text-slate-800 transition-colors"
+                  >
+                    <span className={`transition-all duration-205 ${active ? 'text-[#16A34A] font-bold' : 'hover:text-[#16A34A]'}`}>
+                      {tab.name}
+                    </span>
+                    {tab.name === 'Promo Codes' && (
+                      <span className="text-[9px] bg-amber-500 text-white font-bold px-1 rounded-sm ml-1.5">HOT</span>
+                    )}
+                    <span className={`absolute bottom-0 left-0 w-full h-0.5 bg-[#16A34A] transform transition-transform duration-200 origin-left ${active ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}`} />
+                  </button>
+                  
+                  {/* Hover Dropdown for Promo Codes */}
+                  {tab.hasDropdown && activePromos.length > 0 && (
+                    <div className="absolute left-0 mt-2 w-72 bg-white border border-gray-200 rounded-2xl shadow-xl z-50 p-4 hidden group-hover/promo:block font-inter text-slate-800 animate-in fade-in duration-200">
+                      <div className="flex justify-between items-center border-b border-gray-250 pb-2 mb-3">
+                        <h4 className="font-bold text-xs uppercase tracking-wider text-slate-400">Active Promo Codes ({activePromos.length})</h4>
+                      </div>
+                      <div className="max-h-60 overflow-y-auto space-y-2.5 pr-1 scrollbar-thin">
+                        {activePromos.map((promo) => (
+                          <div key={promo.id} className="p-2.5 bg-emerald-50/50 border border-emerald-100 rounded-xl text-[11px] flex flex-col gap-1">
+                            <div className="flex justify-between items-center">
+                              <span className="font-mono font-bold text-[#16A34A] uppercase tracking-wider">{promo.code}</span>
+                              <span className="font-black text-slate-800">
+                                {promo.discountType === 'PERCENTAGE' ? `${promo.discountValue}% OFF` : `Rs. ${promo.discountValue} OFF`}
+                              </span>
+                            </div>
+                            <p className="text-[10px] text-gray-500 truncate" title={promo.description || promo.title}>
+                              {promo.description || promo.title}
+                            </p>
+                            {promo.minOrderValue > 0 && (
+                              <span className="text-[9px] text-gray-400">Min. order: Rs. {promo.minOrderValue.toLocaleString()}</span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                      <div className="border-t border-gray-200 pt-2.5 mt-2.5">
+                        <Link 
+                          to="/promo" 
+                          onClick={() => setActiveMegaTab('Promo Codes')}
+                          className="block w-full py-2 bg-[#16A34A] text-white text-center text-xs font-bold rounded-lg hover:bg-emerald-700 transition-colors"
+                        >
+                          Go to Promo Center
+                        </Link>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
+      </div>
 
-        {/* Wishlist slide-out Drawer Panel */}
-        {isWishlistOpen && (
-          <>
-            <div 
-              onClick={() => setIsWishlistOpen(false)}
-              className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 transition-opacity"
-            />
-            <div className="fixed top-0 right-0 h-full w-full max-w-md bg-white border-l border-gray-200 z-50 shadow-2xl p-6 overflow-y-auto animate-in slide-in-from-right duration-300 font-inter text-slate-800">
-              <div className="flex justify-between items-center border-b border-gray-200 pb-4 mb-4">
-                <div className="flex items-center gap-2">
-                  <Heart className="w-5 h-5 text-emerald-600 fill-current animate-pulse" />
-                  <h3 className="font-inter font-bold text-lg">My Wishlist</h3>
-                </div>
-                <button 
-                  onClick={() => setIsWishlistOpen(false)}
-                  className="p-1.5 text-gray-400 hover:text-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500/20 rounded-xs"
-                >
-                  <X className="w-5 h-5" />
-                </button>
+      {/* Wishlist slide-out Drawer Panel */}
+      {isWishlistOpen && (
+        <>
+          <div 
+            onClick={() => setIsWishlistOpen(false)}
+            className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 transition-opacity animate-in fade-in duration-300"
+          />
+          <div className="fixed top-0 right-0 h-full w-full max-w-md bg-white border-l border-gray-200 z-50 shadow-2xl p-6 overflow-y-auto animate-in slide-in-from-right duration-300 font-inter text-slate-800">
+            <div className="flex justify-between items-center border-b border-gray-200 pb-4 mb-4">
+              <div className="flex items-center gap-2">
+                <Heart className="w-5 h-5 text-[#16A34A] fill-current animate-pulse" />
+                <h3 className="font-inter font-bold text-lg">My Wishlist</h3>
               </div>
+              <button 
+                onClick={() => setIsWishlistOpen(false)}
+                className="p-1.5 text-gray-400 hover:text-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500/20 rounded-xs"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
 
-              {loadingWishlist ? (
-                <div className="text-center py-12 text-gray-400 text-xs">Loading saved wishlist items...</div>
-              ) : wishlistItems.length > 0 ? (
-                <div className="space-y-4">
-                  {wishlistItems.map((item) => {
-                    const prod = item.product || item;
-                    const rawImg = prod.imagePaths?.[0] || prod.imagePath || prod.thumbnail || null;
-                    const resolvedUrl = rawImg ? (rawImg.startsWith('http') ? rawImg : `${BASE_URL}${rawImg.startsWith('/') ? '' : '/'}${rawImg}`) : null;
-                    const prodId = prod.id || prod.productId;
-                    return (
-                      <div key={prodId} className="flex gap-4 items-center border-b border-gray-100 pb-4 text-xs">
-                        <div className="w-16 h-16 bg-white rounded-card border border-gray-100 overflow-hidden flex-shrink-0 flex items-center justify-center">
-                          {resolvedUrl ? (
-                            <img src={resolvedUrl} alt={prod.name} className="w-full h-full object-contain" />
-                          ) : (
-                            <span className="text-2xl">📦</span>
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-inter font-bold text-slate-800 leading-tight mb-1">{prod.name}</h4>
-                          <p className="text-emerald-600 font-bold">Rs. {(prod.price || prod.minPrice || 0).toLocaleString()}</p>
-                          <div className="flex gap-2 mt-2">
-                            <button
-                              onClick={(e) => handleAddWishlistToCart(e, prodId)}
-                              className="bg-emerald-600 text-white px-3 py-1 rounded-xs font-bold text-[10px] hover:bg-emerald-700 transition-colors focus:outline-none"
-                            >
-                              Add to Bag
-                            </button>
-                            <button
-                              onClick={(e) => handleRemoveWishlistItem(e, prodId)}
-                              className="border border-gray-300 hover:border-red-600 hover:text-red-600 px-2 py-1 rounded-xs text-[10px] text-gray-400 transition-colors focus:outline-none"
-                            >
-                              Remove
-                            </button>
-                          </div>
+            {loadingWishlist ? (
+              <div className="text-center py-12 text-gray-400 text-xs">Loading saved wishlist items...</div>
+            ) : wishlistItems.length > 0 ? (
+              <div className="space-y-4">
+                {wishlistItems.map((item) => {
+                  const prod = item.product || item;
+                  const rawImg = prod.imagePaths?.[0] || prod.imagePath || prod.thumbnail || null;
+                  const resolvedUrl = rawImg ? (rawImg.startsWith('http') ? rawImg : `${BASE_URL}${rawImg.startsWith('/') ? '' : '/'}${rawImg}`) : null;
+                  const prodId = prod.id || prod.productId;
+                  return (
+                    <div key={prodId} className="flex gap-4 items-center border-b border-gray-100 pb-4 text-xs">
+                      <div className="w-16 h-16 bg-white rounded-2xl border border-gray-100 overflow-hidden flex-shrink-0 flex items-center justify-center">
+                        {resolvedUrl ? (
+                          <img src={resolvedUrl} alt={prod.name} className="w-full h-full object-contain" />
+                        ) : (
+                          <span className="text-2xl">📦</span>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-inter font-bold text-slate-800 leading-tight mb-1">{prod.name}</h4>
+                        <p className="text-[#16A34A] font-bold">Rs. {(prod.price || prod.minPrice || 0).toLocaleString()}</p>
+                        <div className="flex gap-2 mt-2">
+                          <button
+                            onClick={(e) => handleAddWishlistToCart(e, prodId)}
+                            className="bg-[#16A34A] text-white px-3 py-1.5 rounded-lg font-bold text-[10px] hover:bg-emerald-700 transition-colors focus:outline-none"
+                          >
+                            Add to Bag
+                          </button>
+                          <button
+                            onClick={(e) => handleRemoveWishlistItem(e, prodId)}
+                            className="border border-gray-300 hover:border-red-650 hover:text-red-650 px-2 py-1.5 rounded-lg text-[10px] text-gray-400 transition-colors focus:outline-none"
+                          >
+                            Remove
+                          </button>
                         </div>
                       </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="text-center py-16 text-gray-400 text-xs">
-                  <div className="text-4xl mb-3 select-none">❤️</div>
-                  <p className="font-semibold mb-4">Your wishlist is empty.<br />Save items you love while browsing.</p>
-                  <Link
-                    to="/product-list"
-                    onClick={() => setIsWishlistOpen(false)}
-                    className="inline-block bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-black uppercase tracking-wider px-5 py-2.5 rounded-sm transition-colors"
-                  >
-                    Browse Products →
-                  </Link>
-                </div>
-              )}
-            </div>
-          </>
-        )}
-
-        {/* Mobile menu drawer */}
-        {isMobileMenuOpen && (
-          <div className="md:hidden border-t border-gray-200 bg-white px-6 py-4 space-y-3 font-semibold uppercase text-xs">
-            <Link to="/" className="block py-2 text-slate-800 hover:text-emerald-600" onClick={() => setIsMobileMenuOpen(false)}>Home</Link>
-            <Link to="/product-list" className="block py-2 text-slate-800 hover:text-emerald-600" onClick={() => setIsMobileMenuOpen(false)}>Browse Product</Link>
-            <Link to="/promo/landing" className="block py-2 text-slate-800 hover:text-emerald-600" onClick={() => setIsMobileMenuOpen(false)}>Deals</Link>
-            <Link to="/promo" className="block py-2 text-amber-500" onClick={() => setIsMobileMenuOpen(false)}>🎟 Promo Center</Link>
-            
-
-
-            {/* Search for mobile */}
-            <form onSubmit={handleSearch} className="pt-2">
-              <div className="flex items-center border border-gray-300 rounded-pill overflow-hidden bg-white">
-                <input 
-                  type="text" 
-                  placeholder="Search products..." 
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full px-4 py-2 bg-transparent text-xs text-slate-800 outline-none"
-                />
-                <button type="submit" className="p-2 text-gray-400"><Search className="w-4 h-4" /></button>
+                    </div>
+                  );
+                })}
               </div>
-            </form>
+            ) : (
+              <div className="text-center py-16 text-gray-400 text-xs">
+                <div className="text-4xl mb-3 select-none">❤️</div>
+                <p className="font-semibold mb-4">Your wishlist is empty.<br />Save items you love while browsing.</p>
+                <Link
+                  to="/product-list"
+                  onClick={() => setIsWishlistOpen(false)}
+                  className="inline-block bg-[#16A34A] hover:bg-emerald-700 text-white text-[10px] font-black uppercase tracking-wider px-5 py-2.5 rounded-lg transition-colors"
+                >
+                  Browse Products →
+                </Link>
+              </div>
+            )}
           </div>
-        )}
+        </>
+      )}
 
-        {/* Auth Modal */}
-        <LoginModal 
-          isOpen={isLoginModalOpen} 
-          onClose={() => setIsLoginModalOpen(false)} 
-          initialTab="login"
-          initialRole="CUSTOMER"
-        />
-      </header>
-    );
+      {/* Mobile menu drawer */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden border-t border-gray-250 bg-white px-6 py-4 space-y-3 font-semibold uppercase text-xs">
+          <Link to="/" className="block py-2 text-slate-800 hover:text-[#16A34A]" onClick={() => setIsMobileMenuOpen(false)}>Home</Link>
+          <Link to="/product-list" className="block py-2 text-slate-800 hover:text-[#16A34A]" onClick={() => setIsMobileMenuOpen(false)}>Browse Product</Link>
+          <Link to="/promo/landing" className="block py-2 text-slate-800 hover:text-[#16A34A]" onClick={() => setIsMobileMenuOpen(false)}>Deals</Link>
+          <Link to="/promo" className="block py-2 text-amber-500" onClick={() => setIsMobileMenuOpen(false)}>🎟 Promo Center</Link>
+          
+          {/* Search for mobile */}
+          <form onSubmit={handleSearch} className="pt-2">
+            <div className="flex items-center border border-gray-300 rounded-full overflow-hidden bg-white">
+              <input 
+                type="text" 
+                placeholder="Search products..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full px-4 py-2 bg-transparent text-xs text-slate-800 outline-none"
+              />
+              <button type="submit" className="p-2 text-gray-400"><Search className="w-4 h-4" /></button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* Auth Modal */}
+      <LoginModal 
+        isOpen={isLoginModalOpen} 
+        onClose={() => setIsLoginModalOpen(false)} 
+        initialTab="login"
+        initialRole="CUSTOMER"
+      />
+    </header>
+  );
 }

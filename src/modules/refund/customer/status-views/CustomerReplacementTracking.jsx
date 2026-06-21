@@ -93,7 +93,7 @@ export default function CustomerReplacementTracking({
         <button
           onClick={handleAccept}
           disabled={submitting}
-          className="flex items-center gap-1.5 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-all shadow-xs cursor-pointer disabled:opacity-50"
+          className="flex items-center gap-1.5 px-5 py-2.5 bg-[#152F17] hover:bg-[#0D1E0F] text-white rounded-lg text-xs font-bold transition-all shadow-xs cursor-pointer disabled:opacity-50"
         >
           <CheckCircle2 size={14} />
           Accept & Complete Exchange

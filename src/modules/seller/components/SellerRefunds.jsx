@@ -70,7 +70,7 @@ const STATUS_BADGE = {
   WAITING_FOR_CUSTOMER: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/20 dark:text-amber-400 dark:border-amber-900/50',
   WAITING_FOR_RETURN: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/20 dark:text-amber-400 dark:border-amber-900/50',
   RETURN_IN_TRANSIT: 'bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950/20 dark:text-sky-400 dark:border-sky-900/50',
-  RETURN_RECEIVED: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/20 dark:text-emerald-400 dark:border-emerald-900/50',
+  RETURN_RECEIVED: 'bg-[#16A34A]/10 text-[#152F17] border-[#16A34A]/20 dark:bg-[#16A34A]/15 dark:text-[#2E5E2C] dark:border-[#16A34A]/20',
   INSPECTION_PENDING: 'bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-950/20 dark:text-violet-400 dark:border-violet-900/50',
   APPROVED: 'bg-green-50 text-green-700 border-green-200 dark:bg-green-950/20 dark:text-green-400 dark:border-green-900/50',
   REJECTED: 'bg-red-50 text-red-700 border-red-200 dark:bg-red-950/20 dark:text-red-400 dark:border-red-900/50',
@@ -78,8 +78,8 @@ const STATUS_BADGE = {
   GATEWAY_PENDING: 'bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950/20 dark:text-sky-400 dark:border-sky-900/50',
   WEBHOOK_RECEIVED: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/20 dark:text-blue-400 dark:border-blue-900/50',
   PENDING_ADMIN_VERIFICATION: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/20 dark:text-blue-400 dark:border-blue-900/50',
-  PARTIALLY_REFUNDED: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/20 dark:text-emerald-400 dark:border-emerald-900/50',
-  REFUNDED: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/20 dark:text-emerald-400 dark:border-emerald-900/50',
+  PARTIALLY_REFUNDED: 'bg-[#16A34A]/10 text-[#152F17] border-[#16A34A]/20 dark:bg-[#16A34A]/15 dark:text-[#2E5E2C] dark:border-[#16A34A]/20',
+  REFUNDED: 'bg-[#16A34A]/10 text-[#152F17] border-[#16A34A]/20 dark:bg-[#16A34A]/15 dark:text-[#2E5E2C] dark:border-[#16A34A]/20',
   CANCELLED: 'bg-gray-100 text-gray-600 border-gray-200 dark:bg-gray-800/20 dark:text-gray-400 dark:border-gray-700/50',
   ESCALATED_TO_DISPUTE: 'bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-950/20 dark:text-violet-400 dark:border-violet-900/50',
 };
@@ -139,7 +139,7 @@ function RefundStepper({ status }) {
   const getActiveColors = () => {
     if (isReject) return { border: 'border-red-400 bg-red-400', text: 'text-red-500' };
     if (['APPROVED', 'REFUNDED', 'PARTIALLY_REFUNDED', 'PROCESSING_REFUND', 'GATEWAY_PENDING', 'WEBHOOK_RECEIVED', 'PENDING_ADMIN_VERIFICATION'].includes(norm)) {
-      return { border: 'border-emerald-500 bg-emerald-500', text: 'text-emerald-600 dark:text-emerald-400' };
+      return { border: 'border-[#16A34A] bg-[#16A34A]/100', text: 'text-[#16A34A] dark:text-[#2E5E2C]' };
     }
     if (['WAITING_FOR_CUSTOMER', 'WAITING_FOR_RETURN', 'RETURN_IN_TRANSIT', 'RETURN_RECEIVED', 'INSPECTION_PENDING'].includes(norm)) {
       return { border: 'border-amber-500 bg-amber-500', text: 'text-amber-500 dark:text-amber-400' };
@@ -161,7 +161,7 @@ function RefundStepper({ status }) {
             <div className="flex flex-col items-center gap-1.5 shrink-0">
               <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all ${
                 isFailStep ? 'border-red-400 bg-red-400'
-                  : done    ? 'border-emerald-500 bg-emerald-500'
+                  : done    ? 'border-[#16A34A] bg-[#16A34A]/100'
                   : current ? `${activeColors.border} shadow-md`
                   : 'border-gray-250 bg-gray-55 dark:border-gray-700 dark:bg-gray-800'
               }`}>
@@ -176,7 +176,7 @@ function RefundStepper({ status }) {
               </div>
               <span className={`text-[10px] font-black uppercase tracking-wider ${
                 isFailStep ? 'text-red-500'
-                  : done ? 'text-emerald-600 dark:text-emerald-400'
+                  : done ? 'text-[#16A34A] dark:text-[#2E5E2C]'
                   : current ? activeColors.text
                   : 'text-gray-400 dark:text-gray-500'
               }`}>
@@ -184,7 +184,7 @@ function RefundStepper({ status }) {
               </span>
             </div>
             {!last && (
-              <div className={`flex-1 h-0.5 mb-5 ${done ? 'bg-emerald-500' : 'bg-gray-250 dark:bg-gray-700'}`} />
+              <div className={`flex-1 h-0.5 mb-5 ${done ? 'bg-[#16A34A]/100' : 'bg-gray-250 dark:bg-gray-700'}`} />
             )}
           </React.Fragment>
         );
@@ -208,7 +208,7 @@ function EvidenceGallery({ evidence, evidenceImagePath, onPreview }) {
         <p className="text-[9px] font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">
           Customer Evidence ({items.length} file{items.length !== 1 ? 's' : ''})
         </p>
-        <span className="text-[8px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/20 px-2 py-0.5 rounded-full">
+        <span className="text-[8px] font-black uppercase tracking-widest text-[#16A34A] dark:text-[#2E5E2C] bg-[#16A34A]/10 dark:bg-[#16A34A]/15 px-2 py-0.5 rounded-full">
           Verified Evidence
         </span>
       </div>
@@ -222,7 +222,7 @@ function EvidenceGallery({ evidence, evidenceImagePath, onPreview }) {
                 type="button"
                 onClick={() => onPreview(url)}
                 className="relative rounded-sm border border-gray-200 bg-white dark:bg-gray-900 dark:border-gray-800 overflow-hidden
-                           hover:border-emerald-500 hover:shadow-md transition-all w-16 h-16 shrink-0 block"
+                           hover:border-[#16A34A] hover:shadow-md transition-all w-16 h-16 shrink-0 block"
               >
                 {img && url ? (
                   <>
@@ -249,7 +249,7 @@ function EvidenceGallery({ evidence, evidenceImagePath, onPreview }) {
               {/* Hover Preview Panel */}
               {img && url && (
                 <div className="hidden group-hover:block absolute bottom-full left-1/2 -translate-x-1/2 mb-3 z-[100] pointer-events-none transition-all duration-200">
-                  <div className="bg-white dark:bg-zinc-900 border-2 border-emerald-500 rounded-xl p-1.5 shadow-2xl w-48 h-48 flex items-center justify-center relative">
+                  <div className="bg-white dark:bg-zinc-900 border-2 border-[#16A34A] rounded-xl p-1.5 shadow-2xl w-48 h-48 flex items-center justify-center relative">
                     <img src={url} alt="Preview" className="w-full h-full object-cover rounded-lg" />
                     <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-emerald-500" />
                   </div>
@@ -292,13 +292,13 @@ function ActionBanner({ status }) {
     );
   if (norm === 'PROCESSING_REFUND')
     return (
-      <div className="rounded-sm border border-emerald-300 bg-emerald-50 dark:bg-emerald-950/20 dark:border-emerald-805/40 p-3 flex items-center gap-3">
-        <div className="p-1 bg-emerald-100 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 rounded-sm shrink-0">
+      <div className="rounded-sm border border-[#16A34A]/30 bg-[#16A34A]/10 dark:bg-[#16A34A]/15 dark:border-emerald-805/40 p-3 flex items-center gap-3">
+        <div className="p-1 bg-[#16A34A]/20 dark:bg-[#16A34A]/15 text-[#152F17] dark:text-[#2E5E2C] rounded-sm shrink-0">
           <CheckCircle size={15} />
         </div>
         <div>
           <p className="text-xs font-black text-emerald-900 dark:text-emerald-200 uppercase tracking-wide">Payout Pending</p>
-          <p className="text-[10px] text-emerald-700 dark:text-emerald-400 font-semibold mt-0.5">Send the refund amount to the customer's wallet account and upload the reference screenshot as proof.</p>
+          <p className="text-[10px] text-[#152F17] dark:text-[#2E5E2C] font-semibold mt-0.5">Send the refund amount to the customer's wallet account and upload the reference screenshot as proof.</p>
         </div>
       </div>
     );
@@ -308,7 +308,7 @@ function ActionBanner({ status }) {
 /* ─── Info panel ──────────────────────────────────────────────────── */
 const INFO_TONES = {
   gray:   'border-gray-150 dark:border-gray-800 bg-gray-55 dark:bg-gray-955 text-gray-800 dark:text-gray-200',
-  green:  'border-emerald-150 dark:border-emerald-955 bg-emerald-55 dark:bg-emerald-955/20 text-emerald-900 dark:text-emerald-300',
+  green:  'border-emerald-150 dark:border-emerald-955 bg-emerald-55 dark:bg-emerald-955/20 text-emerald-900 dark:text-[#8DBA90]',
   amber:  'border-amber-150 dark:border-amber-955 bg-amber-55 dark:bg-amber-955/20 text-amber-900 dark:text-amber-300',
   blue:   'border-blue-150 dark:border-blue-955 bg-blue-55 dark:bg-blue-955/20 text-blue-900 dark:text-blue-300',
   red:    'border-red-150 dark:border-red-955 bg-red-55 dark:bg-red-955/20 text-red-900 dark:text-red-300',
@@ -331,27 +331,27 @@ function RefundTimelineList({ entries }) {
     <div className="rounded-sm border border-gray-150 dark:border-gray-800 bg-white dark:bg-gray-900 p-3.5 shadow-sm">
       <div className="flex items-center justify-between mb-4 border-b border-gray-100 dark:border-gray-800 pb-2">
         <span className="text-[9px] font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Activity Timeline</span>
-        <span className="text-[9px] font-black text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/20 px-2 py-0.5 rounded-sm">{entries.length} Events</span>
+        <span className="text-[9px] font-black text-[#16A34A] dark:text-[#2E5E2C] bg-[#16A34A]/10 dark:bg-[#16A34A]/15 px-2 py-0.5 rounded-sm">{entries.length} Events</span>
       </div>
       <div className="max-h-52 space-y-3.5 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-gray-200">
         {entries.slice().reverse().map((entry) => {
           const actor = String(entry.performedBy || 'SYSTEM').toUpperCase();
           const act = String(entry.action || '').toUpperCase();
           const badgeColor = 
-            actor === 'SELLER' ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/20 dark:text-emerald-400 border-emerald-100 dark:border-emerald-900/30' :
+            actor === 'SELLER' ? 'bg-[#16A34A]/10 text-[#152F17] dark:bg-[#16A34A]/15 dark:text-[#2E5E2C] border-emerald-100 dark:border-emerald-900/30' :
             actor === 'CUSTOMER' ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/20 dark:text-blue-400 border-blue-100 dark:border-blue-900/30' :
             actor === 'ADMIN' ? 'bg-purple-50 text-purple-700 dark:bg-purple-950/20 dark:text-purple-400 border-purple-100 dark:border-purple-900/30' :
             'bg-gray-55 text-gray-500 dark:bg-gray-800/30 dark:text-gray-400 border-gray-200 dark:border-gray-700/30';
 
           let eventDotColor = 'bg-gray-400 dark:bg-gray-550 ring-gray-100 dark:ring-gray-800/40';
           if (act.includes('APPROVE') || act.includes('COMPLETE') || act.includes('RESOLVE') || act.includes('RECEIVE')) {
-            eventDotColor = 'bg-emerald-500 dark:bg-emerald-450 ring-emerald-50 dark:ring-emerald-950/40';
+            eventDotColor = 'bg-[#16A34A]/100 dark:bg-emerald-450 ring-emerald-50 dark:ring-emerald-950/40';
           } else if (act.includes('REJECT') || act.includes('DISPUTE') || act.includes('CANCEL') || act.includes('FAIL') || act.includes('DENY')) {
             eventDotColor = 'bg-red-500 dark:bg-red-450 ring-red-50 dark:ring-red-950/40';
           } else if (act.includes('WAIT') || act.includes('EVIDENCE') || act.includes('INSPECT') || act.includes('UPLOAD')) {
             eventDotColor = 'bg-amber-500 dark:bg-amber-450 ring-amber-50 dark:ring-amber-950/30';
           } else if (actor === 'SELLER') {
-            eventDotColor = 'bg-emerald-500 dark:bg-emerald-450 ring-emerald-50 dark:ring-emerald-950/40';
+            eventDotColor = 'bg-[#16A34A]/100 dark:bg-emerald-450 ring-emerald-50 dark:ring-emerald-950/40';
           } else if (actor === 'CUSTOMER') {
             eventDotColor = 'bg-blue-500 dark:bg-blue-450 ring-blue-50 dark:ring-blue-950/40';
           } else if (actor === 'ADMIN') {
@@ -703,10 +703,10 @@ export default function SellerRefunds() {
                     <span className="font-mono text-[11px] font-black text-gray-700 dark:text-gray-300">{refundRef(refund)}</span>
                     <button
                       onClick={(e) => handleCopy(e, refund.id, refundRef(refund))}
-                      className="text-gray-400 hover:text-emerald-500 transition-colors cursor-pointer"
+                      className="text-gray-400 hover:text-[#e8f3e9]0 transition-colors cursor-pointer"
                       title="Copy Refund Reference ID"
                     >
-                      {copiedId === refund.id ? <Check size={11} className="text-emerald-500 animate-in fade-in" /> : <Copy size={11} />}
+                      {copiedId === refund.id ? <Check size={11} className="text-[#e8f3e9]0 animate-in fade-in" /> : <Copy size={11} />}
                     </button>
                   </div>
                   <span className={`px-2.5 py-0.5 rounded-full border text-[9px] font-black uppercase tracking-wider ${badgeClass(refund.status)}`}>
@@ -724,7 +724,7 @@ export default function SellerRefunds() {
                     Order: 
                     <Link
                       to={`/seller/orders?orderId=${refund.customOrderId || refund.orderId}`}
-                      className="font-black text-[#10B981] hover:text-emerald-600 dark:hover:text-emerald-400 hover:underline flex items-center gap-0.5"
+                      className="font-black text-[#16A34A] hover:text-[#16A34A] dark:hover:text-[#2E5E2C] hover:underline flex items-center gap-0.5"
                     >
                       {orderRef(refund)}
                       <ExternalLink size={10} />
@@ -811,7 +811,7 @@ export default function SellerRefunds() {
                           <span className="text-[10px] font-bold text-gray-500 uppercase">Risk Level</span>
                           <span className={`text-[10px] font-black px-2 py-0.5 rounded ${
                             getRiskTone(refund) === 'red' ? 'text-red-600 bg-red-50' : 
-                            getRiskTone(refund) === 'amber' ? 'text-amber-600 bg-amber-50' : 'text-emerald-600 bg-emerald-50'
+                            getRiskTone(refund) === 'amber' ? 'text-amber-600 bg-amber-50' : 'text-[#16A34A] bg-[#16A34A]/10'
                           }`}>{refund.riskLevel}</span>
                         </div>
                       )}
@@ -886,16 +886,16 @@ export default function SellerRefunds() {
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: 'auto', opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
-                    className="bg-emerald-50 dark:bg-emerald-955/20 border border-emerald-205 dark:border-emerald-900/40 rounded-xl p-4 space-y-3.5 overflow-hidden"
+                    className="bg-[#16A34A]/10 dark:bg-emerald-955/20 border border-emerald-205 dark:border-emerald-900/40 rounded-xl p-4 space-y-3.5 overflow-hidden"
                   >
-                    <h4 className="text-xs font-black uppercase tracking-wider text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
+                    <h4 className="text-xs font-black uppercase tracking-wider text-[#152F17] dark:text-[#2E5E2C] flex items-center gap-1.5">
                       <Package size={14} /> Request Product Return Shipment
                     </h4>
                     <textarea
                       placeholder="Provide return address, packaging instructions, accessories to include..."
                       value={returnForm.returnInstructions || ''}
                       onChange={e => setReturnForm(f => ({ ...f, returnInstructions: e.target.value }))}
-                      className="w-full bg-white dark:bg-gray-900 border border-emerald-205 dark:border-gray-850 rounded-xl p-3 text-xs font-medium text-gray-700 dark:text-gray-300 outline-none h-20 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/20"
+                      className="w-full bg-white dark:bg-gray-900 border border-emerald-205 dark:border-gray-850 rounded-xl p-3 text-xs font-medium text-gray-700 dark:text-gray-300 outline-none h-20 focus:border-[#16A34A] focus:ring-1 focus:ring-[#16A34A]/20"
                     />
                     <div className="grid gap-2.5 sm:grid-cols-3">
                       {[
@@ -907,7 +907,7 @@ export default function SellerRefunds() {
                           placeholder={placeholder}
                           value={returnForm[key] || ''}
                           onChange={e => setReturnForm(f => ({ ...f, [key]: e.target.value }))}
-                          className="bg-white dark:bg-gray-900 border border-emerald-205 dark:border-gray-855 rounded-xl p-2.5 text-xs font-semibold text-gray-700 dark:text-gray-300 outline-none focus:border-emerald-500"
+                          className="bg-white dark:bg-gray-900 border border-emerald-205 dark:border-gray-855 rounded-xl p-2.5 text-xs font-semibold text-gray-700 dark:text-gray-300 outline-none focus:border-[#16A34A]"
                         />
                       ))}
                       <div className="relative">
@@ -915,7 +915,7 @@ export default function SellerRefunds() {
                           type="date"
                           value={returnForm.returnDeadline || ''}
                           onChange={e => setReturnForm(f => ({ ...f, returnDeadline: e.target.value }))}
-                          className="bg-white dark:bg-gray-900 border border-emerald-205 dark:border-gray-855 rounded-xl p-2.5 text-xs font-semibold text-gray-700 dark:text-gray-300 outline-none w-full focus:border-emerald-500"
+                          className="bg-white dark:bg-gray-900 border border-emerald-205 dark:border-gray-855 rounded-xl p-2.5 text-xs font-semibold text-gray-700 dark:text-gray-300 outline-none w-full focus:border-[#16A34A]"
                         />
                         <span className="absolute right-8 top-3 text-[8px] font-black uppercase tracking-widest text-gray-400 pointer-events-none">Deadline</span>
                       </div>
@@ -924,11 +924,11 @@ export default function SellerRefunds() {
                       placeholder="Optional private memo details..."
                       value={comment}
                       onChange={e => setComment(e.target.value)}
-                      className="w-full bg-white dark:bg-gray-900 border border-emerald-205 dark:border-gray-855 rounded-xl p-3 text-xs font-medium text-gray-700 dark:text-gray-300 outline-none h-14 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/20"
+                      className="w-full bg-white dark:bg-gray-900 border border-emerald-205 dark:border-gray-855 rounded-xl p-3 text-xs font-medium text-gray-700 dark:text-gray-300 outline-none h-14 focus:border-[#16A34A] focus:ring-1 focus:ring-[#16A34A]/20"
                     />
                     <div className="flex gap-2 justify-end">
                       <button onClick={cancelAction} disabled={submitting} className="px-4 py-2 border border-gray-205 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-750 text-gray-600 dark:text-gray-300 rounded-xl text-xs font-bold">Cancel</button>
-                      <button onClick={() => handleReturnRequest(refund.id)} disabled={submitting} className="px-4 py-2 bg-[#10B981] hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm">
+                      <button onClick={() => handleReturnRequest(refund.id)} disabled={submitting} className="px-4 py-2 bg-[#16A34A] hover:bg-[#0D1E0F] text-white rounded-xl text-xs font-bold shadow-sm">
                         {submitting ? 'Sending…' : 'Request Return'}
                       </button>
                     </div>
@@ -945,7 +945,7 @@ export default function SellerRefunds() {
                     <select
                       value={nextStatus}
                       onChange={e => setNextStatus(e.target.value)}
-                      className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-750 rounded-xl p-2.5 text-xs font-black uppercase tracking-wider text-gray-700 dark:text-white outline-none focus:border-[#10B981] focus:ring-1 focus:ring-[#10B981]/20"
+                      className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-750 rounded-xl p-2.5 text-xs font-black uppercase tracking-wider text-gray-700 dark:text-white outline-none focus:border-[#16A34A] focus:ring-1 focus:ring-[#16A34A]/20"
                     >
                       {nextStatusOptions(refund.status).map(s => (
                         <option key={s} value={s}>{statusLabel(s)}</option>
@@ -955,11 +955,11 @@ export default function SellerRefunds() {
                       placeholder="Provide a reason or log note about this workflow state adjustment..."
                       value={comment}
                       onChange={e => setComment(e.target.value)}
-                      className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-750 rounded-xl p-3 text-xs font-semibold text-gray-700 dark:text-gray-300 outline-none h-20 focus:border-[#10B981] focus:ring-1 focus:ring-[#10B981]/20"
+                      className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-750 rounded-xl p-3 text-xs font-semibold text-gray-700 dark:text-gray-300 outline-none h-20 focus:border-[#16A34A] focus:ring-1 focus:ring-[#16A34A]/20"
                     />
                     <div className="flex gap-2 justify-end">
                       <button onClick={cancelAction} disabled={submitting} className="px-4 py-2 border border-gray-202 dark:border-gray-750 bg-white dark:bg-gray-800 hover:bg-gray-55 dark:hover:bg-gray-750 text-gray-600 dark:text-gray-300 rounded-xl text-xs font-bold">Cancel</button>
-                      <button onClick={() => handleStatusUpdate(refund.id)} disabled={submitting} className="px-4 py-2 bg-[#10B981] hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm">
+                      <button onClick={() => handleStatusUpdate(refund.id)} disabled={submitting} className="px-4 py-2 bg-[#16A34A] hover:bg-[#0D1E0F] text-white rounded-xl text-xs font-bold shadow-sm">
                         {submitting ? 'Updating…' : 'Confirm Update'}
                       </button>
                     </div>
@@ -983,14 +983,14 @@ export default function SellerRefunds() {
                     {['REQUESTED', 'VIEWED', 'UNDER_REVIEW'].includes(norm) && (
                       <button
                         onClick={() => { setRequestingReturnFor(refund.id); setRequestingEvidenceFor(null); setActingOnRefund(null); setReturnForm({}); setComment(''); }}
-                        className="flex items-center gap-1.5 px-4 py-2.5 bg-emerald-50 border border-emerald-250 text-emerald-700 hover:bg-emerald-100 rounded-xl text-xs font-black uppercase tracking-wider transition-all hover:scale-103 cursor-pointer"
+                        className="flex items-center gap-1.5 px-4 py-2.5 bg-[#16A34A]/10 border border-[#16A34A]/30 text-[#152F17] hover:bg-[#16A34A]/20 rounded-xl text-xs font-black uppercase tracking-wider transition-all hover:scale-103 cursor-pointer"
                       >
                         <Package size={13} /> Request Return
                       </button>
                     )}
                     <button
                       onClick={() => { setActingOnRefund(refund.id); setRequestingEvidenceFor(null); setRequestingReturnFor(null); setNextStatus(firstNextStatus(refund.status)); setComment(''); }}
-                      className="flex items-center gap-1.5 px-4 py-2.5 bg-[#10B981] hover:bg-emerald-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all hover:scale-103 shadow-sm cursor-pointer ml-auto"
+                      className="flex items-center gap-1.5 px-4 py-2.5 bg-[#16A34A] hover:bg-[#0D1E0F] text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all hover:scale-103 shadow-sm cursor-pointer ml-auto"
                     >
                       <Clock size={13} /> {norm === 'APPROVED' ? 'Start Processing' : 'Update Status'}
                     </button>
@@ -1002,13 +1002,13 @@ export default function SellerRefunds() {
 
           {/* Pay customer panel */}
           {norm === 'PROCESSING_REFUND' && (
-            <div className="px-6 pb-6 border-t border-gray-155 dark:border-gray-800 pt-5 bg-emerald-50/10 dark:bg-emerald-955/5">
-              <div className="rounded-xl border border-emerald-200 dark:border-emerald-900/40 bg-emerald-50/30 dark:bg-emerald-955/20 p-4 space-y-4 shadow-inner">
+            <div className="px-6 pb-6 border-t border-gray-155 dark:border-gray-800 pt-5 bg-[#16A34A]/10 dark:bg-emerald-955/5">
+              <div className="rounded-xl border border-[#16A34A]/20 dark:border-emerald-900/40 bg-[#16A34A]/10/30 dark:bg-emerald-955/20 p-4 space-y-4 shadow-inner">
                 <div className="flex items-center gap-2">
-                  <span className="p-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 rounded-lg"><Coins size={14} /></span>
-                  <h4 className="text-xs font-black uppercase tracking-wider text-emerald-700 dark:text-emerald-400">Submit Payment Settlement Proof</h4>
+                  <span className="p-1 bg-[#16A34A]/20 dark:bg-[#16A34A]/20 text-[#16A34A] rounded-lg"><Coins size={14} /></span>
+                  <h4 className="text-xs font-black uppercase tracking-wider text-[#152F17] dark:text-[#2E5E2C]">Submit Payment Settlement Proof</h4>
                 </div>
-                <p className="text-[11px] font-semibold text-emerald-800 dark:text-emerald-300/80">
+                <p className="text-[11px] font-semibold text-emerald-800 dark:text-[#8DBA90]/80">
                   Process the payout via Khalti or eSewa wallet, then log the reference details and transaction screenshot below for admin verification.
                 </p>
 
@@ -1052,7 +1052,7 @@ export default function SellerRefunds() {
                         placeholder="Transaction / Reference Ref"
                         value={paymentForms[refund.id]?.providerReference || ''}
                         onChange={e => updatePaymentForm(refund.id, { providerReference: e.target.value })}
-                        className="w-full bg-white dark:bg-gray-900 border border-emerald-250 dark:border-gray-800 rounded-xl p-2.5 text-xs font-semibold text-gray-700 dark:text-gray-300 outline-none focus:border-emerald-500"
+                        className="w-full bg-white dark:bg-gray-900 border border-[#16A34A]/30 dark:border-gray-800 rounded-xl p-2.5 text-xs font-semibold text-gray-700 dark:text-gray-300 outline-none focus:border-[#16A34A]"
                       />
                     </div>
                     <div className="space-y-1">
@@ -1064,7 +1064,7 @@ export default function SellerRefunds() {
                           placeholder="Amount"
                           value={paymentForms[refund.id]?.refundAmount || refund.refundAmount || ''}
                           onChange={e => updatePaymentForm(refund.id, { refundAmount: e.target.value })}
-                          className="w-full bg-white dark:bg-gray-900 border border-emerald-250 dark:border-gray-800 rounded-xl p-2.5 text-xs font-semibold text-gray-700 dark:text-gray-300 outline-none focus:border-emerald-500"
+                          className="w-full bg-white dark:bg-gray-900 border border-[#16A34A]/30 dark:border-gray-800 rounded-xl p-2.5 text-xs font-semibold text-gray-700 dark:text-gray-300 outline-none focus:border-[#16A34A]"
                         />
                       </div>
                       {(() => {
@@ -1089,11 +1089,11 @@ export default function SellerRefunds() {
                 <div className="grid gap-3 sm:grid-cols-2">
                   <div className="space-y-1">
                     <label className="block text-[8px] font-black uppercase tracking-widest text-gray-400">Transaction Screenshot Proof</label>
-                    <div className="relative border border-emerald-250 dark:border-gray-855 rounded-xl bg-white dark:bg-gray-900 p-2 text-xs flex items-center justify-between">
+                    <div className="relative border border-[#16A34A]/30 dark:border-gray-855 rounded-xl bg-white dark:bg-gray-900 p-2 text-xs flex items-center justify-between">
                       <input
                         type="file" accept="image/*,.pdf"
                         onChange={e => handleProofFileChange(refund.id, e.target.files?.[0] || null)}
-                        className="text-xs text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-[10px] file:font-black file:uppercase file:bg-emerald-50 file:text-emerald-700 dark:file:bg-emerald-955/30 dark:file:text-emerald-400"
+                        className="text-xs text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-[10px] file:font-black file:uppercase file:bg-[#16A34A]/10 file:text-[#152F17] dark:file:bg-emerald-955/30 dark:file:text-[#2E5E2C]"
                       />
                     </div>
                     {proofPreviews[refund.id] && (
@@ -1116,7 +1116,7 @@ export default function SellerRefunds() {
                       placeholder="Optional private transaction note..."
                       value={paymentForms[refund.id]?.comment || ''}
                       onChange={e => updatePaymentForm(refund.id, { comment: e.target.value })}
-                      className="w-full bg-white dark:bg-gray-900 border border-emerald-250 dark:border-gray-855 rounded-xl p-2.5 text-xs font-semibold text-gray-700 dark:text-gray-300 outline-none h-14 focus:border-emerald-500"
+                      className="w-full bg-white dark:bg-gray-900 border border-[#16A34A]/30 dark:border-gray-855 rounded-xl p-2.5 text-xs font-semibold text-gray-700 dark:text-gray-300 outline-none h-14 focus:border-[#16A34A]"
                     />
                   </div>
                 </div>
@@ -1125,7 +1125,7 @@ export default function SellerRefunds() {
                   <button
                     onClick={() => handlePaymentSubmit(refund)}
                     disabled={submitting}
-                    className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black uppercase tracking-wider shadow-sm transition-all hover:scale-102 cursor-pointer disabled:opacity-60"
+                    className="px-5 py-2.5 bg-[#152F17] hover:bg-[#0D1E0F] text-white rounded-xl text-xs font-black uppercase tracking-wider shadow-sm transition-all hover:scale-102 cursor-pointer disabled:opacity-60"
                   >
                     {submitting ? 'Submitting…' : 'Submit Settlement Proof'}
                   </button>
@@ -1157,7 +1157,7 @@ export default function SellerRefunds() {
                   <label className="block text-[8px] font-black uppercase tracking-widest text-gray-400">Returned Condition</label>
                   <div className="flex flex-col sm:flex-row gap-2.5">
                     {[
-                      { value: 'GOOD', label: 'Good condition', icon: CheckCircle, activeClass: 'bg-emerald-50 border-emerald-500 text-emerald-800 dark:bg-emerald-950/20 dark:border-emerald-500 dark:text-emerald-300' },
+                      { value: 'GOOD', label: 'Good condition', icon: CheckCircle, activeClass: 'bg-[#16A34A]/10 border-[#16A34A] text-emerald-800 dark:bg-[#16A34A]/15 dark:border-[#16A34A] dark:text-[#8DBA90]' },
                       { value: 'DAMAGED', label: 'Damaged merchandise', icon: XCircle, activeClass: 'bg-red-50 border-red-500 text-red-800 dark:bg-red-950/20 dark:border-red-500 dark:text-red-300' },
                       { value: 'MISSING_PARTS', label: 'Missing accessory/parts', icon: AlertTriangle, activeClass: 'bg-amber-50 border-amber-500 text-amber-800 dark:bg-amber-950/20 dark:border-amber-500 dark:text-amber-300' }
                     ].map(opt => {
@@ -1317,7 +1317,7 @@ export default function SellerRefunds() {
               <span className="text-[9px] font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Total Payouts Done</span>
               <p className="text-base font-black mt-1 text-gray-900 dark:text-white">{formatMoney(stats.completedPayouts)}</p>
             </div>
-            <div className="p-1.5 bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 rounded-sm">
+            <div className="p-1.5 bg-[#16A34A]/10 text-[#16A34A] dark:bg-[#16A34A]/20 dark:text-[#2E5E2C] rounded-sm">
               <CheckCircle size={16} />
             </div>
           </div>
@@ -1420,16 +1420,16 @@ export default function SellerRefunds() {
                         <div className="flex items-center gap-1.5">
                           <button
                             onClick={(e) => { e.stopPropagation(); setExpandedRefundId(refund.id); }}
-                            className="font-mono text-xs font-black text-[#10B981] hover:underline cursor-pointer group-hover:scale-102 transition-transform"
+                            className="font-mono text-xs font-black text-[#16A34A] hover:underline cursor-pointer group-hover:scale-102 transition-transform"
                           >
                             {refundRef(refund)}
                           </button>
                           <button
                             onClick={(e) => handleCopy(e, refund.id, refundRef(refund))}
-                            className="text-gray-300 hover:text-emerald-500 dark:text-gray-600 dark:hover:text-emerald-400 transition-colors cursor-pointer"
+                            className="text-gray-300 hover:text-[#e8f3e9]0 dark:text-gray-600 dark:hover:text-[#2E5E2C] transition-colors cursor-pointer"
                             title="Copy ID"
                           >
-                            {copiedId === refund.id ? <Check size={11} className="text-emerald-500" /> : <Copy size={11} />}
+                            {copiedId === refund.id ? <Check size={11} className="text-[#e8f3e9]0" /> : <Copy size={11} />}
                           </button>
                         </div>
                       </td>
