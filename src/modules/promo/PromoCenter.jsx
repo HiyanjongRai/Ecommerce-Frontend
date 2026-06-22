@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useLayoutEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import apiClient, { BASE_URL } from '../../shared/api/apiClient';
+import { toast } from '../../shared/contexts/ToastContext';
 import ProductCard from '../product/components/ProductCard';
 import { 
   Search, 
@@ -211,7 +212,9 @@ function CopyButton({ code, style = {} }) {
       await navigator.clipboard.writeText(code);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    } catch (_) {}
+    } catch {
+      toast('Unable to copy the code. Please try again.', 'error');
+    }
   };
 
   return (
@@ -287,7 +290,9 @@ function PromoCard({ promo, onExplore }) {
       await navigator.clipboard.writeText(promo.code);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    } catch (_) {}
+    } catch {
+      toast('Unable to copy the code. Please try again.', 'error');
+    }
   };
 
   const discountLabel =
@@ -501,7 +506,9 @@ function PromoDetailPage({ promo, products, onBack }) {
                         } else {
                           await navigator.clipboard.writeText(`${promo.title} - use code ${promo.code} at Jhapcham.`);
                         }
-                      } catch (_) {}
+                      } catch {
+                        toast('Sharing is unavailable in this browser.', 'warning');
+                      }
                     }}
                     className="p-2.5 rounded-xl border border-gray-200 bg-white hover:bg-slate-50 text-slate-700 shadow-sm"
                     title="Share Promo Code"

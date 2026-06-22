@@ -8,8 +8,8 @@ import SellerPublicProfile from '../modules/seller/SellerPublicProfile';
 import TopSellers from '../modules/seller/TopSellers';
 import PaymentSuccess from '../features/payment/PaymentSuccess';
 import PaymentFailure from '../features/payment/PaymentFailure';
-import RegistrationPage from '../modules/auth/Register';
 import GoogleAuthCallback from '../modules/auth/GoogleAuthCallback';
+import SellerRegistration from '../components/SellerRegistration/SellerRegistration';
 import CourierLogin from '../features/courier/CourierLogin';
 import CourierDashboard from '../features/courier/CourierDashboard';
 import PromoLandingPage from '../modules/promo/PromoLandingPage';
@@ -36,6 +36,7 @@ import AdminAuditLogs from '../modules/admin/components/AdminAuditLogs';
 import AdminInbox from '../modules/admin/components/AdminInbox';
 import AdminSettings from '../modules/admin/components/AdminSettings';
 import { CustomerProvider } from '../modules/customer/contexts/CustomerContext';
+import StatusPage from '../shared/components/StatusPage';
 
 export default function AppRoutes() {
   return (
@@ -46,7 +47,7 @@ export default function AppRoutes() {
           <Route path="/home-classic" element={<Homepage />} />
           <Route path="/showcase" element={<Homepage />} />
           <Route path="/category" element={<Homepage />} />
-          <Route path="/register" element={<RegistrationPage />} />
+          <Route path="/register" element={<SellerRegistration />} />
           <Route path="/product/:slug" element={<ProductDetails />} />
           <Route path="/product-list" element={<ProductListing />} />
           <Route path="/top-sellers" element={<TopSellers />} />
@@ -58,6 +59,7 @@ export default function AppRoutes() {
           </Route>
         </Route>
         <Route path="/customer/*" element={<CustomerLayout />} />
+        <Route path="/seller/register" element={<SellerRegistration />} />
         <Route path="/seller/*" element={<SellerLayout />} />
         <Route path="/seller-profile/:id" element={<SellerPublicProfile />} />
         <Route path="/payment/success" element={<PaymentSuccess />} />
@@ -84,7 +86,12 @@ export default function AppRoutes() {
         <Route path="/admin/audit-logs" element={<AdminAuditLogs />} />
         <Route path="/admin/inbox" element={<AdminInbox />} />
         <Route path="/admin/settings" element={<AdminSettings />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="/401" element={<StatusPage code="401" />} />
+        <Route path="/403" element={<StatusPage code="403" />} />
+        <Route path="/404" element={<StatusPage code="404" />} />
+        <Route path="/500" element={<StatusPage code="500" />} />
+        <Route path="/offline" element={<StatusPage code="offline" />} />
+        <Route path="*" element={<StatusPage code="404" />} />
       </Routes>
     </CustomerProvider>
   );

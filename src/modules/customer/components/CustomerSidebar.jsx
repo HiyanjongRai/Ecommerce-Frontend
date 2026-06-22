@@ -133,13 +133,13 @@ export default function CustomerSidebar({ darkMode, toggleDarkMode, isCollapsed,
                       key={item.to}
                       to={item.to}
                       title={item.label}
-                      className={`group relative flex items-center justify-center w-11 h-11 rounded-xl transition-all ${
+                      className={`group relative flex items-center justify-center w-11 h-11 rounded-xl transition-all duration-200 ${
                         isActive 
                           ? 'bg-[#f0fdf4] text-[#10B981] shadow-xs' 
-                          : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
+                          : 'text-gray-500 hover:bg-emerald-50/45 hover:text-emerald-700'
                       }`}
                     >
-                      <Icon size={18} className={`transition-colors ${isActive ? 'text-[#10B981]' : 'text-gray-400 group-hover:text-gray-600'}`} />
+                      <Icon size={18} className={`transition-all duration-200 group-hover:scale-105 ${isActive ? 'text-[#10B981]' : 'text-gray-400 group-hover:text-[#10B981]'}`} />
                       
                       {/* Floating Badge */}
                       {badgeCount > 0 && (
@@ -181,14 +181,14 @@ export default function CustomerSidebar({ darkMode, toggleDarkMode, isCollapsed,
                       <Link
                         key={item.to}
                         to={item.to}
-                        className={`group relative flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
+                        className={`group relative flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all duration-200 ${
                           isActive 
                             ? 'bg-[#f0fdf4] text-[#10B981] shadow-xs' 
-                            : 'text-gray-600 hover:bg-gray-50/70 hover:text-gray-900'
+                            : 'text-gray-600 hover:bg-emerald-50/45 hover:text-emerald-700'
                         }`}
                       >
                         <div className="flex items-center gap-3">
-                          <Icon size={16} className={`transition-colors ${isActive ? 'text-[#10B981]' : 'text-gray-400 group-hover:text-gray-650'}`} />
+                          <Icon size={16} className={`transition-all duration-200 group-hover:scale-105 ${isActive ? 'text-[#10B981]' : 'text-gray-400 group-hover:text-emerald-600'}`} />
                           <span>{item.label}</span>
                         </div>
 
@@ -203,6 +203,14 @@ export default function CustomerSidebar({ darkMode, toggleDarkMode, isCollapsed,
                               {item.pointBadge}
                             </span>
                           )}
+                          <ChevronRight 
+                            size={10} 
+                            className={`transition-all duration-200 ${
+                              isActive 
+                                ? 'text-[#10B981] opacity-100' 
+                                : 'text-emerald-600 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0'
+                            }`} 
+                          />
                         </div>
                       </Link>
                     );
@@ -233,7 +241,7 @@ export default function CustomerSidebar({ darkMode, toggleDarkMode, isCollapsed,
               onClick={() => darkMode && toggleDarkMode()} 
               title="Light Mode"
               className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg transition-colors cursor-pointer border-0 ${
-                !darkMode ? 'bg-[#f0fdf4] text-[#10B981] shadow-xs' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'
+                !darkMode ? 'bg-[#f0fdf4] text-[#10B981] shadow-xs' : 'text-gray-400 hover:text-emerald-700 hover:bg-emerald-50/40'
               }`}
             >
               <Sun size={12} />
@@ -243,7 +251,7 @@ export default function CustomerSidebar({ darkMode, toggleDarkMode, isCollapsed,
               onClick={() => !darkMode && toggleDarkMode()}
               title="Dark Mode"
               className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg transition-colors cursor-pointer border-0 ${
-                darkMode ? 'bg-[#f0fdf4] text-[#10B981] shadow-xs' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'
+                darkMode ? 'bg-[#f0fdf4] text-[#10B981] shadow-xs' : 'text-gray-400 hover:text-emerald-700 hover:bg-emerald-50/40'
               }`}
             >
               <Moon size={12} />

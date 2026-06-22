@@ -19,16 +19,13 @@ const date = v => v ? new Date(v).toLocaleDateString() : 'N/A';
 
 const resolveImageUrl = (url) => {
   if (!url) return '';
-  // If it's already an absolute URL (http, https, data), use as-is
   if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) {
     return url;
   }
-  // If it's a relative file path like "campaigns/filename.png", serve through API endpoint
   if (url.includes('/') || url.includes('\\')) {
-    const fileName = url.split(/[/\\]/).pop(); // Extract filename from path
+    const fileName = url.split(/[/\\]/).pop();
     return `${BASE_URL}/api/campaigns/image/${fileName}`;
   }
-  // Fallback to BASE_URL + path
   return url.startsWith('/') ? `${BASE_URL}${url}` : `${BASE_URL}/${url}`;
 };
 
@@ -44,7 +41,7 @@ export default function AdminCampaignDetail() {
   const [productsLoading, setProductsLoading] = useState(false);
   const [toast, setToast] = useState('');
   const [working, setWorking] = useState(null);
-  const [activeTab, setActiveTab] = useState('pending'); // Start with pending
+  const [activeTab, setActiveTab] = useState('pending');
 
   const showToast = msg => { setToast(msg); setTimeout(() => setToast(''), 3000); };
 
@@ -53,7 +50,6 @@ export default function AdminCampaignDetail() {
     try {
       setLoading(true);
       
-      // Get all campaigns and find the one with matching ID
       const campaignsRes = await getAdminCampaigns();
       const campaigns = Array.isArray(campaignsRes.data) ? campaignsRes.data : [];
       const foundCampaign = campaigns.find(c => (c.id || c.campaignId) === parseInt(campaignId));
@@ -61,7 +57,6 @@ export default function AdminCampaignDetail() {
       if (foundCampaign) {
         setCampaign(foundCampaign);
         
-        // Load products
         setProductsLoading(true);
         try {
           const [approvedRes, pendingRes] = await Promise.all([
@@ -121,7 +116,7 @@ export default function AdminCampaignDetail() {
         headerActions={
           <button
             onClick={() => navigate('/admin/campaigns')}
-            className="flex items-center gap-2 px-4 py-2 border rounded-lg text-xs font-bold transition-colors"
+            className={`flex items-center gap-2 px-4 py-2.5 border rounded-xl text-xs font-black uppercase tracking-wider cursor-pointer transition-colors ${themeClasses.button.outline}`}
           >
             <ArrowLeft size={14} /> Back
           </button>
@@ -130,7 +125,7 @@ export default function AdminCampaignDetail() {
         <div className={`p-6 transition-colors ${themeClasses.bg.primary}`}>
           <div className="animate-pulse space-y-4">
             {Array(3).fill(0).map((_, i) => (
-              <div key={i} className={`h-32 rounded-xl transition-colors ${themeClasses.bg.secondary}`} />
+              <div key={i} className={`h-32 rounded-[20px] transition-colors ${themeClasses.bg.secondary}`} />
             ))}
           </div>
         </div>
@@ -146,7 +141,7 @@ export default function AdminCampaignDetail() {
         headerActions={
           <button
             onClick={() => navigate('/admin/campaigns')}
-            className="flex items-center gap-2 px-4 py-2 border rounded-lg text-xs font-bold transition-colors"
+            className={`flex items-center gap-2 px-4 py-2.5 border rounded-xl text-xs font-black uppercase tracking-wider cursor-pointer transition-colors ${themeClasses.button.outline}`}
           >
             <ArrowLeft size={14} /> Back
           </button>
@@ -175,102 +170,100 @@ export default function AdminCampaignDetail() {
       headerActions={
         <button
           onClick={() => navigate('/admin/campaigns')}
-          className="flex items-center gap-2 px-4 py-2 border rounded-lg text-xs font-bold transition-colors hover:bg-opacity-50"
+          className={`flex items-center gap-2 px-4 py-2.5 border rounded-xl text-xs font-black uppercase tracking-wider cursor-pointer transition-colors ${themeClasses.button.outline}`}
         >
           <ArrowLeft size={14} /> Back to Campaigns
         </button>
       }
     >
       {toast && (
-        <div className="fixed top-5 right-5 z-50 bg-gray-900/90 backdrop-blur-md text-white text-sm font-bold px-4 py-3 rounded-xl shadow-xl">
+        <div className={`fixed top-5 right-5 z-50 text-xs font-black uppercase tracking-wider px-5 py-3.5 rounded-[20px] shadow-2xl border transition-all ${themeClasses.bg.secondary} ${themeClasses.border.accent} ${themeClasses.text.primary}`}>
           {toast}
         </div>
       )}
 
-      <div className={`p-6 space-y-6 transition-colors ${themeClasses.bg.primary}`}>
-        {/* Back Button */}
-        <button
-          onClick={() => navigate('/admin/campaigns')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-xs font-bold border transition-colors ${
-            darkMode
-              ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
-              : 'border-gray-200 text-gray-600 hover:bg-gray-50'
-          }`}
-        >
-          <ArrowLeft size={14} /> Back to Campaigns
-        </button>
+      <div className="p-4 lg:p-6 space-y-6">
+        {/* Back Button Link */}
+        <div>
+          <button
+            onClick={() => navigate('/admin/campaigns')}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider border cursor-pointer transition-colors ${themeClasses.button.outline}`}
+          >
+            <ArrowLeft size={14} /> Back to Campaigns
+          </button>
+        </div>
 
         {/* ── Campaign Overview Card ────────────────────────────────── */}
-        <div className={`rounded-2xl shadow-sm border overflow-hidden transition-colors ${themeClasses.card}`}>
-          <div className={`px-6 py-5 border-b transition-colors ${themeClasses.bg.secondary}`}>
-            <div className="flex items-start justify-between gap-4">
+        <div className={`rounded-[20px] shadow-[0_8px_30px_rgba(0,0,0,0.03)] border overflow-hidden transition-colors ${themeClasses.card} ${themeClasses.border.primary}`}>
+          <div className={`px-6 py-5 border-b transition-colors ${themeClasses.bg.secondary} ${themeClasses.border.primary}`}>
+            <div className="flex items-start justify-between gap-4 flex-wrap">
               <div>
-                <h2 className={`text-2xl font-black transition-colors ${themeClasses.text.primary}`}>
+                <h2 className={`text-xl font-black tracking-tight transition-colors ${themeClasses.text.primary}`}>
                   {campaign.name}
                 </h2>
                 {campaign.description && (
-                  <p className={`text-sm mt-2 max-w-2xl transition-colors ${themeClasses.text.secondary}`}>
+                  <p className={`text-xs mt-2 max-w-2xl font-semibold transition-colors ${themeClasses.text.secondary}`}>
                     {campaign.description}
                   </p>
                 )}
               </div>
-              <span className={`inline-flex px-4 py-2 rounded-full text-[11px] font-black uppercase tracking-wide border transition-colors ${campaignStatus.color}`}>
+              <span className={`inline-flex px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border transition-colors ${campaignStatus.color}`}>
                 {campaignStatus.label}
               </span>
             </div>
           </div>
 
-          <div className="p-6 grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="p-6 grid grid-cols-2 md:grid-cols-4 gap-6">
             {/* Start Date */}
-            <div>
-              <p className={`text-[11px] font-black uppercase tracking-wider mb-2 transition-colors ${themeClasses.text.tertiary}`}>
+            <div className="space-y-1">
+              <p className={`text-[9px] font-black uppercase tracking-widest transition-colors ${themeClasses.text.tertiary}`}>
                 Start Date
               </p>
-              <div className={`flex items-center gap-2 transition-colors ${themeClasses.text.primary}`}>
-                <Calendar size={16} />
-                <span className="font-bold">{date(campaign.startTime)}</span>
+              <div className={`flex items-center gap-2 text-xs font-bold transition-colors ${themeClasses.text.primary}`}>
+                <Calendar size={14} className="text-emerald-600" />
+                <span>{date(campaign.startTime)}</span>
               </div>
             </div>
 
             {/* End Date */}
-            <div>
-              <p className={`text-[11px] font-black uppercase tracking-wider mb-2 transition-colors ${themeClasses.text.tertiary}`}>
+            <div className="space-y-1">
+              <p className={`text-[9px] font-black uppercase tracking-widest transition-colors ${themeClasses.text.tertiary}`}>
                 End Date
               </p>
-              <div className={`flex items-center gap-2 transition-colors ${themeClasses.text.primary}`}>
-                <Clock size={16} />
-                <span className="font-bold">{date(campaign.endTime)}</span>
+              <div className={`flex items-center gap-2 text-xs font-bold transition-colors ${themeClasses.text.primary}`}>
+                <Clock size={14} className="text-amber-600" />
+                <span>{date(campaign.endTime)}</span>
               </div>
             </div>
 
             {/* Discount */}
-            <div>
-              <p className={`text-[11px] font-black uppercase tracking-wider mb-2 transition-colors ${themeClasses.text.tertiary}`}>
+            <div className="space-y-1">
+              <p className={`text-[9px] font-black uppercase tracking-widest transition-colors ${themeClasses.text.tertiary}`}>
                 Discount
               </p>
-              <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border transition-colors ${themeClasses.status.info}`}>
-                <Tag size={13} />
+              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black border transition-colors ${themeClasses.status.info}`}>
+                <Tag size={10} />
                 {campaign.discountType === 'PERCENTAGE' ? `${campaign.discountValue}%` : `Rs. ${campaign.discountValue}`}
               </span>
             </div>
 
             {/* Total Products */}
-            <div>
-              <p className={`text-[11px] font-black uppercase tracking-wider mb-2 transition-colors ${themeClasses.text.tertiary}`}>
+            <div className="space-y-1">
+              <p className={`text-[9px] font-black uppercase tracking-widest transition-colors ${themeClasses.text.tertiary}`}>
                 Total Products
               </p>
-              <div className={`flex items-center gap-2 transition-colors ${themeClasses.text.primary}`}>
-                <Package size={16} />
-                <span className="font-bold text-lg">{campaign.totalProducts ?? '—'}</span>
+              <div className={`flex items-center gap-2 text-xs font-bold transition-colors ${themeClasses.text.primary}`}>
+                <Package size={14} className="text-blue-600" />
+                <span className="text-sm font-black">{campaign.totalProducts ?? 0}</span>
               </div>
             </div>
           </div>
         </div>
 
         {/* ── Products Section ──────────────────────────────────────── */}
-        <div className={`rounded-2xl shadow-sm border overflow-hidden transition-colors ${themeClasses.card}`}>
+        <div className={`rounded-[20px] shadow-[0_8px_30px_rgba(0,0,0,0.06)] border overflow-hidden transition-colors ${themeClasses.card} ${themeClasses.border.primary}`}>
           {/* Tab Bar */}
-          <div className={`flex border-b transition-colors ${themeClasses.bg.secondary}`}>
+          <div className={`flex border-b transition-colors ${themeClasses.bg.secondary} ${themeClasses.border.primary}`}>
             {[
               { id: 'pending', label: 'Pending Review', icon: Megaphone, count: pendingProducts.length },
               { id: 'approved', label: 'Approved', icon: CheckCircle, count: approvedProducts.length }
@@ -281,22 +274,18 @@ export default function AdminCampaignDetail() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex-1 py-4 px-6 border-b-2 -mb-px transition-all duration-200 flex items-center justify-center gap-2 text-xs font-black uppercase tracking-wider ${
+                  className={`flex-1 py-4 px-6 border-b-2 -mb-px transition-all duration-200 flex items-center justify-center gap-2.5 text-xs font-black uppercase tracking-wider cursor-pointer ${
                     isActive
-                      ? darkMode
-                        ? 'border-emerald-500 text-emerald-400 bg-emerald-900/10'
-                        : 'border-emerald-600 text-emerald-700 bg-emerald-50'
-                      : darkMode
-                        ? 'border-transparent text-gray-500 hover:text-gray-300'
-                        : 'border-transparent text-gray-400 hover:text-gray-600'
+                      ? 'border-emerald-500 text-emerald-500 bg-emerald-500/5'
+                      : `border-transparent ${themeClasses.text.secondary} hover:${themeClasses.text.primary} hover:${themeClasses.bg.secondary}`
                   }`}
                 >
-                  <Icon size={16} />
+                  <Icon size={14} />
                   {tab.label}
-                  <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-[10px] font-black transition-colors ${
+                  <span className={`inline-flex items-center justify-center px-2 py-0.5 rounded-full text-[10px] font-black transition-colors ${
                     isActive
-                      ? darkMode ? 'bg-emerald-900/60 text-emerald-300' : 'bg-emerald-200 text-emerald-700'
-                      : darkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-200 text-gray-600'
+                      ? 'bg-emerald-500/20 text-emerald-600'
+                      : `${themeClasses.bg.tertiary} ${themeClasses.text.secondary}`
                   }`}>
                     {tab.count}
                   </span>
@@ -306,17 +295,16 @@ export default function AdminCampaignDetail() {
           </div>
 
           {/* Content */}
-          <div className={`transition-colors ${themeClasses.bg.primary}`}>
+          <div className="p-4 lg:p-6">
             {productsLoading ? (
-              <div className="p-6 space-y-4">
+              <div className="space-y-4">
                 {Array(3).fill(0).map((_, i) => (
                   <div key={i} className={`rounded-xl p-4 animate-pulse transition-colors ${themeClasses.bg.secondary}`}>
                     <div className="flex gap-4">
-                      <div className={`w-24 h-24 rounded-lg flex-shrink-0 transition-colors ${themeClasses.bg.tertiary}`} />
+                      <div className={`w-16 h-16 rounded-xl flex-shrink-0 transition-colors ${themeClasses.bg.tertiary}`} />
                       <div className="flex-1 space-y-2">
                         <div className={`h-4 rounded w-2/3 transition-colors ${themeClasses.bg.tertiary}`} />
                         <div className={`h-3 rounded w-1/2 transition-colors ${themeClasses.bg.tertiary}`} />
-                        <div className={`h-3 rounded w-1/3 transition-colors ${themeClasses.bg.tertiary}`} />
                       </div>
                     </div>
                   </div>
@@ -324,15 +312,15 @@ export default function AdminCampaignDetail() {
               </div>
             ) : activeTab === 'pending' ? (
               pendingProducts.length === 0 ? (
-                <div className={`flex flex-col items-center justify-center py-20 transition-colors ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
-                  <div className={`p-4 rounded-2xl mb-3 transition-colors ${themeClasses.bg.secondary}`}>
-                    <Megaphone size={40} className={`transition-colors ${darkMode ? 'text-gray-700' : 'text-gray-200'}`} />
+                <div className="flex flex-col items-center justify-center py-16">
+                  <div className={`p-4 rounded-xl mb-3 transition-colors ${themeClasses.bg.secondary}`}>
+                    <Megaphone size={36} className={`transition-colors ${themeClasses.text.tertiary}`} />
                   </div>
-                  <p className="font-bold text-sm">No Pending Products</p>
-                  <p className="text-xs mt-1">All products have been reviewed</p>
+                  <p className={`font-bold text-xs transition-colors ${themeClasses.text.secondary}`}>No Pending Products</p>
+                  <p className={`text-[10px] font-semibold mt-1 transition-colors ${themeClasses.text.tertiary}`}>All product submissions have been reviewed</p>
                 </div>
               ) : (
-                <div className="p-6 space-y-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {pendingProducts.map(p => {
                     const pId = p.id || p.productId || p.productCampaignId;
                     return (
@@ -353,15 +341,15 @@ export default function AdminCampaignDetail() {
               )
             ) : (
               approvedProducts.length === 0 ? (
-                <div className={`flex flex-col items-center justify-center py-20 transition-colors ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
-                  <div className={`p-4 rounded-2xl mb-3 transition-colors ${themeClasses.bg.secondary}`}>
-                    <CheckCircle size={40} className={`transition-colors ${darkMode ? 'text-gray-700' : 'text-gray-200'}`} />
+                <div className="flex flex-col items-center justify-center py-16">
+                  <div className={`p-4 rounded-xl mb-3 transition-colors ${themeClasses.bg.secondary}`}>
+                    <CheckCircle size={36} className={`transition-colors ${themeClasses.text.tertiary}`} />
                   </div>
-                  <p className="font-bold text-sm">No Approved Products</p>
-                  <p className="text-xs mt-1">Products will appear here once approved</p>
+                  <p className={`font-bold text-xs transition-colors ${themeClasses.text.secondary}`}>No Approved Products</p>
+                  <p className={`text-[10px] font-semibold mt-1 transition-colors ${themeClasses.text.tertiary}`}>Products will appear here once approved</p>
                 </div>
               ) : (
-                <div className="p-6 space-y-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {approvedProducts.map(p => {
                     const pId = p.id || p.productId || p.productCampaignId;
                     return (
@@ -387,13 +375,10 @@ export default function AdminCampaignDetail() {
 
 /* ─── Product Card Component ───────────────────────────────────── */
 function ProductCard({ product, campaign, status, onApprove, onReject, isWorking, themeClasses, darkMode }) {
-  // Try to get image from various possible paths
   const getProductImage = () => {
-    // Backend returns 'productImage' field
     if (product.productImage) {
       return resolveImageUrl(product.productImage);
     }
-    // Fallback to other possible paths
     if (product.imagePaths && product.imagePaths.length > 0) {
       return resolveImageUrl(product.imagePaths[0]);
     }
@@ -412,14 +397,14 @@ function ProductCard({ product, campaign, status, onApprove, onReject, isWorking
   const imageUrl = getProductImage();
 
   return (
-    <div className={`rounded-xl overflow-hidden border-l-4 transition-all duration-200 ${
+    <div className={`rounded-[20px] overflow-hidden border-l-4 border transition-all duration-200 ${themeClasses.card} ${themeClasses.border.primary} ${
       status === 'pending'
-        ? darkMode ? 'bg-gray-800 border-l-amber-500 hover:shadow-lg hover:shadow-amber-500/20' : 'bg-white border-l-amber-500 hover:shadow-lg hover:shadow-amber-500/10'
-        : darkMode ? 'bg-gray-800 border-l-emerald-500 hover:shadow-lg hover:shadow-emerald-500/20' : 'bg-white border-l-emerald-600 hover:shadow-lg hover:shadow-emerald-500/10'
+        ? 'border-l-amber-500 hover:shadow-[0_8px_30px_rgba(245,158,11,0.04)]'
+        : 'border-l-emerald-500 hover:shadow-[0_8px_30px_rgba(16,185,129,0.04)]'
     }`}>
-      <div className="p-3 flex gap-3">
+      <div className="p-4 flex gap-4">
         {/* Product Image */}
-        <div className={`w-16 h-16 rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden transition-colors ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
+        <div className={`w-16 h-16 rounded-xl flex-shrink-0 flex items-center justify-center overflow-hidden border transition-colors ${themeClasses.border.primary} ${themeClasses.bg.secondary}`}>
           {imageUrl ? (
             <img 
               src={imageUrl} 
@@ -430,7 +415,7 @@ function ProductCard({ product, campaign, status, onApprove, onReject, isWorking
               }}
             />
           ) : (
-            <Package size={20} className={`transition-colors ${darkMode ? 'text-gray-600' : 'text-gray-300'}`} />
+            <Package size={20} className={`transition-colors ${themeClasses.text.tertiary}`} />
           )}
         </div>
 
@@ -438,50 +423,46 @@ function ProductCard({ product, campaign, status, onApprove, onReject, isWorking
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2 mb-2">
             <div>
-              <p className={`font-bold text-sm truncate transition-colors ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+              <p className={`font-bold text-xs truncate transition-colors ${themeClasses.text.primary}`}>
                 {product.productName || product.name}
               </p>
-              <p className={`text-xs mt-0.5 transition-colors ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                <span className={`transition-colors ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>Seller: </span>
-                <span className="font-semibold">{product.storeName || product.sellerName || '—'}</span>
+              <p className={`text-[10px] font-semibold mt-0.5 transition-colors ${themeClasses.text.secondary}`}>
+                <span className={`transition-colors ${themeClasses.text.tertiary}`}>Seller: </span>
+                <span className="font-bold">{product.storeName || product.sellerName || '—'}</span>
               </p>
             </div>
-            <span className={`px-2 py-0.5 text-[9px] font-black rounded-full whitespace-nowrap transition-colors ${
+            <span className={`px-2 py-0.5 text-[9px] font-black rounded-full whitespace-nowrap border transition-colors ${
               status === 'pending'
-                ? darkMode ? 'bg-amber-900/40 text-amber-300 border border-amber-800' : 'bg-amber-100 text-amber-700 border border-amber-300'
-                : darkMode ? 'bg-emerald-900/40 text-emerald-300 border border-emerald-800' : 'bg-emerald-100 text-emerald-700 border border-emerald-300'
+                ? themeClasses.status.warning
+                : themeClasses.status.success
             }`}>
-              {status === 'pending' ? '⏳ Pending' : '✓'}
+              {status === 'pending' ? '⏳ Pending' : '✓ Approved'}
             </span>
           </div>
 
           {/* Pricing Grid */}
-          <div className="grid grid-cols-3 gap-2 mb-3">
+          <div className="grid grid-cols-3 gap-2 mb-4">
             <div>
-              <span className={`text-[9px] font-black uppercase tracking-wide block mb-0.5 transition-colors ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
+              <span className={`text-[9px] font-black uppercase tracking-wide block mb-0.5 transition-colors ${themeClasses.text.tertiary}`}>
                 Original
               </span>
-              <p className={`font-bold text-xs transition-colors ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+              <p className={`font-bold text-[11px] transition-colors ${themeClasses.text.primary}`}>
                 Rs. {product.originalPrice?.toLocaleString() || '—'}
               </p>
             </div>
             <div>
-              <span className={`text-[9px] font-black uppercase tracking-wide block mb-0.5 transition-colors ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
+              <span className={`text-[9px] font-black uppercase tracking-wide block mb-0.5 transition-colors ${themeClasses.text.tertiary}`}>
                 Campaign
               </span>
-              <p className={`font-bold text-xs transition-colors ${
-                product.salePrice
-                  ? darkMode ? 'text-emerald-300' : 'text-emerald-600'
-                  : darkMode ? 'text-gray-400' : 'text-gray-400'
-              }`}>
+              <p className="font-black text-[11px] text-emerald-600">
                 Rs. {product.salePrice?.toLocaleString() || '—'}
               </p>
             </div>
             <div>
-              <span className={`text-[9px] font-black uppercase tracking-wide block mb-0.5 transition-colors ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
+              <span className={`text-[9px] font-black uppercase tracking-wide block mb-0.5 transition-colors ${themeClasses.text.tertiary}`}>
                 Stock
               </span>
-              <p className={`font-bold text-xs transition-colors ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+              <p className={`font-bold text-[11px] transition-colors ${themeClasses.text.primary}`}>
                 {product.stockLimit || '—'}
               </p>
             </div>
@@ -493,17 +474,17 @@ function ProductCard({ product, campaign, status, onApprove, onReject, isWorking
               <button
                 onClick={onApprove}
                 disabled={isWorking}
-                className="flex-1 flex items-center justify-center gap-1 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold disabled:opacity-50 transition-colors"
+                className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[10px] font-black uppercase tracking-wider disabled:opacity-50 transition-colors cursor-pointer"
               >
-                <CheckCircle size={13} />
+                <CheckCircle size={12} />
                 Approve
               </button>
               <button
                 onClick={onReject}
                 disabled={isWorking}
-                className="flex-1 flex items-center justify-center gap-1 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold disabled:opacity-50 transition-colors"
+                className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-[10px] font-black uppercase tracking-wider disabled:opacity-50 transition-colors cursor-pointer"
               >
-                <XCircle size={13} />
+                <XCircle size={12} />
                 Reject
               </button>
             </div>

@@ -73,7 +73,7 @@ const SellerPublicProfile = () => {
       <div className="min-h-screen bg-slate-50 font-sans">
         <Navbar />
         <div className="flex justify-center items-center h-[60vh]">
-          <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-600"></div>
+          <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-emerald-600"></div>
         </div>
       </div>
     );
@@ -86,7 +86,7 @@ const SellerPublicProfile = () => {
         <div className="flex flex-col justify-center items-center h-[60vh] text-center px-4">
           <div className="text-6xl mb-4">🏪</div>
           <h2 className="text-xl font-bold text-gray-800 tracking-tight">{error || 'Store profile not found'}</h2>
-          <Link to="/" className="mt-4 text-xs font-bold text-blue-600 hover:underline uppercase tracking-wider">
+          <Link to="/" className="mt-4 text-xs font-bold text-emerald-600 hover:underline uppercase tracking-wider">
             ← Back to Home
           </Link>
         </div>
@@ -101,7 +101,7 @@ const SellerPublicProfile = () => {
       {/* Header Banner Section */}
       <div className="bg-[#222529] text-white py-12 px-6 md:px-12 relative overflow-hidden">
         {/* Subtle background decoration */}
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-900/20 to-purple-900/20" />
+        <div className="absolute inset-0 bg-gradient-to-r from-emerald-950/30 to-slate-900/20" />
         <div className="absolute -right-10 -bottom-10 w-64 h-64 bg-white/5 rounded-full blur-3xl" />
         
         <div className="max-w-6xl mx-auto relative flex flex-col md:flex-row items-center gap-6 md:gap-8">
@@ -125,7 +125,7 @@ const SellerPublicProfile = () => {
             <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
               <h1 className="text-2xl md:text-3xl font-black tracking-tight">{profile.storeName || 'Jhapcham Store'}</h1>
               {profile.isVerified && (
-                <span className="bg-blue-500 text-white text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full shadow-sm flex items-center gap-1">
+                <span className="bg-[#16A34A] text-white text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full shadow-sm flex items-center gap-1">
                   ✓ Verified Seller
                 </span>
               )}
@@ -148,7 +148,7 @@ const SellerPublicProfile = () => {
           <div className="shrink-0 flex gap-3">
             <button
               onClick={() => setIsMsgModalOpen(true)}
-              className="bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-[10px] uppercase tracking-widest px-6 py-3 rounded-lg shadow-lg shadow-blue-500/20 transition-all active:scale-[0.98]"
+              className="bg-[#16A34A] hover:bg-emerald-700 text-white font-extrabold text-[10px] uppercase tracking-widest px-6 py-3 rounded-lg shadow-lg shadow-emerald-600/20 transition-all active:scale-[0.98]"
             >
               ✉ Inquiry / Message
             </button>
@@ -259,7 +259,7 @@ const SellerPublicProfile = () => {
             {/* Modal Header */}
             <div className="px-6 py-4 border-b border-gray-150 flex items-center justify-between bg-slate-50">
               <div>
-                <span className="text-[8px] font-black bg-blue-500/10 text-blue-600 border border-blue-500/20 px-2 py-0.5 rounded uppercase tracking-wider">
+                <span className="text-[8px] font-black bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 px-2 py-0.5 rounded uppercase tracking-wider">
                   Store Inquiry
                 </span>
                 <h3 className="text-xs font-black text-gray-900 mt-1 uppercase tracking-wider">
@@ -300,7 +300,7 @@ const SellerPublicProfile = () => {
                   value={msgContent}
                   onChange={(e) => setMsgContent(e.target.value)}
                   placeholder="Ask about store inventory, delivery updates, or specific negotiations..."
-                  className="w-full bg-slate-50 border border-gray-200 rounded-xl px-4 py-3 text-slate-800 text-xs font-semibold placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500/80 resize-none transition-all"
+                  className="w-full bg-slate-50 border border-gray-200 rounded-xl px-4 py-3 text-slate-800 text-xs font-semibold placeholder-slate-400 focus:outline-none focus:bg-white focus:border-emerald-500/80 resize-none transition-all"
                   disabled={sendingMsg || msgSuccess}
                 />
               </div>
@@ -322,7 +322,7 @@ const SellerPublicProfile = () => {
                 <button
                   type="submit"
                   disabled={sendingMsg || msgSuccess}
-                  className="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-[10px] font-black uppercase tracking-wider flex-1 transition-all shadow-lg shadow-blue-500/10 disabled:opacity-50"
+                  className="px-4 py-2.5 bg-[#16A34A] hover:bg-emerald-700 text-white rounded-xl text-[10px] font-black uppercase tracking-wider flex-1 transition-all shadow-lg shadow-emerald-600/10 disabled:opacity-50"
                 >
                   {sendingMsg ? 'Sending...' : 'Send Message'}
                 </button>

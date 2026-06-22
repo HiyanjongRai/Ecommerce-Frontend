@@ -29,6 +29,37 @@ const apiClient = axios.create({
   withCredentials: true,
 });
 
+function unwrapApiResponse(payload) {
+  if (!payload || typeof payload !== 'object') {
+    return payload;
+  }
+
+  if (payload.success === false) {
+    const error = new Error(payload.message || 'Request failed.');
+    error.response = { data: payload, status: 400 };
+    return Promise.reject(error);
+  }
+
+  if (Object.prototype.hasOwnProperty.call(payload, 'success')
+    && Object.prototype.hasOwnProperty.call(payload, 'data')) {
+    return payload.data;
+  }
+
+  return payload;
+}
+
+function shouldShowToast(errorLike) {
+  const response = errorLike?.response;
+  const data = response?.data;
+  if (!response) {
+    return true;
+  }
+  if (response.status === 400 || response.status === 422) {
+    return !data?.errors;
+  }
+  return true;
+}
+
 apiClient.interceptors.request.use(
   (config) => {
     const token = getAccessToken();
@@ -60,12 +91,31 @@ async function refreshAccessToken() {
 }
 
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    if (response && Object.prototype.hasOwnProperty.call(response, 'data')) {
+      const unwrapped = unwrapApiResponse(response.data);
+      if (unwrapped instanceof Promise) {
+        return unwrapped;
+      }
+      response.data = unwrapped;
+    }
+    return response;
+  },
   async (error) => {
     const status = error?.response?.status;
     const originalRequest = error.config;
 
-    if (status === 401 && originalRequest && !originalRequest.__isRetryRequest) {
+    const isRefreshable = originalRequest && originalRequest.url && !(
+      originalRequest.url.includes('/auth/login') ||
+      originalRequest.url.includes('/auth/refresh') ||
+      originalRequest.url.includes('/auth/register') ||
+      originalRequest.url.includes('/auth/google') ||
+      originalRequest.url.includes('/auth/forgot-password') ||
+      originalRequest.url.includes('/auth/reset-password') ||
+      originalRequest.url.includes('/auth/logout')
+    );
+
+    if (status === 401 && originalRequest && !originalRequest.__isRetryRequest && isRefreshable) {
       originalRequest.__isRetryRequest = true;
       try {
         const newToken = await refreshAccessToken();
@@ -81,7 +131,7 @@ apiClient.interceptors.response.use(
     }
 
     const normalizedError = attachApiErrorMessage(error);
-    const shouldToast = !originalRequest?.suppressGlobalErrorToast;
+    const shouldToast = !originalRequest?.suppressGlobalErrorToast && shouldShowToast(normalizedError);
     if (shouldToast && normalizedError.userMessage) {
       toast(normalizedError.userMessage, 'error');
     }
@@ -91,4 +141,3 @@ apiClient.interceptors.response.use(
 );
 
 export default apiClient;
-

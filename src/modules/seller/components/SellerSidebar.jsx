@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { getUnreadMessageCount } from '../services/sellerService';
 import {
   LayoutDashboard, DollarSign, Package, Boxes, Tag, Megaphone,
-  Ticket, ShoppingCart, RefreshCw, Scale, Inbox, Bell,
-  Store, Settings, HelpCircle, LogOut, Sun, Moon, ChevronRight,
-  TrendingUp,
+  Ticket, ShoppingCart, Scale, Inbox, Bell, Store, Settings,
+  LogOut, Sun, Moon, ChevronRight, ChevronLeft, ChevronDown, HelpCircle, TrendingUp
 } from 'lucide-react';
 import { toast } from '../../../shared/contexts/ToastContext';
+import { BASE_URL } from '../../../shared/api/apiClient';
 
 const NAV = [
   {
@@ -44,13 +44,25 @@ const NAV = [
       { to: '/seller/settings',           label: 'Settings',        icon: Settings        },
     ],
   },
+  {
+    group: 'Help',
+    items: [
+      { to: '#help',                      label: 'Help Center',     icon: HelpCircle, isAction: true },
+    ],
+  },
 ];
 
-const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
-
-export default function SellerSidebar({ currentPath, darkMode, toggleDarkMode, profile, onLogout }) {
-  const dark = darkMode;
+export default function SellerSidebar({ currentPath, darkMode, toggleDarkMode, profile, onLogout, isCollapsed, onToggleCollapse }) {
+  const navigate = useNavigate();
   const [badges, setBadges] = useState({ inbox: 0 });
+
+  const [expandedSections, setExpandedSections] = useState({
+    Overview: true,
+    Products: true,
+    Orders: true,
+    Store: true,
+    Help: true
+  });
 
   useEffect(() => {
     const fetchBadges = async () => {
@@ -65,194 +77,263 @@ export default function SellerSidebar({ currentPath, darkMode, toggleDarkMode, p
     return () => clearInterval(interval);
   }, []);
 
-  const isActive = (to) => currentPath.startsWith(to);
+  const active = (to) => currentPath.startsWith(to);
 
-  /* ── style tokens ────────────────────────────────────────── */
-  const bg         = dark ? '#0b0c10'               : '#ffffff';
-  const border     = dark ? 'rgba(255,255,255,.10)' : '#e5e7eb';
-  const textMuted  = dark ? 'rgba(255,255,255,.30)' : '#9ca3af';
-  const textNormal = dark ? 'rgba(255,255,255,.60)' : '#4b5563';
-  const textHover  = dark ? '#ffffff'               : '#111827';
-  const activeBg   = dark ? 'rgba(16,185,129,.14)'  : '#f0fdf4';
-  const activeText = dark ? '#34d399'               : '#047857';
+  const getBadgeCount = (key) => {
+    if (key === 'inbox') return badges.inbox || 0;
+    return 0;
+  };
+
+  const toggleSection = (groupName) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [groupName]: !prev[groupName]
+    }));
+  };
 
   const logoSrc = profile?.logoImagePath
     ? (profile.logoImagePath.startsWith('http') ? profile.logoImagePath : `${BASE_URL}/${profile.logoImagePath.replace(/^\//, '')}`)
     : null;
 
   return (
-    <nav
-      style={{
-        width: 220, flexShrink: 0, display: 'flex', flexDirection: 'column',
-        borderRadius: 4, overflow: 'hidden',
-        background: bg, border: `1px solid ${border}`,
-        boxShadow: dark ? '0 4px 24px rgba(0,0,0,.4)' : '0 1px 3px rgba(0,0,0,.06)',
-        minHeight: 640, userSelect: 'none',
-      }}
-    >
-      {/* ── Store header ─────────────────────────────────────── */}
-      <div style={{ padding: '12px 14px', borderBottom: `1px solid ${border}` }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-          <div style={{ position: 'relative', flexShrink: 0 }}>
+    <nav className={`flex-shrink-0 bg-white rounded-2xl border border-gray-100 shadow-[0_8px_30px_rgba(0,0,0,0.06)] overflow-hidden flex flex-col min-h-[600px] select-none transition-all duration-300 theme-dark-sidebar ${
+      isCollapsed ? 'w-[72px]' : 'w-56'
+    }`}>
+      
+      {/* ── Profile/Store Header ── */}
+      <div className={`relative p-5 border-b border-gray-100 overflow-hidden bg-gradient-to-b from-emerald-50/60 to-white ${isCollapsed ? 'flex justify-center' : ''}`}>
+        {!isCollapsed && (
+          <svg className="absolute bottom-0 left-0 w-[150%] opacity-40 text-emerald-100/70 pointer-events-none" viewBox="0 0 1440 320" fill="currentColor" style={{ transform: 'translateX(-10%)' }}>
+            <path fillOpacity="1" d="M0,160L48,170.7C96,181,192,203,288,186.7C384,171,480,117,576,106.7C672,96,768,128,864,154.7C960,181,1056,203,1152,192C1248,181,1344,139,1392,117.3L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
+          </svg>
+        )}
+
+        <div className="relative flex items-center gap-3.5 z-10">
+          {/* Logo / Avatar */}
+          <div className="relative flex-shrink-0">
             {logoSrc ? (
-              <img src={logoSrc} alt={profile.storeName}
-                   style={{ width: 32, height: 32, borderRadius: 4, objectFit: 'cover', border: `1px solid ${border}` }} />
+              <img 
+                src={logoSrc} 
+                alt={profile?.storeName} 
+                className="w-11 h-11 rounded-xl object-cover border-2 border-white shadow-[0_4px_12px_rgba(16,185,129,0.25)]"
+              />
             ) : (
-              <div style={{
-                width: 32, height: 32, borderRadius: 4,
-                background: 'linear-gradient(135deg, #10b981 0%, #0d9488 100%)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: '#fff', fontWeight: 900, fontSize: 13,
-                boxShadow: '0 2px 8px rgba(16,185,129,.3)',
-              }}>
+              <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#10B981] to-[#0d9488] flex items-center justify-center text-white text-lg font-black shadow-[0_4px_12px_rgba(16,185,129,0.25)] border-2 border-white">
                 {profile?.storeName?.charAt(0)?.toUpperCase() || 'S'}
               </div>
             )}
-            <div style={{
-              position: 'absolute', bottom: -1, right: -1,
-              width: 9, height: 9, borderRadius: '50%',
-              background: '#10b981', border: '2px solid #fff',
-            }} />
+            {/* Active dot */}
+            <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-[#10B981] border-2 border-white rounded-full flex items-center justify-center shadow-sm">
+              <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
+            </div>
           </div>
-          <div style={{ minWidth: 0 }}>
-            <p style={{ margin: 0, fontWeight: 800, fontSize: 11, color: dark ? '#fff' : '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {profile?.storeName || 'My Store'}
-            </p>
-            <span style={{
-              display: 'inline-flex', alignItems: 'center',
-              fontSize: 9, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase',
-              padding: '1px 6px', borderRadius: 3,
-              background: dark ? 'rgba(16,185,129,.15)' : '#ecfdf5',
-              color: dark ? '#34d399' : '#047857',
-            }}>
-              Active Panel
-            </span>
-          </div>
+          {/* Info */}
+          {!isCollapsed && (
+            <div className="flex-1 min-w-0">
+              <p className="text-[13px] font-black text-gray-900 truncate tracking-tight mb-0.5">
+                {profile?.storeName || 'My Store'}
+              </p>
+              <p className="text-[10px] font-semibold text-gray-500 truncate mb-1.5">
+                {profile?.email || 'Store Partner'}
+              </p>
+              <div className="inline-flex items-center px-1.5 py-0.5 rounded bg-[#e6f7ec] border border-[#bbf7d0] text-[#10B981] text-[8px] font-black uppercase tracking-wider">
+                Active Panel
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* ── Navigation ─────────────────────────────────────── */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '8px 0' }}>
-        {NAV.map((section) => (
-          <div key={section.group} style={{ marginBottom: 10 }}>
-            <p style={{ margin: '0 0 2px', padding: '0 14px', fontSize: 9, fontWeight: 900, letterSpacing: '0.13em', textTransform: 'uppercase', color: textMuted }}>
-              {section.group}
-            </p>
-            {section.items.map((item) => {
-              const active = isActive(item.to);
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.to}
-                  to={item.to}
-                  style={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                    padding: '5px 10px', margin: '1px 6px', borderRadius: 3,
-                    textDecoration: 'none', fontSize: 11,
-                    fontWeight: active ? 800 : 600,
-                    color: active ? activeText : textNormal,
-                    background: active ? activeBg : 'transparent',
-                    transition: 'background 0.15s ease, color 0.15s ease',
-                    position: 'relative',
-                  }}
-                  onMouseEnter={e => {
-                    if (!active) {
-                      e.currentTarget.style.background = dark ? 'rgba(255,255,255,.05)' : '#f9fafb';
-                      e.currentTarget.style.color = textHover;
-                    }
-                  }}
-                  onMouseLeave={e => {
-                    if (!active) {
-                      e.currentTarget.style.background = 'transparent';
-                      e.currentTarget.style.color = textNormal;
-                    }
-                  }}
-                >
-                  {active && (
-                    <div style={{ position: 'absolute', left: 0, top: '50%', transform: 'translateY(-50%)', width: 2, height: 14, borderRadius: 2, background: dark ? '#34d399' : '#059669' }} />
-                  )}
-                  {/* Icon + label */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-                    <Icon size={13} style={{ flexShrink: 0, color: active ? (dark ? '#34d399' : '#059669') : (dark ? 'rgba(255,255,255,.4)' : '#9ca3af') }} />
-                    <span>{item.label}</span>
-                  </div>
-                  {/* Badge or chevron */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                    {item.badgeKey && badges[item.badgeKey] > 0 && (
-                      <span style={{ background: '#ef4444', color: '#fff', fontSize: 9, fontWeight: 900, minWidth: 15, height: 15, padding: '0 3px', borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        {badges[item.badgeKey]}
-                      </span>
-                    )}
-                    {!item.badgeKey && item.badge > 0 && (
-                      <span style={{ background: '#ef4444', color: '#fff', fontSize: 9, fontWeight: 900, minWidth: 15, height: 15, padding: '0 3px', borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        {item.badge}
-                      </span>
-                    )}
-                    {active && <ChevronRight size={10} style={{ color: dark ? '#34d399' : '#059669' }} />}
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-        ))}
+      {/* ── Navigation ── */}
+      <div className="flex-1 overflow-y-auto py-3 scrollbar-hide space-y-4">
+        {NAV.map((section) => {
+          const isExpanded = expandedSections[section.group];
+          
+          if (isCollapsed) {
+            return (
+              <div key={section.group} className="space-y-[2px] px-2.5">
+                {section.items.map((item) => {
+                  const isActive = !item.isAction && active(item.to);
+                  const Icon = item.icon;
+                  const badgeCount = item.badgeKey ? getBadgeCount(item.badgeKey) : 0;
 
-        {/* Help */}
-        <div style={{ marginBottom: 10 }}>
-          <p style={{ margin: '0 0 2px', padding: '0 14px', fontSize: 9, fontWeight: 900, letterSpacing: '0.13em', textTransform: 'uppercase', color: textMuted }}>
-            Help
-          </p>
+                  if (item.isAction) {
+                    return (
+                      <button
+                        key={item.label}
+                        type="button"
+                        onClick={() => {
+                          if (item.label === 'Help Center') {
+                            toast('💡 Jhapcham Help Center — How can we assist you? Email: support@jhapcham.com', 'info');
+                          }
+                        }}
+                        title={item.label}
+                        className="group relative flex items-center justify-center w-11 h-11 rounded-xl transition-all duration-200 bg-transparent border-0 text-gray-500 hover:bg-emerald-50/45 hover:text-emerald-700 cursor-pointer"
+                      >
+                        <Icon size={18} className="text-gray-400 group-hover:text-[#10B981] group-hover:scale-105 transition-all duration-200" />
+                      </button>
+                    );
+                  }
+
+                  return (
+                    <Link
+                      key={item.to}
+                      to={item.to}
+                      title={item.label}
+                      className={`group relative flex items-center justify-center w-11 h-11 rounded-xl transition-all duration-200 ${
+                        isActive 
+                          ? 'bg-[#f0fdf4] text-[#10B981] shadow-xs theme-active-pill' 
+                          : 'text-gray-550 hover:bg-emerald-50/45 hover:text-emerald-700'
+                      }`}
+                    >
+                      <Icon size={18} className={`transition-all duration-200 group-hover:scale-105 ${isActive ? 'text-[#10B981]' : 'text-gray-400 group-hover:text-[#10B981]'}`} />
+                      
+                      {/* Floating Badge */}
+                      {badgeCount > 0 && (
+                        <span className="absolute top-1 right-1 w-3.5 h-3.5 bg-[#EF4444] rounded-full border border-white flex items-center justify-center text-[7px] text-white font-bold">
+                          {badgeCount}
+                        </span>
+                      )}
+                    </Link>
+                  );
+                })}
+              </div>
+            );
+          }
+
+          return (
+            <div key={section.group} className="px-3">
+              {/* Collapsible Section Heading */}
+              <button
+                type="button"
+                onClick={() => toggleSection(section.group)}
+                className="w-full flex items-center justify-between px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.15em] text-gray-450 hover:text-gray-600 transition-colors bg-transparent border-0 cursor-pointer text-left sidebar-section-title"
+              >
+                <span>{section.group}</span>
+                <ChevronDown size={10} className={`transform transition-transform ${isExpanded ? '' : '-rotate-90'}`} />
+              </button>
+              
+              {/* Nav Items Accordion Body */}
+              {isExpanded && (
+                <div className="space-y-[2px] mt-1">
+                  {section.items.map((item) => {
+                    const isActive = !item.isAction && active(item.to);
+                    const Icon = item.icon;
+                    const badgeCount = item.badgeKey ? getBadgeCount(item.badgeKey) : 0;
+
+                    if (item.isAction) {
+                      return (
+                        <button
+                          key={item.label}
+                          type="button"
+                          onClick={() => {
+                            if (item.label === 'Help Center') {
+                              toast('💡 Jhapcham Help Center — How can we assist you? Email: support@jhapcham.com', 'info');
+                            }
+                          }}
+                          className="w-full group relative flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all duration-200 bg-transparent border-0 text-gray-600 hover:bg-emerald-50/45 hover:text-emerald-700 cursor-pointer"
+                        >
+                          <div className="flex items-center gap-3">
+                            <Icon size={16} className="text-gray-400 group-hover:text-emerald-600 group-hover:scale-105 transition-all duration-200" />
+                            <span>{item.label}</span>
+                          </div>
+                          <ChevronRight 
+                            size={10} 
+                            className="text-emerald-600 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200" 
+                          />
+                        </button>
+                      );
+                    }
+
+                    return (
+                      <Link
+                        key={item.to}
+                        to={item.to}
+                        className={`group relative flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all duration-200 ${
+                          isActive 
+                            ? 'bg-[#f0fdf4] text-[#10B981] shadow-xs theme-active-pill' 
+                            : 'text-gray-600 hover:bg-emerald-50/45 hover:text-emerald-700'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <Icon size={16} className={`transition-all duration-200 group-hover:scale-105 ${isActive ? 'text-[#10B981]' : 'text-gray-400 group-hover:text-emerald-600'}`} />
+                          <span>{item.label}</span>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          {badgeCount > 0 && (
+                            <span className="min-w-[16px] h-[16px] px-1 rounded-full bg-[#EF4444] text-white flex items-center justify-center text-[8px] font-black shadow-xs">
+                              {badgeCount}
+                            </span>
+                          )}
+                          <ChevronRight 
+                            size={10} 
+                            className={`transition-all duration-200 ${
+                              isActive 
+                                ? 'text-[#10B981] opacity-100' 
+                                : 'text-emerald-600 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0'
+                            }`} 
+                          />
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* ── Footer ── */}
+      <div className={`p-3 border-t border-gray-100 bg-white ${isCollapsed ? 'flex flex-col items-center gap-2' : ''}`}>
+        {/* Sign Out */}
+        <button
+          onClick={onLogout}
+          title="Sign Out"
+          className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-red-500 hover:bg-red-50 transition-colors cursor-pointer border-0 bg-transparent ${isCollapsed ? 'w-11 h-11 justify-center' : 'w-full'}`}
+        >
+          <LogOut size={15} />
+          {!isCollapsed && <span>Sign Out</span>}
+        </button>
+
+        {/* Theme Toggle & Collapse controls */}
+        <div className={`flex w-full ${isCollapsed ? 'flex-col gap-2' : 'flex-col gap-1.5'}`}>
+          <div className="flex p-1 bg-white border border-gray-100 rounded-[12px] shadow-xs">
+            <button 
+              onClick={() => darkMode && toggleDarkMode()} 
+              title="Light Mode"
+              className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg transition-colors cursor-pointer border-0 ${
+                !darkMode ? 'bg-[#f0fdf4] text-[#10B981] shadow-xs' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              <Sun size={12} />
+              {!isCollapsed && <span className="text-[10px] font-black">Light</span>}
+            </button>
+            <button 
+              onClick={() => !darkMode && toggleDarkMode()}
+              title="Dark Mode"
+              className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg transition-colors cursor-pointer border-0 ${
+                darkMode ? 'bg-[#f0fdf4] text-[#10B981] shadow-xs' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              <Moon size={12} />
+              {!isCollapsed && <span className="text-[10px] font-black">Dark</span>}
+            </button>
+          </div>
+
+          {/* Collapse sidebar button */}
           <button
-            onClick={() => toast('💡 Jhapcham Help Center — How can we assist you? Email: support@jhapcham.com', 'info')}
-            style={{
-              width: 'calc(100% - 12px)', display: 'flex', alignItems: 'center', gap: 7,
-              padding: '4px 10px', margin: '1px 6px', borderRadius: 4, border: 'none', cursor: 'pointer',
-              background: 'transparent', fontSize: 11, fontWeight: 600, color: textNormal,
-              transition: 'background 0.15s ease',
-            }}
-            onMouseEnter={e => { e.currentTarget.style.background = dark ? 'rgba(255,255,255,.05)' : '#f9fafb'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+            type="button"
+            onClick={onToggleCollapse}
+            className={`flex items-center justify-center py-2 bg-gray-50 hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors border border-gray-100 rounded-xl cursor-pointer ${
+              isCollapsed ? 'w-11 h-11' : 'w-full'
+            }`}
           >
-            <HelpCircle size={12} style={{ flexShrink: 0, color: dark ? 'rgba(255,255,255,.4)' : '#9ca3af' }} />
-            <span>Help Center</span>
+            {isCollapsed ? <ChevronRight size={14} /> : <div className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider"><ChevronLeft size={12} /> Collapse</div>}
           </button>
         </div>
       </div>
-
-      {/* ── Footer ─────────────────────────────────────── */}
-      <div style={{ padding: '8px', borderTop: `1px solid ${border}` }}>
-        <button
-          onClick={onLogout}
-          style={{
-            width: '100%', display: 'flex', alignItems: 'center', gap: 7,
-            padding: '5px 10px', borderRadius: 4, border: 'none', cursor: 'pointer',
-            background: 'transparent', fontSize: 11, fontWeight: 700,
-            color: dark ? '#f87171' : '#ef4444', transition: 'background 0.15s ease',
-          }}
-          onMouseEnter={e => { e.currentTarget.style.background = dark ? 'rgba(239,68,68,.1)' : '#fef2f2'; }}
-          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
-        >
-          <LogOut size={12} style={{ flexShrink: 0 }} />
-          <span>Sign Out</span>
-        </button>
-        <div style={{ display: 'flex', gap: 3, marginTop: 6, background: dark ? 'rgba(255,255,255,.05)' : '#f3f4f6', borderRadius: 4, padding: 3 }}>
-          {[
-            { label: 'Light', Icon: Sun,  on: !dark, click: () => dark && toggleDarkMode()  },
-            { label: 'Dark',  Icon: Moon, on: dark,  click: () => !dark && toggleDarkMode() },
-          ].map(({ label, Icon: I, on, click }) => (
-            <button key={label} onClick={click} style={{
-              flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
-              padding: '4px 0', borderRadius: 3, border: 'none', cursor: 'pointer',
-              fontSize: 10, fontWeight: 700,
-              background: on ? (dark ? 'rgba(16,185,129,.2)' : '#fff') : 'transparent',
-              color: on ? (dark ? '#34d399' : '#059669') : (dark ? 'rgba(255,255,255,.35)' : '#9ca3af'),
-              boxShadow: on ? '0 1px 2px rgba(0,0,0,.08)' : 'none',
-              transition: 'all 0.15s ease',
-            }}>
-              <I size={10} /><span>{label}</span>
-            </button>
-          ))}
-        </div>
-      </div>
     </nav>
-  );
+);
 }

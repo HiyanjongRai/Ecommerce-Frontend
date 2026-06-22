@@ -151,16 +151,16 @@ export default function AdminSettings() {
       pageTitle="Settings"
       pageSubtitle="Configure your admin profile, contact settings, upload an avatar, and change your password."
     >
-      <div className={`mx-auto max-w-4xl space-y-6 p-4 lg:p-6 ${themeClasses.bg.secondary}`}>
+      <div className="mx-auto max-w-4xl space-y-6 p-4 lg:p-6">
         
         {/* Profile Card */}
-        <div className={`rounded-xl border p-5 shadow-sm ${themeClasses.card}`}>
-          <h2 className={`text-sm font-black uppercase tracking-wider mb-5 border-b ${themeClasses.border.primary} pb-2 ${themeClasses.text.primary}`}>
+        <div className={`rounded-[20px] p-6 border space-y-6 transition-colors ${themeClasses.card}`}>
+          <h2 className={`text-sm font-black uppercase tracking-wider pb-3 border-b ${themeClasses.border.primary} ${themeClasses.text.primary}`}>
             Profile Information
           </h2>
 
           {profileMsg && (
-            <div className={`p-3 rounded-lg text-xs font-bold mb-5 border ${
+            <div className={`p-3.5 rounded-xl text-xs font-bold border transition-colors ${
               profileMsg.type === 'success' ? themeClasses.status.success : themeClasses.status.danger
             }`}>
               {profileMsg.text}
@@ -183,7 +183,7 @@ export default function AdminSettings() {
                   <div
                     className="absolute inset-0 flex items-center justify-center text-xl font-black text-white select-none"
                     style={{
-                      background: avatarUrl ? 'transparent' : 'linear-gradient(135deg, #28c76f 0%, #0ea5e9 100%)',
+                      background: avatarUrl ? 'transparent' : 'linear-gradient(135deg, #10B981 0%, #0ea5e9 100%)',
                       display: avatarUrl ? 'none' : 'flex',
                     }}
                   >
@@ -207,44 +207,40 @@ export default function AdminSettings() {
                 </div>
                 <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} disabled={uploading} />
               </label>
-              <p className={`text-[9px] font-bold mt-2 ${themeClasses.text.tertiary}`}>Change Profile Image</p>
+              <p className={`text-[9px] font-bold mt-2 transition-colors ${themeClasses.text.tertiary}`}>Change Profile Image</p>
             </div>
 
             {/* Fields Column */}
             <form onSubmit={handleSaveProfile} className="flex-1 w-full space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className={`block text-[10px] font-black uppercase tracking-wider mb-1.5 ${themeClasses.text.tertiary}`}>
+                  <label className={`block text-[10px] font-black uppercase tracking-wider mb-1.5 transition-colors ${themeClasses.text.tertiary}`}>
                     Username
                   </label>
                   <input
                     type="text"
                     value={user?.username || ''}
                     disabled
-                    className={`w-full px-3 py-2 border rounded-lg text-xs font-semibold outline-none transition-all cursor-not-allowed ${
-                      darkMode ? 'bg-gray-800 border-gray-700 text-gray-400' : 'bg-gray-100 border-gray-200 text-gray-500'
-                    }`}
+                    className={`w-full px-3.5 py-2.5 border rounded-xl text-xs font-semibold outline-none transition-all cursor-not-allowed ${themeClasses.bg.secondary} ${themeClasses.border.primary} ${themeClasses.text.tertiary}`}
                   />
                 </div>
 
                 <div>
-                  <label className={`block text-[10px] font-black uppercase tracking-wider mb-1.5 ${themeClasses.text.tertiary}`}>
+                  <label className={`block text-[10px] font-black uppercase tracking-wider mb-1.5 transition-colors ${themeClasses.text.tertiary}`}>
                     Email Address
                   </label>
                   <input
                     type="email"
                     value={user?.email || ''}
                     disabled
-                    className={`w-full px-3 py-2 border rounded-lg text-xs font-semibold outline-none transition-all cursor-not-allowed ${
-                      darkMode ? 'bg-gray-800 border-gray-700 text-gray-400' : 'bg-gray-100 border-gray-200 text-gray-500'
-                    }`}
+                    className={`w-full px-3.5 py-2.5 border rounded-xl text-xs font-semibold outline-none transition-all cursor-not-allowed ${themeClasses.bg.secondary} ${themeClasses.border.primary} ${themeClasses.text.tertiary}`}
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className={`block text-[10px] font-black uppercase tracking-wider mb-1.5 ${themeClasses.text.tertiary}`}>
+                  <label className={`block text-[10px] font-black uppercase tracking-wider mb-1.5 transition-colors ${themeClasses.text.tertiary}`}>
                     Full Name
                   </label>
                   <input
@@ -253,16 +249,12 @@ export default function AdminSettings() {
                     value={profileForm.fullName}
                     onChange={handleProfileChange}
                     placeholder="Enter your full name"
-                    className={`w-full px-3 py-2 border rounded-lg text-xs font-semibold outline-none transition-all ${
-                      darkMode 
-                        ? 'bg-gray-800 border-gray-700 text-white focus:border-emerald-500' 
-                        : 'bg-white border-gray-200 text-gray-900 focus:border-emerald-600'
-                    }`}
+                    className={`w-full px-3.5 py-2.5 border rounded-xl text-xs font-semibold outline-none focus:ring-2 focus:ring-emerald-500/30 transition-all ${themeClasses.bg.secondary} ${themeClasses.border.primary} ${themeClasses.text.primary} focus:border-emerald-500`}
                   />
                 </div>
 
                 <div>
-                  <label className={`block text-[10px] font-black uppercase tracking-wider mb-1.5 ${themeClasses.text.tertiary}`}>
+                  <label className={`block text-[10px] font-black uppercase tracking-wider mb-1.5 transition-colors ${themeClasses.text.tertiary}`}>
                     Contact Number
                   </label>
                   <input
@@ -271,17 +263,13 @@ export default function AdminSettings() {
                     value={profileForm.contactNumber}
                     onChange={handleProfileChange}
                     placeholder="Enter contact number"
-                    className={`w-full px-3 py-2 border rounded-lg text-xs font-semibold outline-none transition-all ${
-                      darkMode 
-                        ? 'bg-gray-800 border-gray-700 text-white focus:border-emerald-500' 
-                        : 'bg-white border-gray-200 text-gray-900 focus:border-emerald-600'
-                    }`}
+                    className={`w-full px-3.5 py-2.5 border rounded-xl text-xs font-semibold outline-none focus:ring-2 focus:ring-emerald-500/30 transition-all ${themeClasses.bg.secondary} ${themeClasses.border.primary} ${themeClasses.text.primary} focus:border-emerald-500`}
                   />
                 </div>
               </div>
 
               <div>
-                <label className={`block text-[10px] font-black uppercase tracking-wider mb-1.5 ${themeClasses.text.tertiary}`}>
+                <label className={`block text-[10px] font-black uppercase tracking-wider mb-1.5 transition-colors ${themeClasses.text.tertiary}`}>
                   Business / Office Address
                 </label>
                 <input
@@ -290,11 +278,7 @@ export default function AdminSettings() {
                   value={profileForm.address}
                   onChange={handleProfileChange}
                   placeholder="Enter office address"
-                  className={`w-full px-3 py-2 border rounded-lg text-xs font-semibold outline-none transition-all ${
-                    darkMode 
-                      ? 'bg-gray-800 border-gray-700 text-white focus:border-emerald-500' 
-                      : 'bg-white border-gray-200 text-gray-900 focus:border-emerald-600'
-                  }`}
+                  className={`w-full px-3.5 py-2.5 border rounded-xl text-xs font-semibold outline-none focus:ring-2 focus:ring-emerald-500/30 transition-all ${themeClasses.bg.secondary} ${themeClasses.border.primary} ${themeClasses.text.primary} focus:border-emerald-500`}
                 />
               </div>
 
@@ -302,7 +286,7 @@ export default function AdminSettings() {
                 <button
                   type="submit"
                   disabled={profileLoading}
-                  className={`px-4 py-2 text-xs font-black uppercase tracking-wider rounded-lg transition-colors ${themeClasses.button.primary}`}
+                  className={`px-5 py-2.5 text-xs font-black uppercase tracking-widest rounded-xl shadow-xs transition-colors cursor-pointer ${themeClasses.button.primary}`}
                 >
                   {profileLoading ? 'Saving...' : 'Save Profile'}
                 </button>
@@ -313,13 +297,13 @@ export default function AdminSettings() {
         </div>
 
         {/* Password Card */}
-        <div className={`rounded-xl border p-5 shadow-sm ${themeClasses.card}`}>
-          <h2 className={`text-sm font-black uppercase tracking-wider mb-4 border-b ${themeClasses.border.primary} pb-2 ${themeClasses.text.primary}`}>
+        <div className={`rounded-[20px] p-6 border space-y-6 transition-colors ${themeClasses.card}`}>
+          <h2 className={`text-sm font-black uppercase tracking-wider pb-3 border-b ${themeClasses.border.primary} ${themeClasses.text.primary}`}>
             Change Password
           </h2>
 
           {passwordMsg && (
-            <div className={`p-3 rounded-lg text-xs font-bold mb-4 border ${
+            <div className={`p-3.5 rounded-xl text-xs font-bold border transition-colors ${
               passwordMsg.type === 'success' ? themeClasses.status.success : themeClasses.status.danger
             }`}>
               {passwordMsg.text}
@@ -328,7 +312,7 @@ export default function AdminSettings() {
 
           <form onSubmit={handleSavePassword} className="space-y-4">
             <div>
-              <label className={`block text-[10px] font-black uppercase tracking-wider mb-1.5 ${themeClasses.text.tertiary}`}>
+              <label className={`block text-[10px] font-black uppercase tracking-wider mb-1.5 transition-colors ${themeClasses.text.tertiary}`}>
                 Current Password
               </label>
               <input
@@ -338,17 +322,13 @@ export default function AdminSettings() {
                 onChange={handlePasswordChange}
                 placeholder="••••••••"
                 required
-                className={`w-full px-3 py-2 border rounded-lg text-xs font-semibold outline-none transition-all ${
-                  darkMode 
-                    ? 'bg-gray-800 border-gray-700 text-white focus:border-emerald-500' 
-                    : 'bg-white border-gray-200 text-gray-900 focus:border-emerald-600'
-                }`}
+                className={`w-full px-3.5 py-2.5 border rounded-xl text-xs font-semibold outline-none focus:ring-2 focus:ring-emerald-500/30 transition-all ${themeClasses.bg.secondary} ${themeClasses.border.primary} ${themeClasses.text.primary} focus:border-emerald-500`}
               />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className={`block text-[10px] font-black uppercase tracking-wider mb-1.5 ${themeClasses.text.tertiary}`}>
+                <label className={`block text-[10px] font-black uppercase tracking-wider mb-1.5 transition-colors ${themeClasses.text.tertiary}`}>
                   New Password
                 </label>
                 <input
@@ -358,16 +338,12 @@ export default function AdminSettings() {
                   onChange={handlePasswordChange}
                   placeholder="••••••••"
                   required
-                  className={`w-full px-3 py-2 border rounded-lg text-xs font-semibold outline-none transition-all ${
-                    darkMode 
-                      ? 'bg-gray-800 border-gray-700 text-white focus:border-emerald-500' 
-                      : 'bg-white border-gray-200 text-gray-900 focus:border-emerald-600'
-                  }`}
+                  className={`w-full px-3.5 py-2.5 border rounded-xl text-xs font-semibold outline-none focus:ring-2 focus:ring-emerald-500/30 transition-all ${themeClasses.bg.secondary} ${themeClasses.border.primary} ${themeClasses.text.primary} focus:border-emerald-500`}
                 />
               </div>
 
               <div>
-                <label className={`block text-[10px] font-black uppercase tracking-wider mb-1.5 ${themeClasses.text.tertiary}`}>
+                <label className={`block text-[10px] font-black uppercase tracking-wider mb-1.5 transition-colors ${themeClasses.text.tertiary}`}>
                   Confirm New Password
                 </label>
                 <input
@@ -377,11 +353,7 @@ export default function AdminSettings() {
                   onChange={handlePasswordChange}
                   placeholder="••••••••"
                   required
-                  className={`w-full px-3 py-2 border rounded-lg text-xs font-semibold outline-none transition-all ${
-                    darkMode 
-                      ? 'bg-gray-800 border-gray-700 text-white focus:border-emerald-500' 
-                      : 'bg-white border-gray-200 text-gray-900 focus:border-emerald-600'
-                  }`}
+                  className={`w-full px-3.5 py-2.5 border rounded-xl text-xs font-semibold outline-none focus:ring-2 focus:ring-emerald-500/30 transition-all ${themeClasses.bg.secondary} ${themeClasses.border.primary} ${themeClasses.text.primary} focus:border-emerald-500`}
                 />
               </div>
             </div>
@@ -390,7 +362,7 @@ export default function AdminSettings() {
               <button
                 type="submit"
                 disabled={passwordLoading}
-                className={`px-4 py-2 text-xs font-black uppercase tracking-wider rounded-lg transition-colors ${themeClasses.button.primary}`}
+                className={`px-5 py-2.5 text-xs font-black uppercase tracking-widest rounded-xl shadow-xs transition-colors cursor-pointer ${themeClasses.button.primary}`}
               >
                 {passwordLoading ? 'Updating...' : 'Change Password'}
               </button>

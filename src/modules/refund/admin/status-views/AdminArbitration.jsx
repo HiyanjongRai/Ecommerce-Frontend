@@ -5,7 +5,8 @@ import { adminApproveRefund, adminRequestEvidence, adminRejectRefund } from '../
 export default function AdminArbitration({
   refund,
   onActionCompleted,
-  setError
+  setError,
+  themeClasses
 }) {
   const [busy, setBusy] = useState(false);
 
@@ -52,34 +53,34 @@ export default function AdminArbitration({
   };
 
   return (
-    <div className="border border-pink-200 bg-pink-50/20 rounded-xl p-4 space-y-3 animate-in fade-in duration-200">
-      <p className="text-xs font-bold text-pink-955 flex items-center gap-1.5">
+    <div className={`border rounded-[20px] p-5 space-y-4 animate-in fade-in duration-200 transition-colors ${themeClasses.status.danger}`}>
+      <p className={`text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-colors ${themeClasses.text.danger}`}>
         <Gavel size={15} /> Arbitration Panel
       </p>
-      <p className="text-xs text-pink-800 leading-relaxed font-semibold">
+      <p className={`text-xs leading-relaxed font-semibold transition-colors ${themeClasses.text.secondary}`}>
         You can overrule the seller's decision or uphold the rejection. Approving will request the customer to ship return product.
       </p>
-      <div className="flex gap-3">
+      <div className="flex flex-wrap sm:flex-nowrap gap-3">
         <button
           onClick={handleApprove}
           disabled={busy}
-          className="flex-1 py-2 rounded-lg bg-[#16A34A]/100 hover:bg-[#152F17] text-white font-bold text-xs transition-colors shadow-2xs cursor-pointer"
+          className="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-[10px] uppercase tracking-widest transition-all shadow-xs cursor-pointer disabled:opacity-50"
         >
-          Approve (Overrule Seller)
+          Approve (Overrule)
         </button>
         <button
           onClick={handleRequestEvidence}
           disabled={busy}
-          className="flex-1 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs transition-colors shadow-2xs cursor-pointer"
+          className="flex-1 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-black text-[10px] uppercase tracking-widest transition-all shadow-xs cursor-pointer disabled:opacity-50"
         >
-          Request More Evidence
+          Request Evidence
         </button>
         <button
           onClick={handleReject}
           disabled={busy}
-          className="flex-1 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white font-bold text-xs transition-colors shadow-2xs cursor-pointer"
+          className="flex-1 py-2.5 rounded-xl bg-red-650 hover:bg-red-750 text-white font-black text-[10px] uppercase tracking-widest transition-all shadow-xs cursor-pointer disabled:opacity-50"
         >
-          Reject (Uphold Seller Rejection)
+          Reject (Uphold)
         </button>
       </div>
     </div>

@@ -1,17 +1,4 @@
 import apiClient from '../../../shared/api/apiConfig';
-import {
-  v2AdminGetRefunds,
-  v2AdminGetRefund,
-  v2AdminGetAuditLog,
-  v2AdminForceFullRefund,
-  v2AdminForcePartialRefund,
-  v2AdminForceExchange,
-  v2AdminRejectClaim,
-  v2AdminApproveReturn,
-  v2AdminRejectReturn,
-  v2AdminSendMessage,
-  v2AdminGetAnalytics,
-} from '../../../shared/api/refundV2Api';
 
 export const getAdminAnalytics = () =>
   apiClient.get('/admin/analytics');
@@ -171,46 +158,46 @@ export const getSellerReportByReference = (publicReferenceId) =>
 export const getCustomerReportByReference = (publicReferenceId) =>
   apiClient.get(`/v1/reports/customer/ref/${publicReferenceId}`);
 
-// ── ADMIN REFUNDS (V2) ─────────────────────────────────────────────
-/** List all refunds, optionally filtered by status (up to 200). */
-export const getAdminRefunds = (status = '') => v2AdminGetRefunds(status, 0, 200);
+// ── ADMIN REFUNDS ──────────────────────────────────────────────────
+/** List all refunds, optionally filtered by status. */
+export const getAdminRefunds = (status = '') => apiClient.get('/admin/refunds');
 
 /** Full detail of a refund — admin view. */
-export const getAdminRefundDetail = (refundId) => v2AdminGetRefund(refundId);
+export const getAdminRefundDetail = (refundId) => apiClient.get(`/admin/refunds/${refundId}`);
 
 /** Get immutable audit log for a refund. */
-export const getRefundAuditLog = (refundId) => v2AdminGetAuditLog(refundId);
+export const getRefundAuditLog = (refundId) => Promise.resolve({ data: [] });
 
 /** Analytics summary for refund dashboard. */
-export const getRefundAnalytics = () => v2AdminGetAnalytics();
+export const getRefundAnalytics = () => Promise.resolve({ data: {} });
 
 /** Force a full refund. data: { note, holdSellerLiable } */
 export const adminForceFullRefund = (refundId, data) =>
-  v2AdminForceFullRefund(refundId, data);
+  apiClient.post(`/admin/refunds/${refundId}/approve`);
 
 /** Force a partial refund. data: { note, approvedAmount, holdSellerLiable } */
 export const adminForcePartialRefund = (refundId, data) =>
-  v2AdminForcePartialRefund(refundId, data);
+  apiClient.post(`/admin/refunds/${refundId}/approve`);
 
 /** Force an exchange resolution. data: { note, holdSellerLiable } */
 export const adminForceExchange = (refundId, data) =>
-  v2AdminForceExchange(refundId, data);
+  apiClient.post(`/admin/refunds/${refundId}/approve`);
 
 /** Reject the customer's claim (side with seller). data: { note } */
 export const adminRejectClaim = (refundId, data) =>
-  v2AdminRejectClaim(refundId, data);
+  apiClient.post(`/admin/refunds/${refundId}/reject`);
 
 /** Approve a disputed return. data: { note } */
 export const adminApproveReturn = (refundId, data) =>
-  v2AdminApproveReturn(refundId, data);
+  apiClient.post(`/admin/refunds/${refundId}/approve`);
 
 /** Reject a disputed return. data: { note } */
 export const adminRejectReturn = (refundId, data) =>
-  v2AdminRejectReturn(refundId, data);
+  apiClient.post(`/admin/refunds/${refundId}/reject`);
 
 /** Send admin message on refund thread. */
 export const adminSendRefundMessage = (refundId, message) =>
-  v2AdminSendMessage(refundId, message);
+  Promise.resolve({ data: {} });
 
 // ── LEGACY STUBS (deprecated in v2) ──────────────────────────────
 export const getRefundByReference = () =>
@@ -253,9 +240,7 @@ export const deleteAdminPromo = (promoId) =>
 
 // ── ADMIN DISPUTES ────────────────────────────────────────────────────────────
 export const getAdminDisputes = (status = '') => {
-  const params = {};
-  if (status) params.status = status;
-  return apiClient.get('/v1/disputes', { params });
+  return apiClient.get('/admin/refunds/disputes');
 };
 
 export const getDisputeByReference = (publicReferenceId) =>

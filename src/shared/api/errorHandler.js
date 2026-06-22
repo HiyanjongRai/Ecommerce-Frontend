@@ -1,25 +1,35 @@
-import { toast } from '../contexts/ToastContext';
-
 const mapBackendErrorCodeToMessage = {
   AUTHENTICATION_FAILED: 'Your session expired. Please sign in again.',
+  USER_NOT_FOUND: 'Your session expired. Please sign in again.',
   ACCESS_DENIED: 'You do not have permission to perform this action.',
   AUTHORIZATION_DENIED: 'You do not have permission to access this resource.',
+  ROLE_ACCESS_DENIED: 'You do not have permission to perform this action.',
   RESOURCE_NOT_FOUND: 'Requested data could not be found.',
+  ROUTE_NOT_FOUND: 'Requested data could not be found.',
   VALIDATION_ERROR: 'Please correct the highlighted fields and try again.',
+  VALIDATION_FAILED: 'Please correct the highlighted fields and try again.',
   CONSTRAINT_VIOLATION: 'Invalid data was provided. Please review your input.',
   ORDER_STATE_CONFLICT: 'This order cannot be updated in its current status.',
   DATA_CONFLICT: 'The request conflicts with existing data.',
+  RESOURCE_BUSY: 'The resource is being updated. Please retry shortly.',
+  METHOD_NOT_ALLOWED: 'This action is not allowed.',
+  MISSING_PARAMETER: 'The request is missing required information.',
   INTERNAL_SERVER_ERROR: 'Something went wrong. Please try again later.',
 };
 
 export function getApiErrorMessage(error) {
   if (!error) return 'An unknown error occurred.';
 
-  if (error.response) {
-    const { data, status } = error.response;
+  const response = error.response || error?.response;
+  if (response) {
+    const { data, status } = response;
 
     if (status === 0 || status === 502 || status === 503 || status === 504) {
       return 'The server is unavailable. Please try again in a moment.';
+    }
+
+    if (data?.success === false && data?.message) {
+      return data.message;
     }
 
     if (data?.errorCode && mapBackendErrorCodeToMessage[data.errorCode]) {
@@ -50,7 +60,7 @@ export function getApiErrorMessage(error) {
   }
 
   if (error.request) {
-    return 'Network error. Please check your connection and try again.';
+    return 'Connection lost. Please check your internet and try again.';
   }
 
   return error.message || 'An unknown error occurred.';
@@ -58,23 +68,10 @@ export function getApiErrorMessage(error) {
 
 export function attachApiErrorMessage(error) {
   const userMessage = getApiErrorMessage(error);
-  const enhanced = {
+  return {
     ...error,
     userMessage,
     apiErrorMessage: userMessage,
   };
-
-  try {
-    const suppress = enhanced?.config?.suppressGlobalErrorToast;
-    if (!suppress && userMessage) {
-      toast(userMessage, 'error');
-    }
-  } catch (e) {
-    // defensive: don't let toast failures break error flow
-    // eslint-disable-next-line no-console
-    console.warn('Failed to show toast for API error', e);
-  }
-
-  return enhanced;
 }
 

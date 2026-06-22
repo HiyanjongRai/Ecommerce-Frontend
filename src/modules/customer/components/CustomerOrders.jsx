@@ -217,53 +217,53 @@ const CustomerOrders = () => {
             return (
               <div 
                 key={order.orderId} 
-                className="bg-white border border-[#E5E7EB] rounded-[20px] p-5 md:py-5 md:px-6 min-h-[100px] flex flex-col lg:flex-row gap-5 lg:items-center shadow-[0_8px_24px_rgba(0,0,0,0.06)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(0,0,0,0.08)] cursor-pointer"
+                className="bg-white border border-[#E5E7EB] rounded-2xl p-4 md:py-3.5 md:px-5 min-h-[80px] flex flex-col lg:flex-row gap-4 lg:items-center shadow-[0_4px_16px_rgba(0,0,0,0.04)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(0,0,0,0.06)] cursor-pointer"
                 onClick={() => setExpanded(order.orderId)}
               >
                 {/* 1. Left Section: Product details & ID */}
-                <div className="flex flex-1 items-center gap-4 min-w-0">
-                  <div className="w-20 h-20 bg-white border border-gray-150 rounded-2xl flex items-center justify-center p-1.5 flex-shrink-0 overflow-hidden">
+                <div className="flex flex-1 items-center gap-3.5 min-w-0">
+                  <div className="w-14 h-14 bg-white border border-gray-150 rounded-xl flex items-center justify-center p-1 flex-shrink-0 overflow-hidden">
                     {firstItem.imagePath ? (
                       <img src={getImgUrl(firstItem.imagePath)} className="max-w-full max-h-full object-contain rounded-lg" alt="" />
                     ) : (
-                      <svg className="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                      <svg className="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
                     )}
                   </div>
                   
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-lg font-bold text-slate-800 leading-snug truncate mb-1 hover:text-[#16A34A] transition-colors">
+                    <h3 className="text-sm md:text-base font-bold text-slate-800 leading-snug truncate hover:text-[#16A34A] transition-colors">
                        {firstItem.name || 'Order Items'}
                     </h3>
-                    <div className="flex items-center gap-1.5 text-[13px] text-gray-500 font-medium mb-1">
+                    <div className="flex items-center gap-1.5 text-xs text-gray-500 font-medium mt-0.5">
                        {firstItem.variantLabel && <span>Variant: <span className="text-slate-800 font-semibold">{firstItem.variantLabel}</span></span>}
                        {firstItem.variantLabel && firstItem.color && <span className="w-px h-2 bg-gray-300"></span>}
                        {firstItem.color && <span>Color: <span className="text-slate-800 font-semibold">{firstItem.color}</span></span>}
                        {firstItem.size && <span>Size: <span className="text-slate-800 font-semibold">{firstItem.size}</span></span>}
                     </div>
                     
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-gray-500 font-medium">
-                      <span>Qty: <strong className="text-slate-800 font-semibold">{firstItem.quantity || 1}</strong>{order.items?.length > 1 && <span className="text-[#16A34A] ml-1">+{order.items.length - 1} more</span>}</span>
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-gray-500 font-medium mt-0.5">
+                      <span>Qty: <strong className="text-slate-800 font-semibold">{firstItem.quantity || 1}</strong>{order.items?.length > 1 && <span className="text-[#16A34A] ml-1 font-bold">+{order.items.length - 1} more</span>}</span>
                       <span className="text-gray-300">•</span>
-                      <span>Order ID: <strong className="text-slate-800 font-semibold">{order.customOrderId || `#ORD-${order.orderId}`}</strong></span>
+                      <span>Order ID: <strong className="text-slate-850 font-semibold">{order.customOrderId || `#ORD-${order.orderId}`}</strong></span>
                     </div>
                   </div>
                 </div>
 
                 {/* 2. Center Section: Compact Payment & Dates */}
-                <div className="w-full lg:w-56 flex-shrink-0 flex flex-col gap-1.5 border-t lg:border-t-0 lg:border-l lg:border-r border-gray-100 pt-4 lg:pt-0 lg:px-6 text-[13px] text-gray-500 font-medium">
+                <div className="w-full lg:w-48 flex-shrink-0 flex flex-col gap-1 border-t lg:border-t-0 lg:border-l lg:border-r border-gray-100 pt-3 lg:pt-0 lg:px-4.5 text-xs text-gray-500 font-medium">
                   {order.paymentMethod && (
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5">
                       <span>Payment:</span>
                       {order.paymentMethod.toUpperCase() === 'ESEWA' ? (
-                        <span className="inline-flex items-center gap-1 bg-emerald-50 text-[#16A34A] border border-emerald-100 px-2.5 py-0.5 rounded-full text-xs font-semibold">
+                        <span className="inline-flex items-center gap-1 bg-emerald-50 text-[#16A34A] border border-emerald-100 px-2 py-0.5 rounded-full text-[10px] font-bold">
                           eSewa • {pConf.label}
                         </span>
                       ) : order.paymentMethod.toUpperCase() === 'KHALTI' ? (
-                        <span className="inline-flex items-center gap-1 bg-purple-50 text-violet-600 border border-purple-100 px-2.5 py-0.5 rounded-full text-xs font-semibold">
+                        <span className="inline-flex items-center gap-1 bg-purple-50 text-violet-600 border border-purple-100 px-2 py-0.5 rounded-full text-[10px] font-bold">
                           Khalti • {pConf.label}
                         </span>
                       ) : (
-                        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wider ${pConf.cls}`}>
+                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${pConf.cls}`}>
                           {order.paymentMethod} • {pConf.label}
                         </span>
                       )}
@@ -271,11 +271,11 @@ const CustomerOrders = () => {
                   )}
                   
                   <div className="flex items-center gap-1.5">
-                    <span>Order Placed:</span>
+                    <span>Placed:</span>
                     <strong className="text-slate-800 font-semibold">{fmtDate(order.createdAt)}</strong>
                   </div>
                   
-                  <div className="text-[12px] text-gray-400 font-medium">
+                  <div className="text-[10px] text-gray-400 font-medium">
                     {order.status === 'DELIVERED' && order.deliveredAt && `Delivered ${fmtDate(order.deliveredAt)}`}
                     {order.status === 'SHIPPED' && order.shippedAt && `Shipped ${fmtDate(order.shippedAt)}`}
                     {order.status === 'CANCELLED' && order.cancelledAt && `Cancelled ${fmtDate(order.cancelledAt)}`}
@@ -284,29 +284,29 @@ const CustomerOrders = () => {
                 </div>
 
                 {/* 3. Right Section: Price, Status & Actions */}
-                <div className="w-full lg:w-auto flex-shrink-0 flex flex-row lg:flex-col xl:flex-row items-center gap-4 justify-between lg:justify-start">
-                  <div className="flex flex-col gap-0.5 min-w-[100px] lg:text-right xl:text-left">
-                    <span className="text-2xl font-bold text-[#16A34A] font-mono leading-none">{money(order.grandTotal)}</span>
-                    <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider leading-none">Grand Total</span>
+                <div className="w-full lg:w-auto flex-shrink-0 flex flex-row lg:flex-col xl:flex-row items-center gap-3.5 justify-between lg:justify-start">
+                  <div className="flex flex-col gap-0.5 min-w-[90px] lg:text-right xl:text-left">
+                    <span className="text-lg font-bold text-[#16A34A] font-mono leading-none">{money(order.grandTotal)}</span>
+                    <span className="text-[9px] text-gray-450 font-bold uppercase tracking-wider leading-none">Grand Total</span>
                   </div>
 
-                  <span className={`h-10 px-4 rounded-full text-xs font-semibold uppercase tracking-wider flex items-center justify-center gap-1.5 select-none ${sBadge}`}>
+                  <span className={`h-8 px-3 rounded-full text-[10px] font-bold uppercase tracking-wider flex items-center justify-center gap-1 select-none ${sBadge}`}>
                     {sIcon} {sLabel}
                   </span>
 
-                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                  <div className="flex items-center gap-1 flex-shrink-0">
                     <button 
                       onClick={(e) => { e.stopPropagation(); setExpanded(order.orderId); }} 
-                      className="h-10 px-4 rounded-xl bg-[#16A34A] hover:bg-emerald-700 text-white text-xs font-semibold uppercase tracking-wider transition-colors flex items-center justify-center gap-1 cursor-pointer shadow-xs active:scale-95"
+                      className="h-8 px-3 rounded-lg bg-[#16A34A] hover:bg-emerald-700 text-white text-[10px] font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-1 cursor-pointer shadow-xs active:scale-95"
                     >
                       Details
-                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>
                     </button>
                     <button 
                       onClick={(e) => { e.stopPropagation(); /* TODO: Options panel */ }}
-                      className="h-10 w-10 flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-gray-50 border border-gray-200 rounded-xl transition-colors cursor-pointer"
+                      className="h-8 w-8 flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-gray-50 border border-gray-200 rounded-lg transition-colors cursor-pointer"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/></svg>
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/></svg>
                     </button>
                   </div>
                 </div>

@@ -68,6 +68,31 @@ const DashboardHeader = ({
         flexWrap: 'wrap'
       }}
     >
+      <style>{`
+        /* Specific override for DashboardHeader search inputs and select */
+        .seller-header-search-container select.seller-header-scope-select {
+          border-radius: 10px 0 0 10px !important;
+          border-right: none !important;
+          padding: 8px 28px 8px 12px !important;
+          height: 38px !important;
+          min-width: 76px !important;
+        }
+        .seller-header-search-container input.seller-header-search-input {
+          border-radius: 0 10px 10px 0 !important;
+          padding-left: 34px !important;
+          padding-right: 34px !important;
+          height: 38px !important;
+        }
+        .seller-header-btn-icon {
+          width: 38px !important;
+          height: 38px !important;
+          padding: 0 !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          border-radius: 8px !important;
+        }
+      `}</style>
       {/* 1. Left: Greeting & Today's Priority */}
       <div style={{ flex: '1 1 300px', minWidth: '240px' }}>
         <h1 style={{ fontSize: '22px', fontWeight: '800', color: colors.textMain, letterSpacing: '-0.5px', margin: 0, fontFamily: "'Inter', sans-serif" }}>
@@ -80,13 +105,14 @@ const DashboardHeader = ({
 
       {/* 2. Center: Search Bar with Dropdown Scope */}
       <div style={{ position: 'relative', flex: '2 1 380px', maxWidth: '500px', zIndex: 40 }}>
-        <div style={{ display: 'flex', alignItems: 'center', position: 'relative', width: '100%' }}>
+        <div className="seller-header-search-container" style={{ display: 'flex', alignItems: 'center', position: 'relative', width: '100%' }}>
           
           {/* Custom Styled Scope Dropdown */}
           <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
             <select
               value={scope}
               onChange={(e) => setScope(e.target.value)}
+              className="seller-header-scope-select"
               style={{
                 padding: '8px 28px 8px 12px',
                 borderRadius: '10px 0 0 10px',
@@ -128,6 +154,7 @@ const DashboardHeader = ({
               placeholder={getPlaceholder()}
               value={searchQuery}
               onChange={(e) => handleSearch(e.target.value)}
+              className="seller-header-search-input"
               style={{
                 width: '100%',
                 padding: '8px 34px 8px 34px',
@@ -280,7 +307,7 @@ const DashboardHeader = ({
             position: 'relative',
             color: colors.textSec
           }}
-          className="hover:bg-gray-50 dark:hover:bg-white/5"
+          className="seller-header-btn-icon hover:bg-gray-50 dark:hover:bg-white/5"
         >
           <Bell size={16} />
           <span style={{ position: 'absolute', top: '9px', right: '9px', width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#EF4444' }} />

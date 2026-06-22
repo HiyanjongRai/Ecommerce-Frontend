@@ -20,7 +20,7 @@ import SellerInsights from './components/SellerInsights';
 import SellerRefunds from './components/SellerRefunds';
 import { getSellerProfile, getSellerApplicationStatus } from './services/sellerService';
 import { useCustomer } from '../customer/contexts/CustomerContext';
-import SellerOnboarding from './components/SellerOnboarding';
+import SellerRegistration from '../../components/SellerRegistration/SellerRegistration';
 import SellerSidebar from './components/SellerSidebar';
 import { useSellerTheme } from './hooks/useSellerTheme';
 
@@ -201,6 +201,18 @@ const SellerLayout = () => {
   const { darkMode, toggleDarkMode } = useSellerTheme();
   const [sidebarToast, setSidebarToast] = useState(null);
 
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    return localStorage.getItem('seller-sidebar-collapsed') === 'true';
+  });
+
+  const toggleSidebarCollapse = () => {
+    setSidebarCollapsed(prev => {
+      const next = !prev;
+      localStorage.setItem('seller-sidebar-collapsed', String(next));
+      return next;
+    });
+  };
+
   const showSidebarToast = (msg, type = 'info') => {
     setSidebarToast({ msg, type });
     setTimeout(() => setSidebarToast(null), 3000);
@@ -252,6 +264,19 @@ const SellerLayout = () => {
 
   // Find currently active title for breadcrumb
   const currentLabel = BREADCRUMBS[location.pathname] || 'Dashboard';
+
+  if (checkingApp) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
+        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-[#16A34A] mb-4" />
+        <p className="text-xs uppercase tracking-widest font-black text-gray-500">Verifying merchant credentials...</p>
+      </div>
+    );
+  }
+
+  if (appStatus !== 'APPROVED') {
+    return <SellerRegistration />;
+  }
 
   return (
     <>
@@ -791,53 +816,47 @@ const SellerLayout = () => {
 
       {/* Main Content Area */}
       <div className="flex-1 max-w-[1600px] w-full mx-auto px-5 pt-3 pb-4">
-        {checkingApp ? (
-          <div className="flex flex-col items-center justify-center min-h-[400px] text-white">
-            <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-[#16A34A] mb-4" />
-            <p className="text-xs uppercase tracking-widest font-black text-gray-500">Verifying merchant credentials...</p>
-          </div>
-        ) : appStatus !== 'APPROVED' ? (
-          <SellerOnboarding onApproved={fetchProfileAndStatus} />
-        ) : (
-          <div className="flex gap-4 items-start">
-            {/* Seller Sidebar */}
+        <div className="flex gap-4 items-start">
+          {/* Seller Sidebar */}
+          <aside className={`${sidebarCollapsed ? 'w-[72px]' : 'w-56'} flex-shrink-0 transition-all duration-300`}>
             <SellerSidebar
               currentPath={location.pathname}
               darkMode={darkMode}
               toggleDarkMode={toggleDarkMode}
               profile={profile}
               onLogout={handleLogout}
+              isCollapsed={sidebarCollapsed}
+              onToggleCollapse={toggleSidebarCollapse}
             />
+          </aside>
 
-            {/* Simple Right Content Panel */}
-            <main className="flex-1 min-w-0 w-full">
-              <Routes>
-                <Route index element={<Navigate to="dashboard" replace />} />
-                <Route path="dashboard" element={<SellerDashboardHome />} />
-                <Route path="profile" element={<SellerProfile />} />
-                <Route path="add-product" element={<SellerAddProduct />} />
-                <Route path="products" element={<SellerProducts />} />
-                <Route path="analytics" element={<SellerAnalytics />} />
-                <Route path="insights" element={<SellerInsights />} />
-                <Route path="performance" element={<Navigate to="/seller/insights" replace />} />
-                <Route path="refund-center" element={<SellerRefunds />} />
-                <Route path="orders" element={<SellerOrders />} />
-                <Route path="disputes" element={<SellerDisputes />} />
-                <Route path="inventory" element={<SellerInventory />} />
-                <Route path="notifications" element={<SellerNotifications />} />
-                <Route path="campaigns" element={<SellerCampaigns />} />
-                <Route path="promos" element={<SellerPromos />} />
-                <Route path="discount-sales" element={<SellerDiscountSales />} />
-                <Route path="sale-discount-list" element={<SellerSaleDiscountList />} />
-                <Route path="commission" element={<SellerCommission />} />
-                <Route path="inbox" element={<SellerInbox />} />
-                <Route path="settings" element={<SellerSettings />} />
-                <Route path="*" element={<Navigate to="dashboard" replace />} />
-              </Routes>
-            </main>
-
-          </div>
-        )}
+          {/* Simple Right Content Panel */}
+          <main className="flex-1 min-w-0 w-full">
+            <Routes>
+              <Route index element={<Navigate to="dashboard" replace />} />
+              <Route path="dashboard" element={<SellerDashboardHome />} />
+              <Route path="profile" element={<SellerProfile />} />
+              <Route path="add-product" element={<SellerAddProduct />} />
+              <Route path="products" element={<SellerProducts />} />
+              <Route path="analytics" element={<SellerAnalytics />} />
+              <Route path="insights" element={<SellerInsights />} />
+              <Route path="performance" element={<Navigate to="/seller/insights" replace />} />
+              <Route path="refund-center" element={<SellerRefunds />} />
+              <Route path="orders" element={<SellerOrders />} />
+              <Route path="disputes" element={<SellerDisputes />} />
+              <Route path="inventory" element={<SellerInventory />} />
+              <Route path="notifications" element={<SellerNotifications />} />
+              <Route path="campaigns" element={<SellerCampaigns />} />
+              <Route path="promos" element={<SellerPromos />} />
+              <Route path="discount-sales" element={<SellerDiscountSales />} />
+              <Route path="sale-discount-list" element={<SellerSaleDiscountList />} />
+              <Route path="commission" element={<SellerCommission />} />
+              <Route path="inbox" element={<SellerInbox />} />
+              <Route path="settings" element={<SellerSettings />} />
+              <Route path="*" element={<Navigate to="dashboard" replace />} />
+            </Routes>
+          </main>
+        </div>
       </div>
 
       {/* Modern floating toast */}

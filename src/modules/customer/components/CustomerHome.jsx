@@ -17,6 +17,17 @@ const getImgUrl = (path) => {
   return `${BASE_URL}${path.startsWith('/') ? '' : '/'}${path}`;
 };
 
+const money = (v) => v != null ? `Rs. ${Number(v).toLocaleString()}` : '—';
+
+const fmtDate = (v) =>
+  v ? new Date(v).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
+
+const getPaymentConfig = (status) => {
+  if (status === 'PAID') return { cls: 'bg-emerald-50 text-[#16A34A] border border-emerald-100', label: 'Paid' };
+  if (status === 'REFUNDED') return { cls: 'bg-purple-50 text-purple-650 border border-purple-100', label: 'Refunded' };
+  return { cls: 'bg-amber-50 text-amber-600 border border-amber-100', label: 'Pending' };
+};
+
 /* ── Status config matching orders page ──────────────────────── */
 const STATUS_BADGE = {
   DRAFT:      'bg-blue-50 border border-blue-200/50 text-blue-600',
@@ -337,60 +348,98 @@ const CustomerHome = () => {
               </Link>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-4">
               {orders.slice(0, 5).map(o => {
-                const ref = o.customOrderId || (o.orderId ? `#ORD-${o.orderId}` : '—');
-                const date = o.createdAt
-                  ? new Date(o.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
-                  : '—';
-                const amount = (o.grandTotal || o.totalAmount || 0).toLocaleString();
-                const productName = o.items?.[0]?.name
-                  ? (o.items.length > 1 ? `${o.items[0].name} +${o.items.length - 1} more` : o.items[0].name)
-                  : 'Order Items';
-                  
+                const productName = o.productNames || 'Order Items';
+                const productImage = o.productImage;
+                const itemsCount = o.totalItems || 1;
+                const pConf = getPaymentConfig(o.paymentStatus);
                 const sBadge = STATUS_BADGE[o.status] || 'bg-gray-50 border border-gray-250 text-gray-600';
                 const sLabel = STATUS_LABEL[o.status] || o.status;
                 const sIcon = STATUS_ICON[o.status] || null;
 
                 return (
-                  <div
-                    key={o.orderId || o.id}
-                    className="bg-white border border-[#E5E7EB] rounded-[20px] p-4 shadow-[0_8px_30px_rgba(0,0,0,0.06)] hover:shadow-[0_12px_32px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 transition-all duration-200 cursor-pointer flex items-center gap-4 group"
+                  <div 
+                    key={o.orderId || o.id} 
+                    className="bg-white border border-[#E5E7EB] rounded-2xl p-4 md:py-3.5 md:px-5 min-h-[80px] flex flex-col md:flex-row gap-4 md:items-center shadow-[0_4px_16px_rgba(0,0,0,0.04)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(0,0,0,0.06)] cursor-pointer"
                     onClick={() => navigate(`/customer/orders?orderId=${o.orderId}`)}
                   >
-                    {/* Product Thumbnail */}
-                    <div className="w-14 h-14 rounded-xl bg-gray-50 border border-gray-150 flex items-center justify-center flex-shrink-0 overflow-hidden p-1">
-                      {o.items?.[0]?.imagePath ? (
-                        <img src={getImgUrl(o.items[0].imagePath)} className="max-w-full max-h-full object-contain rounded-lg" alt="" />
-                      ) : (
-                        <svg className="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-                          <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
-                        </svg>
+                    {/* 1. Left Section: Product details & ID */}
+                    <div className="flex flex-1 items-center gap-3.5 min-w-0">
+                      <div className="w-14 h-14 bg-white border border-gray-150 rounded-xl flex items-center justify-center p-1 flex-shrink-0 overflow-hidden">
+                        {productImage ? (
+                          <img src={getImgUrl(productImage)} className="max-w-full max-h-full object-contain rounded-lg" alt="" />
+                        ) : (
+                          <svg className="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                        )}
+                      </div>
+                      
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-sm md:text-base font-bold text-slate-800 leading-snug truncate hover:text-[#16A34A] transition-colors">
+                           {productName}
+                        </h3>
+                        
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-gray-500 font-medium mt-0.5">
+                          <span>Qty: <strong className="text-slate-800 font-semibold">{itemsCount}</strong></span>
+                          <span className="text-gray-300">•</span>
+                          <span>Order ID: <strong className="text-slate-850 font-semibold">{o.customOrderId || `#ORD-${o.orderId}`}</strong></span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 2. Center Section: Compact Payment & Dates */}
+                    <div className="w-full md:w-auto flex-shrink-0 flex flex-col gap-1 border-t md:border-t-0 md:border-l md:border-r border-gray-100 pt-3 md:pt-0 md:px-4.5 text-xs text-gray-500 font-medium min-w-[130px]">
+                      {o.paymentMethod && (
+                        <div className="flex items-center gap-1.5">
+                          <span>Payment:</span>
+                          {o.paymentMethod.toUpperCase() === 'ESEWA' ? (
+                            <span className="inline-flex items-center gap-1 bg-emerald-50 text-[#16A34A] border border-emerald-100 px-2 py-0.5 rounded-full text-[10px] font-bold">
+                              eSewa • {pConf.label}
+                            </span>
+                          ) : o.paymentMethod.toUpperCase() === 'KHALTI' ? (
+                            <span className="inline-flex items-center gap-1 bg-purple-50 text-violet-600 border border-purple-100 px-2 py-0.5 rounded-full text-[10px] font-bold">
+                              Khalti • {pConf.label}
+                            </span>
+                          ) : (
+                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${pConf.cls}`}>
+                              {o.paymentMethod} • {pConf.label}
+                            </span>
+                          )}
+                        </div>
                       )}
-                    </div>
-
-                    {/* Order Information */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between gap-2 mb-1">
-                        <span className="text-xs font-bold text-[#16A34A] font-mono">{ref}</span>
-                        <span className="text-[10px] text-gray-400 font-semibold">{date}</span>
+                      
+                      <div className="flex items-center gap-1.5">
+                        <span>Placed:</span>
+                        <strong className="text-slate-800 font-semibold">{fmtDate(o.createdAt)}</strong>
                       </div>
-                      <h4 className="text-sm font-bold text-slate-800 truncate mb-1">{productName}</h4>
-                      <div className="flex items-center gap-2">
-                        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold uppercase tracking-wider ${sBadge}`}>
-                          {sIcon} {sLabel}
-                        </span>
+                      
+                      <div className="text-[10px] text-gray-400 font-medium">
+                        {o.status === 'DELIVERED' && o.deliveredAt && `Delivered ${fmtDate(o.deliveredAt)}`}
+                        {o.status === 'SHIPPED' && o.shippedAt && `Shipped ${fmtDate(o.shippedAt)}`}
+                        {o.status === 'CANCELLED' && o.cancelledAt && `Cancelled ${fmtDate(o.cancelledAt)}`}
+                        {['DRAFT', 'PENDING', 'CONFIRMED', 'PROCESSING', 'PACKED'].includes(o.status) && `Expected by ${fmtDate(new Date(new Date(o.createdAt).getTime() + 7 * 24 * 60 * 60 * 1000))}`}
                       </div>
                     </div>
 
-                    {/* Amount & Action Button */}
-                    <div className="flex items-center gap-3 flex-shrink-0">
-                      <div className="text-right">
-                        <p className="text-base font-bold text-slate-800">Rs. {amount}</p>
-                        <span className="text-[10px] text-emerald-600 font-bold group-hover:underline flex items-center justify-end gap-1">
-                          View details
-                          <svg className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>
-                        </span>
+                    {/* 3. Right Section: Price, Status & Actions */}
+                    <div className="w-full md:w-auto flex-shrink-0 flex flex-row md:flex-col items-center md:items-end gap-2.5 justify-between md:justify-center border-t md:border-t-0 border-gray-100 pt-3 md:pt-0 min-w-[130px]">
+                      <div className="flex flex-col gap-0.5 md:text-right">
+                        <span className="text-lg font-bold text-[#16A34A] font-mono leading-none">{money(o.grandTotal)}</span>
+                        <span className="text-[9px] text-gray-455 font-bold uppercase tracking-wider leading-none">Grand Total</span>
+                      </div>
+
+                      <span className={`h-8 px-3 rounded-full text-[10px] font-bold uppercase tracking-wider flex items-center justify-center gap-1 select-none ${sBadge}`}>
+                        {sIcon} {sLabel}
+                      </span>
+
+                      <div className="flex items-center gap-1 flex-shrink-0">
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); navigate(`/customer/orders?orderId=${o.orderId}`); }} 
+                          className="h-8 px-3 rounded-lg bg-[#16A34A] hover:bg-emerald-700 text-white text-[10px] font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-1 cursor-pointer shadow-xs active:scale-95"
+                        >
+                          Details
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>
+                        </button>
                       </div>
                     </div>
                   </div>

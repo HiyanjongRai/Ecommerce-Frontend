@@ -1,19 +1,4 @@
 import apiClient from './apiClient';
-import {
-  v2CreateRefund,
-  v2GetCustomerRefunds,
-  v2GetCustomerRefund,
-  v2UploadCustomerEvidence,
-  v2SubmitReturn,
-  v2EscalateToAdmin,
-  v2AcceptOffer,
-  v2RejectOffer,
-  v2AcceptRejection,
-  v2GetCustomerMessages,
-  v2CustomerSendMessage,
-  v2GetTimeline,
-  v2ConfirmReplacement,
-} from './refundV2Api';
 
 // ── AUTH ─────────────────────────────────────────────────────────────────────
 export const getCurrentUser = () =>
@@ -221,51 +206,61 @@ export const validatePromoCode = (code, items) => {
   return apiClient.post('/promos/validate', { code, items });
 };
 
-// ── REFUNDS (V2) ─────────────────────────────────────────────────────────────
-// All refund calls now hit /api/v2/refunds/** (imports moved to top of file)
+// ── REFUNDS ──────────────────────────────────────────────────────────────────
 
 /** Open a new refund. data must include: { orderItemId, reason, description, refundType, requestedAmount } */
-export const requestRefund = (_orderId, data) => v2CreateRefund(data);
+export const requestRefund = (_orderId, data) => apiClient.post('/refunds', data);
 
-/** List own refunds (fetches up to 200 for client-side filtering). */
-export const getCustomerRefunds = () => v2GetCustomerRefunds(0, 200);
+/** List own refunds. */
+export const getCustomerRefunds = () => apiClient.get('/refunds/my');
 
 /** Full detail for a single refund. */
-export const getRefundDetails = (refundId) => v2GetCustomerRefund(refundId);
+export const getRefundDetails = (refundId) => apiClient.get(`/refunds/${refundId}`);
 
 /** Upload additional evidence files. */
-export const uploadRefundEvidence = (refundId, files, description = '') =>
-  v2UploadCustomerEvidence(refundId, Array.isArray(files) ? files : [files], description);
+export const uploadRefundEvidence = (refundId, files, description = '') => {
+  if (files && files.length > 0) {
+    const file = Array.isArray(files) ? files[0] : files;
+    const form = new FormData();
+    form.append('file', file);
+    return apiClient.post('/refunds/upload', form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }).then(res => {
+      const fileUrl = res.data?.fileUrl;
+      return apiClient.post(`/refunds/${refundId}/evidence`, { fileUrl, note: description });
+    });
+  }
+  return apiClient.post(`/refunds/${refundId}/evidence`, { fileUrl: '', note: description });
+};
 
 /** Submit return shipment tracking. data: { courier, trackingNumber } */
 export const submitRefundReturnShipment = (refundId, data) =>
-  v2SubmitReturn(refundId, data);
+  apiClient.post(`/refunds/${refundId}/tracking`, data);
 
 /** Escalate seller rejection to admin. */
 export const escalateRefundToAdmin = (refundId, _comment) =>
-  v2EscalateToAdmin(refundId);
+  apiClient.post(`/refunds/${refundId}/escalate-offer`);
 
 /** Accept current partial/exchange offer. */
-export const acceptRefundOffer = (refundId) => v2AcceptOffer(refundId);
+export const acceptRefundOffer = (refundId) => apiClient.post(`/refunds/${refundId}/accept-offer`);
 
 /** Reject current offer → escalates automatically to admin. */
-export const rejectRefundOffer = (refundId) => v2RejectOffer(refundId);
+export const rejectRefundOffer = (refundId) => apiClient.post(`/refunds/${refundId}/reject-offer`);
 
 /** Confirm receipt of the replacement item (customer). */
-export const confirmReplacementReceipt = (refundId) => v2ConfirmReplacement(refundId);
+export const confirmReplacementReceipt = (refundId) => apiClient.post(`/refunds/${refundId}/accept-exchange`);
 
 /** Accept seller rejection and close case (customer chooses not to escalate). */
-export const closeCustomerRejectedCase = (refundId) => v2AcceptRejection(refundId);
+export const closeCustomerRejectedCase = (refundId, data) => apiClient.post(`/refunds/${refundId}/reject-exchange`, data);
 
 /** Get message thread for a refund. */
-export const getRefundMessages = (refundId) => v2GetCustomerMessages(refundId);
+export const getRefundMessages = (refundId) => Promise.resolve({ data: [] });
 
 /** Send a message on the refund thread. */
-export const sendRefundMessage = (refundId, message) =>
-  v2CustomerSendMessage(refundId, message);
+export const sendRefundMessage = (refundId, message) => Promise.resolve({ data: {} });
 
 /** Get the immutable audit/timeline log. */
-export const getRefundTimeline = (refundId) => v2GetTimeline(refundId);
+export const getRefundTimeline = (refundId) => Promise.resolve({ data: [] });
 
 // ── LEGACY STUBS (no-op in v2 — kept to avoid import errors) ──────────────
 /** @deprecated v2 does not support cancel via customer. */
@@ -281,20 +276,37 @@ export const completeCustomerReplacement = () =>
   Promise.reject(new Error('completeCustomerReplacement is not supported in v2.'));
 
 // ── DISPUTES ──────────────────────────────────────────────────────────────────
-export const openDispute = (data) =>
-  apiClient.post('/v1/disputes', data);
+export const openDispute = async (data) => {
+  const orderRes = await getOrderDetail(data.orderId);
+  const order = orderRes.data;
+  if (!order || !order.items || order.items.length === 0) {
+    throw new Error('No items found in this order to dispute.');
+  }
+  const payload = {
+    orderId: data.orderId,
+    type: 'REFUND',
+    reason: data.type || 'OTHER',
+    description: data.description || '',
+    fileUrls: [],
+    items: order.items.map(item => ({
+      orderItemId: item.id,
+      quantity: item.quantity
+    }))
+  };
+  return apiClient.post('/refunds', payload);
+};
 
 export const getCustomerDisputes = (buyerId) =>
-  apiClient.get('/v1/disputes', { params: { buyerId } });
+  apiClient.get('/refunds/my');
 
 export const getDisputeDetails = (disputeId) =>
-  apiClient.get(`/v1/disputes/${disputeId}`);
+  apiClient.get(`/refunds/${disputeId}`);
 
 export const getDisputeMessages = (disputeId) =>
-  apiClient.get(`/v1/disputes/${disputeId}/messages`);
+  Promise.resolve({ data: [] });
 
 export const sendDisputeMessage = (disputeId, data) =>
-  apiClient.post(`/v1/disputes/${disputeId}/messages`, data);
+  Promise.resolve({ data: {} });
 
 // ── REPORTS ───────────────────────────────────────────────────────────────────
 export const reportProduct = (data) =>

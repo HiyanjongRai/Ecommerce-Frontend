@@ -12,18 +12,14 @@ import {
   CheckCircle, XCircle, Clock, User, Package, Store,
 } from 'lucide-react';
 
-const STATUS_BADGE_LIGHT = {
-  PENDING:   'bg-amber-50 text-amber-700 border-amber-200',
-  REVIEWED:  'bg-blue-50 text-blue-700 border-blue-200',
-  ACTIONED:  'bg-green-50 text-green-700 border-green-200',
-  DISMISSED: 'bg-gray-100 text-gray-500 border-gray-200',
-};
-
-const STATUS_BADGE_DARK = {
-  PENDING:   'bg-amber-900/30 text-amber-400 border-amber-800',
-  REVIEWED:  'bg-blue-900/30 text-blue-400 border-blue-800',
-  ACTIONED:  'bg-green-900/30 text-green-400 border-green-800',
-  DISMISSED: 'bg-gray-700 text-gray-400 border-gray-600',
+const getStatusBadge = (status, themeClasses) => {
+  const statusMap = {
+    PENDING:   themeClasses.status.warning,
+    REVIEWED:  themeClasses.status.info,
+    ACTIONED:  themeClasses.status.success,
+    DISMISSED: themeClasses.status.pending,
+  };
+  return statusMap[status] || themeClasses.status.pending;
 };
 
 const REPORT_TYPES = ['PRODUCT', 'SELLER', 'CUSTOMER'];
@@ -49,7 +45,6 @@ function ReportCard({ report, type, onResolved, themeClasses }) {
   const [adminNote,   setAdminNote]   = useState('');
   const [submitting,  setSubmitting]  = useState(false);
   const [err,         setErr]         = useState('');
-  const STATUS_BADGE = themeClasses.darkMode ? STATUS_BADGE_DARK : STATUS_BADGE_LIGHT;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -66,11 +61,11 @@ function ReportCard({ report, type, onResolved, themeClasses }) {
   };
 
   return (
-    <div className={`rounded-lg border shadow-sm transition-all ${open ? 'border-emerald-300 dark:border-emerald-600' : themeClasses.border.primary} ${themeClasses.card}`}>
+    <div className={`rounded-[20px] border shadow-sm transition-all ${open ? themeClasses.border.accent : themeClasses.border.primary} ${themeClasses.card}`}>
       {/* Row */}
       <button
         onClick={() => setOpen(p => !p)}
-        className={`w-full flex items-center justify-between px-5 py-4 text-left transition-colors hover:${themeClasses.bg.secondary}`}
+        className={`w-full flex items-center justify-between px-5 py-4 text-left rounded-[20px] transition-colors hover:${themeClasses.bg.secondary}`}
       >
         <div className="flex items-center gap-3 min-w-0">
           {typeIcon(type)}
@@ -87,7 +82,7 @@ function ReportCard({ report, type, onResolved, themeClasses }) {
           </div>
         </div>
         <div className="flex items-center gap-3 shrink-0 ml-4">
-          <span className={`px-2 py-0.5 rounded-md border text-[10px] font-black uppercase tracking-wide transition-colors ${STATUS_BADGE[report.status] || STATUS_BADGE.PENDING}`}>
+          <span className={`px-2 py-0.5 rounded-full border text-[10px] font-black uppercase tracking-wide transition-colors ${getStatusBadge(report.status || 'PENDING', themeClasses)}`}>
             {report.status || 'PENDING'}
           </span>
           {open ? <ChevronUp size={14} className={`transition-colors ${themeClasses.text.tertiary}`} /> : <ChevronDown size={14} className={`transition-colors ${themeClasses.text.tertiary}`} />}
@@ -111,20 +106,20 @@ function ReportCard({ report, type, onResolved, themeClasses }) {
               <span className={`text-[9px] font-black uppercase tracking-widest block transition-colors ${themeClasses.text.tertiary}`}>Submitted</span>
               <span>{report.createdAt ? new Date(report.createdAt).toLocaleString() : 'N/A'}</span>
             </div>
-            <div className={`col-span-2 p-3 rounded-lg border transition-colors ${themeClasses.bg.secondary} ${themeClasses.border.primary}`}>
+            <div className={`col-span-2 p-3 rounded-xl border transition-colors ${themeClasses.bg.secondary} ${themeClasses.border.primary}`}>
               <span className={`text-[9px] font-black uppercase tracking-widest block mb-1 transition-colors ${themeClasses.text.tertiary}`}>Full Reason Statement</span>
               <p className={`font-medium text-[11px] leading-relaxed whitespace-pre-wrap transition-colors ${themeClasses.text.primary}`}>
                 {report.reason || 'No description provided.'}
               </p>
             </div>
             {report.additionalDetails && (
-              <div className={`col-span-2 p-3 rounded-lg border transition-colors ${themeClasses.bg.info} ${themeClasses.border.primary}`}>
+              <div className={`col-span-2 p-3 rounded-xl border transition-colors ${themeClasses.bg.info} ${themeClasses.border.primary}`}>
                 <span className={`text-[9px] font-black uppercase tracking-widest block mb-1 transition-colors ${themeClasses.text.info}`}>Additional Details</span>
                 <p className={`font-medium text-[11px] leading-relaxed transition-colors ${themeClasses.text.info}`}>{report.additionalDetails}</p>
               </div>
             )}
             {report.adminNote && (
-              <div className={`col-span-2 p-3 rounded-lg border transition-colors ${themeClasses.bg.success} ${themeClasses.border.primary}`}>
+              <div className={`col-span-2 p-3 rounded-xl border transition-colors ${themeClasses.bg.success} ${themeClasses.border.primary}`}>
                 <span className={`text-[9px] font-black uppercase tracking-widest block mb-1 transition-colors ${themeClasses.text.success}`}>Previous Admin Note</span>
                 <p className={`font-medium text-[11px] leading-relaxed transition-colors ${themeClasses.text.success}`}>{report.adminNote}</p>
               </div>
@@ -145,9 +140,9 @@ function ReportCard({ report, type, onResolved, themeClasses }) {
                     type="button"
                     key={act}
                     onClick={() => setAction(act)}
-                    className={`px-2 py-2 rounded-lg text-[9px] font-black uppercase tracking-wide border transition-all ${
+                    className={`px-2 py-2 rounded-xl text-[9px] font-black uppercase tracking-wide border transition-all ${
                       action === act
-                        ? 'bg-emerald-600 text-white border-emerald-600'
+                        ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
                         : themeClasses.button.secondary
                     }`}
                   >
@@ -160,7 +155,7 @@ function ReportCard({ report, type, onResolved, themeClasses }) {
                 placeholder="Internal admin note (visible to admins only)…"
                 value={adminNote}
                 onChange={e => setAdminNote(e.target.value)}
-                className={`w-full rounded-lg p-3 text-xs font-semibold outline-none h-16 focus:border-emerald-500 resize-none border transition-colors ${themeClasses.bg.secondary} ${themeClasses.border.primary} ${themeClasses.text.primary}`}
+                className={`w-full rounded-xl p-3 text-xs font-semibold outline-none h-16 focus:border-emerald-500 resize-none border transition-colors ${themeClasses.bg.secondary} ${themeClasses.border.primary} ${themeClasses.text.primary}`}
               />
 
               {err && <p className={`text-[10px] font-bold transition-colors ${themeClasses.text.danger}`}>{err}</p>}
@@ -243,10 +238,14 @@ export default function AdminReports() {
             { label: 'Actioned',  value: statCounts.ACTIONED,  icon: CheckCircle,  status: 'success' },
             { label: 'Dismissed', value: statCounts.DISMISSED, icon: XCircle,      status: 'pending' },
           ].map(({ label, value, icon: Icon, status }) => (
-            <div key={label} className={`rounded-lg border p-4 shadow-sm flex items-center gap-3 transition-colors ${themeClasses.card} ${themeClasses.status[status]}`}>
-              <Icon size={20} className="text-emerald-500" />
-              <div>
-                <p className={`text-[10px] font-black uppercase tracking-widest transition-colors ${themeClasses.text.tertiary}`}>{label}</p>
+            <div key={label} className={`rounded-[20px] border p-5 shadow-[0_8px_30px_rgba(0,0,0,0.03)] flex flex-col justify-between min-h-[110px] transition-all hover:shadow-[0_12px_32px_rgba(0,0,0,0.06)] hover:-translate-y-0.5 ${themeClasses.card} ${themeClasses.border.primary}`}>
+              <div className="flex items-center justify-between">
+                <span className={`text-[10px] font-black uppercase tracking-widest ${themeClasses.text.tertiary}`}>{label}</span>
+                <div className={`w-8.5 h-8.5 rounded-xl flex items-center justify-center shadow-2xs border ${themeClasses.status[status]}`}>
+                  <Icon size={15} />
+                </div>
+              </div>
+              <div className="mt-3">
                 <p className={`text-xl font-black mt-0.5 transition-colors ${themeClasses.text.primary}`}>{value}</p>
               </div>
             </div>
@@ -254,14 +253,14 @@ export default function AdminReports() {
         </div>
 
         {/* Controls */}
-        <div className={`flex flex-wrap items-center gap-3 border rounded-lg p-3 shadow-sm transition-colors ${themeClasses.card}`}>
+        <div className={`flex flex-wrap items-center gap-3 border rounded-[20px] p-4 shadow-sm transition-colors ${themeClasses.card} ${themeClasses.border.primary}`}>
           {/* Type tabs */}
           <div className="flex gap-1">
             {REPORT_TYPES.map(t => (
               <button
                 key={t}
                 onClick={() => { setActiveType(t); }}
-                className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all flex items-center gap-1.5 ${
+                className={`px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all flex items-center gap-1.5 ${
                   activeType === t
                     ? 'bg-emerald-600 text-white shadow-sm'
                     : `${themeClasses.text.secondary} hover:${themeClasses.bg.tertiary}`
@@ -279,7 +278,7 @@ export default function AdminReports() {
           <select
             value={statusFilter}
             onChange={e => setStatusFilter(e.target.value)}
-            className={`border rounded-lg px-3 py-1.5 text-xs font-bold outline-none focus:border-emerald-500 transition-colors ${themeClasses.bg.secondary} ${themeClasses.border.primary} ${themeClasses.text.primary}`}
+            className={`border rounded-xl px-3 py-2 text-xs font-bold outline-none focus:border-emerald-500 transition-colors ${themeClasses.bg.secondary} ${themeClasses.border.primary} ${themeClasses.text.primary}`}
           >
             <option value="">All Statuses</option>
             <option value="PENDING">Pending</option>
@@ -295,7 +294,7 @@ export default function AdminReports() {
             <RefreshCw size={16} className="animate-spin" /> Loading reports…
           </div>
         ) : reports.length === 0 ? (
-          <div className={`rounded-lg border border-dashed p-10 text-center transition-colors ${themeClasses.bg.secondary} ${themeClasses.border.primary}`}>
+          <div className={`rounded-[20px] border border-dashed p-10 text-center transition-colors ${themeClasses.bg.secondary} ${themeClasses.border.primary}`}>
             <AlertTriangle size={28} className={`mx-auto mb-2 transition-colors ${themeClasses.text.tertiary}`} />
             <p className={`text-sm font-bold transition-colors ${themeClasses.text.secondary}`}>No {activeType.toLowerCase()} reports found.</p>
           </div>

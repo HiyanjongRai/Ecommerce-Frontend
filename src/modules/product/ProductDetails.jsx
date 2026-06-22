@@ -293,7 +293,7 @@ const ProductDetails = () => {
     return (
       <div className="min-h-screen bg-white font-sans">
         <div className="flex justify-center items-center h-[60vh]">
-          <svg className="animate-spin w-8 h-8 text-blue-600" fill="none" viewBox="0 0 24 24">
+          <svg className="animate-spin w-8 h-8 text-[#16A34A]" fill="none" viewBox="0 0 24 24">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
           </svg>
@@ -308,7 +308,7 @@ const ProductDetails = () => {
         <div className="flex flex-col justify-center items-center h-[60vh] text-center">
           <div className="text-6xl mb-4">🛒</div>
           <h2 className="text-xl font-bold text-gray-800 tracking-tight">{error || 'Product not found'}</h2>
-          <Link to="/" className="mt-4 text-xs font-bold text-blue-600 hover:underline uppercase tracking-wider">← Back to Home</Link>
+          <Link to="/" className="mt-4 text-xs font-bold text-[#16A34A] hover:underline uppercase tracking-wider">← Back to Home</Link>
         </div>
       </div>
     );
@@ -331,7 +331,7 @@ const ProductDetails = () => {
         <div className="bg-gradient-to-r from-slate-900 to-slate-800 text-white border-b border-slate-700 shadow-md">
           <div className="max-w-4xl mx-auto px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 text-xs">
             <div className="flex items-center gap-2">
-              <span className="bg-blue-500 text-white text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-sm">
+              <span className="bg-[#16A34A] text-white text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-sm">
                 Seller Controls
               </span>
               <span className="font-semibold text-slate-300 font-sans">
@@ -356,7 +356,7 @@ const ProductDetails = () => {
                       }
                     }
                   }}
-                  className="bg-slate-800 border border-slate-700 text-white font-extrabold rounded-sm px-2.5 py-1 text-[10px] uppercase tracking-wider focus:outline-none focus:border-blue-500 cursor-pointer"
+                  className="bg-slate-800 border border-slate-700 text-white font-extrabold rounded-sm px-2.5 py-1 text-[10px] uppercase tracking-wider focus:outline-none focus:border-emerald-500 cursor-pointer"
                 >
                   <option value="ACTIVE">Active</option>
                   <option value="INACTIVE">Inactive</option>
@@ -811,7 +811,7 @@ const ProductDetails = () => {
             {/* Modal Header */}
             <div className="px-5 py-3.5 border-b border-gray-150 flex items-center justify-between bg-slate-50">
               <div>
-                <span className="text-[8px] font-black bg-blue-500/10 text-blue-600 border border-blue-500/20 px-2 py-0.5 rounded uppercase tracking-wider">
+                <span className="text-[8px] font-black bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 px-2 py-0.5 rounded uppercase tracking-wider">
                   Product Inquiry
                 </span>
                 <h3 className="text-xs font-bold text-gray-900 mt-1 uppercase tracking-wider">
@@ -852,7 +852,7 @@ const ProductDetails = () => {
                   value={msgContent}
                   onChange={(e) => setMsgContent(e.target.value)}
                   placeholder={`Hi ${product.sellerFullName || 'Seller'}, I am interested in "${product.name}". Can you provide more details regarding availability/pricing?`}
-                  className="w-full bg-slate-50 border border-gray-200 rounded-xl px-3 py-2 text-slate-800 text-xs font-semibold placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500/80 resize-none transition-all"
+                  className="w-full bg-slate-50 border border-gray-200 rounded-xl px-3 py-2 text-slate-800 text-xs font-semibold placeholder-slate-400 focus:outline-none focus:bg-white focus:border-emerald-500/80 resize-none transition-all"
                   disabled={sendingMsg || msgSuccess}
                 />
               </div>
@@ -874,7 +874,7 @@ const ProductDetails = () => {
                 <button
                   type="submit"
                   disabled={sendingMsg || msgSuccess}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-[10px] font-extrabold uppercase tracking-wider flex-1 transition-all shadow-lg shadow-blue-500/10 disabled:opacity-50"
+                  className="px-4 py-2 bg-[#16A34A] hover:bg-emerald-700 text-white rounded-xl text-[10px] font-extrabold uppercase tracking-wider flex-1 transition-all shadow-lg shadow-emerald-600/10 disabled:opacity-50"
                 >
                   {sendingMsg ? 'Sending...' : 'Send Inquiry'}
                 </button>

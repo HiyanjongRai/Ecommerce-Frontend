@@ -21,6 +21,7 @@ import InventoryTable     from './inventory/InventoryTable';
 import InventoryBulkBar   from './inventory/InventoryBulkBar';
 import InventoryInsights  from './inventory/InventoryInsights';
 import InventoryModals    from './inventory/InventoryModals';
+import ConfirmationDialog from '../../../shared/components/ConfirmationDialog';
 
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -66,6 +67,7 @@ export default function SellerInventory() {
   const [selectedIds,     setSelectedIds]     = useState([]);
   const [isBulkProcessing, setIsBulkProcessing] = useState(false);
   const [activeDropdownId, setActiveDropdownId] = useState(null);
+  const [bulkDeletePrompt, setBulkDeletePrompt] = useState(false);
 
   // ─────────────────────────────────────────────────────────────────────────
   // Data loading
@@ -466,18 +468,32 @@ export default function SellerInventory() {
   };
 
   const handleBulkDelete = async () => {
-    if (!window.confirm(`Permanently delete the ${selectedIds.length} selected products?`)) return;
+    if (isBulkProcessing) return;
+    const ids = [...selectedIds];
+    if (ids.length === 0) {
+      setBulkDeletePrompt(false);
+      return;
+    }
     setIsBulkProcessing(true);
     let ok = 0, fail = 0;
     await Promise.allSettled(
-      selectedIds.map(async (id) => {
+      ids.map(async (id) => {
         try { await deleteSellerProduct(id); ok++; }
         catch { fail++; }
       })
     );
-    toast(`Deleted ${ok} products.${fail ? ` ${fail} failed.` : ''}`, ok ? 'success' : 'error');
+    const total = ids.length;
+    const failedLabel = fail === 1 ? '1 product failed.' : `${fail} products failed.`;
+    const deletedLabel = ok === 1 ? '1 product' : `${ok} products`;
+    const message = fail === 0
+      ? `Deleted ${deletedLabel}.`
+      : ok === 0
+        ? `No products were deleted. ${failedLabel} Some items may be processing, unavailable, or already removed.`
+        : `Deleted ${ok} of ${total} selected products. ${failedLabel} Some items may be processing, unavailable, or already removed.`;
+    toast(message, ok ? 'success' : 'error');
     setSelectedIds([]);
     setIsBulkProcessing(false);
+    setBulkDeletePrompt(false);
     load();
   };
 
@@ -733,7 +749,7 @@ export default function SellerInventory() {
         isDark={isDark}
         onDeactivate={handleBulkDeactivate}
         onExport={handleBulkExport}
-        onDelete={handleBulkDelete}
+        onDelete={() => setBulkDeletePrompt(true)}
         onClearSelection={() => setSelectedIds([])}
       />
 
@@ -765,6 +781,20 @@ export default function SellerInventory() {
         confirmDelete={confirmDelete}
         onCancelDelete={() => setConfirmDelete(null)}
         onDeleteConfirm={handleDelete}
+      />
+
+      <ConfirmationDialog
+        open={bulkDeletePrompt}
+        title="Delete selected products?"
+        message={`This will permanently delete ${selectedIds.length} selected product${selectedIds.length === 1 ? '' : 's'}.`}
+        details="Deleted products cannot be restored. If some items are part of active processing flows, those items may fail and the result will tell you exactly which ones need attention."
+        confirmLabel={isBulkProcessing ? 'Deleting...' : 'Delete selected'}
+        cancelLabel="Keep products"
+        onCancel={() => !isBulkProcessing && setBulkDeletePrompt(false)}
+        onConfirm={handleBulkDelete}
+        danger
+        isDark={isDark}
+        loading={isBulkProcessing}
       />
     </div>
   );

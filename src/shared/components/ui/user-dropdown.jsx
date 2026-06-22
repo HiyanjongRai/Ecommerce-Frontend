@@ -1,7 +1,41 @@
-// ─── All imports at the top (ESLint: import/first) ───────────────────────────
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Icon } from "@iconify/react";
+import React, { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { 
+  User, 
+  Package, 
+  Heart, 
+  MapPin, 
+  Bell, 
+  CreditCard, 
+  HelpCircle, 
+  PhoneCall, 
+  Store, 
+  BookOpen, 
+  Globe, 
+  Coins, 
+  LogOut, 
+  LayoutDashboard, 
+  ShoppingBag, 
+  Box, 
+  PlusCircle, 
+  Warehouse, 
+  Star, 
+  BarChart3, 
+  Wallet, 
+  Settings, 
+  ShieldCheck, 
+  Users, 
+  Receipt, 
+  Ticket, 
+  FileText, 
+  Key, 
+  ChevronRight,
+  LogIn,
+  UserPlus,
+  Sparkles,
+  ShieldAlert,
+  ShoppingCart
+} from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./avatar";
 import { Badge } from "./badge";
 import { cn } from "../../utils/index";
@@ -10,20 +44,12 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuPortal,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
   DropdownMenuSeparator,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "./dropdown-menu";
 
-// ─── Constants ────────────────────────────────────────────────────────────────
 const BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8080";
 
-/** Resolve avatar URL from any backend field name; prepend BASE_URL for relative paths */
 const resolveAvatarUrl = (user) => {
   const raw =
     user?.profileImagePath ||
@@ -37,213 +63,636 @@ const resolveAvatarUrl = (user) => {
     : `${BASE_URL}${raw.startsWith("/") ? "" : "/"}${raw}`;
 };
 
-// ─── Role-based menu configurations ──────────────────────────────────────────
-const CUSTOMER_MENU = {
-  profile: [
-    { icon: "solar:user-circle-line-duotone", label: "Your Profile",  path: "/customer/profile" },
-    { icon: "solar:bag-3-line-duotone",       label: "My Orders",     path: "/customer/orders" },
-    { icon: "solar:home-smile-line-duotone",  label: "Dashboard",     path: "/customer/dashboard" },
-    { icon: "solar:heart-line-duotone",       label: "Wishlist",      path: "/customer/wishlist" },
-    { icon: "solar:bell-line-duotone",        label: "Notifications", path: "/customer/notifications", showBadge: true },
-    { icon: "solar:settings-line-duotone",    label: "Settings",      path: "/customer/profile" },
-  ],
-};
-
-const SELLER_MENU = {
-  profile: [
-    { icon: "solar:chart-2-line-duotone",     label: "Seller Dashboard", path: "/seller/dashboard" },
-    { icon: "solar:box-line-duotone",          label: "My Products",      path: "/seller/products" },
-    { icon: "solar:bag-3-line-duotone",        label: "Orders",           path: "/seller/orders" },
-    { icon: "solar:graph-new-up-line-duotone", label: "Analytics",        path: "/seller/analytics" },
-    { icon: "solar:bell-line-duotone",         label: "Notifications",    path: "/seller/notifications", showBadge: true },
-    { icon: "solar:settings-line-duotone",     label: "Settings",         path: "/seller/settings" },
-  ],
-};
-
-const ADMIN_MENU = {
-  profile: [
-    { icon: "solar:pie-chart-2-line-duotone",        label: "Admin Dashboard", path: "/admin/dashboard" },
-    { icon: "solar:users-group-rounded-line-duotone", label: "Manage Users",   path: "/admin/users" },
-    { icon: "solar:shop-line-duotone",                label: "Sellers",         path: "/admin/sellers" },
-    { icon: "solar:box-line-duotone",                 label: "Products",        path: "/admin/products" },
-    { icon: "solar:bag-3-line-duotone",               label: "Orders",          path: "/admin/orders" },
-    { icon: "solar:shield-warning-line-duotone",      label: "Disputes",        path: "/admin/disputes" },
-    { icon: "solar:settings-line-duotone",            label: "Settings",        path: "/admin/inbox" },
-  ],
-};
-
-const STATUS_ITEMS = [
-  { value: "focus",   icon: "solar:emoji-funny-circle-line-duotone", label: "Focus" },
-  { value: "offline", icon: "solar:moon-sleep-line-duotone",          label: "Appear Offline" },
-];
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-const getMenuByRole = (role) => {
-  switch ((role || "").toUpperCase()) {
-    case "SELLER": return SELLER_MENU;
-    case "ADMIN":  return ADMIN_MENU;
-    default:       return CUSTOMER_MENU;
-  }
-};
-
-const getRoleBadgeClass = (role) => {
-  switch ((role || "").toUpperCase()) {
-    case "SELLER": return "bg-blue-100 text-blue-700 border-blue-300 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-500/50";
-    case "ADMIN":  return "bg-purple-100 text-purple-700 border-purple-300 dark:bg-purple-900/30 dark:text-purple-400 dark:border-purple-500/50";
-    default:       return "bg-green-100 text-green-700 border-green-300 dark:bg-green-900/30 dark:text-green-400 dark:border-green-500/50";
-  }
-};
-
-// ─── Component ────────────────────────────────────────────────────────────────
-export function UserDropdown({ user, unreadNotifs = 0, onLogout, onRequireLogin }) {
+export function UserDropdown({ 
+  user, 
+  unreadNotifs = 0, 
+  wishlistCount = 0, 
+  cartCount = 0,
+  onLogout, 
+  onRequireLogin 
+}) {
   const navigate = useNavigate();
-  const [selectedStatus, setSelectedStatus] = useState("online");
+  const [open, setOpen] = useState(false);
+  const handleNavigate = (path) => {
+    setOpen(false);
+    navigate(path);
+  };
+  const isLoggedIn = Boolean(user?.id || user?.email || user?.username);
+  
+  const displayName = isLoggedIn 
+    ? (user?.fullName || user?.username || user?.email?.split("@")?.[0] || "User")
+    : "Guest";
+  const email = user?.email || "";
+  const avatarUrl = isLoggedIn ? resolveAvatarUrl(user) : "";
+  const initials = displayName.slice(0, 2).toUpperCase();
+  const role = (user?.role || "CUSTOMER").toUpperCase();
 
-  // Derive display values from the app's user object
-  const displayName = user?.firstName
-    ? `${user.firstName}${user.lastName ? " " + user.lastName : ""}`
-    : user?.fullName || user?.username || "My Account";
-  const handle    = user?.username
-    ? `@${user?.username}`
-    : user?.email ? `@${user?.email.split("@")[0]}` : "";
-  const avatarUrl = resolveAvatarUrl(user);
-  const initials  = displayName.slice(0, 2).toUpperCase();
-  const role      = user?.role || "CUSTOMER";
-  const menu      = getMenuByRole(role);
+  // Role details configuration
+  const roleConfig = {
+    CUSTOMER: {
+      label: "Customer",
+      badgeClass: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-900/50",
+      avatarGradient: "linear-gradient(135deg, #10B981 0%, #059669 100%)",
+    },
+    SELLER: {
+      label: "Verified Seller",
+      badgeClass: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-900/50",
+      avatarGradient: "linear-gradient(135deg, #10B981 0%, #059669 100%)",
+    },
+    ADMIN: {
+      label: "System Admin",
+      badgeClass: "bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/30 dark:text-purple-400 dark:border-purple-900/50",
+      avatarGradient: "linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)",
+    }
+  };
 
-  // ── Not logged in ──
-  if (!user) {
-    return (
-      <button
-        onClick={onRequireLogin}
-        className="flex items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-left transition hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-      >
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-sm font-semibold text-gray-800">
-          <Icon icon="solar:user-circle-line-duotone" className="size-6 text-gray-500" />
-        </div>
-        <div className="flex flex-col leading-none">
-          <span className="text-[8px] uppercase font-bold text-gray-500">Namaste, Sign In</span>
-          <span className="text-[10px] font-bold text-gray-900">My Account</span>
-        </div>
-      </button>
-    );
-  }
+  const currentRole = roleConfig[role] || roleConfig.CUSTOMER;
 
-  // ── Logged in ──
   return (
-    <DropdownMenu>
+    <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
-        {/* Wrapper keeps the green dot positioned relative to the avatar */}
-        <div className="relative cursor-pointer group">
-          <Avatar className="size-10 border-2 border-white dark:border-gray-700 shadow-sm ring-offset-1 group-hover:ring-2 group-hover:ring-emerald-400 transition-all">
-            <AvatarImage src={avatarUrl} alt={displayName} />
-            <AvatarFallback
-              style={{ background: "linear-gradient(135deg,#28c76f 0%,#0ea5e9 100%)" }}
-              className="text-white font-bold text-sm"
-            >
-              {initials}
-            </AvatarFallback>
-          </Avatar>
-          {/* Online indicator dot */}
-          <span className="absolute bottom-0 right-0 size-3 rounded-full bg-emerald-500 border-2 border-white dark:border-gray-900 shadow" />
-        </div>
+        <button 
+          className="flex items-center justify-center relative focus:outline-none group rounded-full transition-all focus:ring-2 focus:ring-emerald-500/20"
+          title={isLoggedIn ? `Account: ${displayName}` : "Sign In"}
+        >
+          <div className="size-9 rounded-full border border-slate-200 hover:border-emerald-500 flex items-center justify-center overflow-hidden bg-white shadow-xs transition-all duration-200 group-hover:scale-105">
+            {avatarUrl ? (
+              <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
+            ) : (
+              <User className="size-4.5 text-slate-650 group-hover:text-emerald-600 transition-colors" />
+            )}
+          </div>
+          {isLoggedIn && (
+            <span className="absolute bottom-0 right-0 size-2.5 rounded-full bg-emerald-500 border-2 border-white dark:border-gray-900 shadow-xs" />
+          )}
+        </button>
       </DropdownMenuTrigger>
 
       <DropdownMenuContent
-        className="no-scrollbar w-[310px] rounded-2xl bg-gray-50 dark:bg-black/90 p-0 border border-gray-200 dark:border-gray-700/30"
+        className="w-[320px] rounded-2xl bg-white dark:bg-slate-900 p-0 border border-slate-150 dark:border-slate-800 shadow-xl overflow-hidden font-inter text-slate-850 dark:text-slate-100 animate-in fade-in slide-in-from-top-3 duration-250 z-[100]"
         align="end"
-        sideOffset={8}
+        sideOffset={10}
       >
-        {/* ── Header card ── */}
-        <section className="bg-white dark:bg-gray-100/10 backdrop-blur-lg rounded-2xl p-1 shadow border border-gray-200 dark:border-gray-700/20">
-          {/* User info row */}
-          <div className="flex items-center p-2">
-            <div className="flex-1 flex items-center gap-2">
-              <Avatar className="size-10 border border-white dark:border-gray-700">
+        {/* =====================================================================
+           1. GUEST DROPDOWN VIEW
+           ===================================================================== */}
+        {!isLoggedIn && (
+          <div className="flex flex-col">
+            {/* Header section */}
+            <div className="p-5 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/20">
+              <div className="flex items-center gap-2 mb-1.5">
+                <Sparkles className="size-5 text-amber-500" />
+                <h3 className="font-extrabold text-sm text-slate-900 dark:text-white">Welcome to Jhapcham</h3>
+              </div>
+              <p className="text-[12px] text-slate-500 dark:text-slate-400 leading-normal">
+                Sign in to manage orders, track delivery, and access custom deals.
+              </p>
+              
+              {/* Primary Buttons */}
+              <div className="flex gap-2 mt-4">
+                <button
+                  onClick={() => { setOpen(false); onRequireLogin("login"); }}
+                  className="flex-1 py-2 px-3 bg-[#16A34A] hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition-all duration-150 flex items-center justify-center gap-1.5 shadow-sm active:scale-98"
+                >
+                  <LogIn className="size-3.5" />
+                  Sign In
+                </button>
+                <button
+                  onClick={() => { setOpen(false); onRequireLogin("register"); }}
+                  className="flex-1 py-2 px-3 border border-slate-200 hover:border-emerald-500 dark:border-slate-700 dark:hover:border-emerald-500 text-slate-700 dark:text-slate-350 hover:text-emerald-600 hover:bg-emerald-50/10 text-xs font-bold rounded-xl transition-all duration-150 flex items-center justify-center gap-1.5 active:scale-98"
+                >
+                  <UserPlus className="size-3.5" />
+                  Register
+                </button>
+              </div>
+            </div>
+
+            {/* Links Lists */}
+            <div className="py-2.5 px-3 flex flex-col gap-0.5">
+              <DropdownMenuItem 
+                onClick={() => handleNavigate("/customer/orders")}
+                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer text-slate-705 dark:text-slate-350 transition-colors focus:bg-slate-50 outline-none"
+              >
+                <span className="flex items-center gap-2.5 text-[13px] font-semibold">
+                  <Package className="size-4.5 text-slate-400" />
+                  Track Order
+                </span>
+                <ChevronRight className="size-4 text-slate-350" />
+              </DropdownMenuItem>
+
+              <DropdownMenuItem 
+                onClick={() => handleNavigate("/help")}
+                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer text-slate-750 dark:text-slate-350 transition-colors focus:bg-slate-50 outline-none"
+              >
+                <span className="flex items-center gap-2.5 text-[13px] font-semibold">
+                  <HelpCircle className="size-4.5 text-slate-400" />
+                  Help Center
+                </span>
+                <ChevronRight className="size-4 text-slate-350" />
+              </DropdownMenuItem>
+
+              <DropdownMenuItem 
+                onClick={() => handleNavigate("/help")}
+                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer text-slate-750 dark:text-slate-350 transition-colors focus:bg-slate-50 outline-none"
+              >
+                <span className="flex items-center gap-2.5 text-[13px] font-semibold">
+                  <PhoneCall className="size-4.5 text-slate-400" />
+                  Contact Support
+                </span>
+                <ChevronRight className="size-4 text-slate-350" />
+              </DropdownMenuItem>
+            </div>
+
+            <DropdownMenuSeparator className="bg-slate-100 dark:bg-slate-800" />
+
+            {/* Become a Seller Banner */}
+            <div className="p-3">
+              <div 
+                onClick={() => handleNavigate("/register")}
+                className="p-3 bg-gradient-to-br from-amber-50 to-orange-50/50 dark:from-amber-950/20 dark:to-orange-950/10 border border-amber-105 dark:border-amber-900/30 rounded-xl cursor-pointer hover:border-amber-300 transition-all group/seller"
+              >
+                <div className="flex items-center gap-2 text-[13px] font-bold text-amber-850 dark:text-amber-450 mb-0.5">
+                  <Store className="size-4.5 text-amber-500" />
+                  <span>Become a Seller</span>
+                </div>
+                <p className="text-[11px] text-amber-700/80 dark:text-amber-500/80 mb-2 leading-relaxed">
+                  Start selling across Nepal with zero upfront fees.
+                </p>
+                <span className="text-[11px] font-bold text-amber-850 dark:text-amber-450 flex items-center gap-1 group-hover/seller:text-amber-600 transition-colors">
+                  Learn About Selling <ChevronRight className="size-3.5" />
+                </span>
+              </div>
+            </div>
+
+            {/* Currency settings footer row */}
+            <div className="bg-slate-50/80 dark:bg-slate-950/40 px-5 py-3.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-450 font-bold uppercase tracking-wider">
+              <span className="flex items-center gap-1.5">
+                <Globe className="size-3.5 text-slate-400" />
+                English
+              </span>
+              <span className="flex items-center gap-1.5">
+                <Coins className="size-3.5 text-slate-400" />
+                NPR (रू)
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* =====================================================================
+           2. LOGGED IN CUSTOMER VIEW
+           ===================================================================== */}
+        {isLoggedIn && role === "CUSTOMER" && (
+          <div className="flex flex-col">
+            {/* Header profile info */}
+            <div className="p-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/20 flex gap-3 items-center">
+              <Avatar className="size-11 border border-slate-200/50 shadow-xs">
                 <AvatarImage src={avatarUrl} alt={displayName} />
-                <AvatarFallback
-                  style={{ background: "linear-gradient(135deg,#28c76f 0%,#0ea5e9 100%)" }}
-                  className="text-white font-bold text-sm"
+                <AvatarFallback 
+                  style={{ background: currentRole.avatarGradient }}
+                  className="text-white font-extrabold text-[13px]"
                 >
                   {initials}
                 </AvatarFallback>
               </Avatar>
-              <div className="min-w-0">
-                <h3 className="font-semibold text-sm text-gray-900 dark:text-gray-100 truncate">{displayName}</h3>
-                {handle && <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{handle}</p>}
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1.5">
+                  <h4 className="font-extrabold text-sm text-slate-900 dark:text-white truncate leading-tight">{displayName}</h4>
+                </div>
+                {email && <p className="text-[11px] text-slate-400 truncate mt-0.5 leading-none">{email}</p>}
+                <Badge className={cn("mt-1.5 border-[0.5px] text-[10px] rounded-md py-0.5 px-2 font-bold capitalize shadow-xs border-transparent pointer-events-none", currentRole.badgeClass)}>
+                  {currentRole.label}
+                </Badge>
               </div>
             </div>
-            <Badge className={`${getRoleBadgeClass(role)} border-[0.5px] text-[11px] rounded-sm capitalize shrink-0`}>
-              {role.toLowerCase()}
-            </Badge>
-          </div>
 
-          {/* ── Status sub-menu ── */}
-          <DropdownMenuGroup>
-            <DropdownMenuSub>
-              <DropdownMenuSubTrigger className="cursor-pointer p-2 rounded-lg">
-                <span className="flex items-center gap-1.5 font-medium text-gray-500 dark:text-gray-400">
-                  <Icon icon="solar:smile-circle-line-duotone" className="size-5" />
-                  Update status
-                </span>
-              </DropdownMenuSubTrigger>
-              <DropdownMenuPortal>
-                <DropdownMenuSubContent className="bg-white dark:bg-white/10 backdrop-blur-lg rounded-xl border border-gray-200 dark:border-gray-700/30">
-                  <DropdownMenuRadioGroup value={selectedStatus} onValueChange={setSelectedStatus}>
-                    {STATUS_ITEMS.map((s) => (
-                      <DropdownMenuRadioItem className="gap-2 cursor-pointer" key={s.value} value={s.value}>
-                        <Icon icon={s.icon} className="size-5 text-gray-500 dark:text-gray-400" />
-                        {s.label}
-                      </DropdownMenuRadioItem>
-                    ))}
-                  </DropdownMenuRadioGroup>
-                </DropdownMenuSubContent>
-              </DropdownMenuPortal>
-            </DropdownMenuSub>
-          </DropdownMenuGroup>
-
-          <DropdownMenuSeparator />
-
-          {/* ── Role-specific links ── */}
-          <DropdownMenuGroup>
-            {menu.profile.map((item) => (
-              <DropdownMenuItem
-                key={item.path}
-                className={cn("justify-between p-2 rounded-lg cursor-pointer")}
-                onSelect={() => navigate(item.path)}
+            {/* Links Block */}
+            <div className="py-2 px-3 flex flex-col gap-0.5 max-h-[320px] overflow-y-auto no-scrollbar">
+              <DropdownMenuItem 
+                onClick={() => handleNavigate("/customer/profile")}
+                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-850/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
               >
-                <span className="flex items-center gap-1.5 font-medium text-gray-700 dark:text-gray-300">
-                  <Icon icon={item.icon} className="size-5 text-gray-500 dark:text-gray-400" />
-                  {item.label}
+                <span className="flex items-center gap-2.5 text-[13px] font-semibold">
+                  <User className="size-4.5 text-slate-400" />
+                  My Profile
                 </span>
-                {item.showBadge && unreadNotifs > 0 && (
-                  <Badge className="bg-emerald-600 text-white text-[11px] border-transparent">
+                <ChevronRight className="size-4 text-slate-350" />
+              </DropdownMenuItem>
+
+              <DropdownMenuItem 
+                onClick={() => handleNavigate("/customer/orders")}
+                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-850/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
+              >
+                <span className="flex items-center gap-2.5 text-[13px] font-semibold">
+                  <Package className="size-4.5 text-slate-400" />
+                  My Orders
+                </span>
+                <ChevronRight className="size-4 text-slate-350" />
+              </DropdownMenuItem>
+
+              <DropdownMenuItem 
+                onClick={() => handleNavigate("/customer/wishlist")}
+                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-850/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
+              >
+                <span className="flex items-center gap-2.5 text-[13px] font-semibold">
+                  <Heart className="size-4.5 text-slate-400" />
+                  Wishlist
+                </span>
+                {wishlistCount > 0 && (
+                  <Badge className="bg-emerald-600 text-white text-[10px] border-transparent font-bold">
+                    {wishlistCount}
+                  </Badge>
+                )}
+              </DropdownMenuItem>
+
+              <DropdownMenuItem 
+                onClick={() => handleNavigate("/customer/profile")}
+                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-850/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
+              >
+                <span className="flex items-center gap-2.5 text-[13px] font-semibold">
+                  <MapPin className="size-4.5 text-slate-400" />
+                  Saved Addresses
+                </span>
+                <ChevronRight className="size-4 text-slate-350" />
+              </DropdownMenuItem>
+
+              <DropdownMenuItem 
+                onClick={() => handleNavigate("/customer/notifications")}
+                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-850/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
+              >
+                <span className="flex items-center gap-2.5 text-[13px] font-semibold">
+                  <Bell className="size-4.5 text-slate-400" />
+                  Notifications
+                </span>
+                {unreadNotifs > 0 && (
+                  <Badge className="bg-rose-500 text-white text-[10px] border-transparent font-bold">
                     {unreadNotifs}
                   </Badge>
                 )}
               </DropdownMenuItem>
-            ))}
-          </DropdownMenuGroup>
-        </section>
 
-        {/* ── Logout section ── */}
-        <section className="mt-1 p-1 rounded-2xl">
-          <DropdownMenuGroup>
-            <DropdownMenuItem
-              className="p-2 rounded-lg cursor-pointer text-red-600 dark:text-red-400 focus:bg-red-50 dark:focus:bg-red-900/20"
-              onSelect={onLogout}
-            >
-              <span className="flex items-center gap-1.5 font-medium">
-                <Icon icon="solar:logout-2-bold-duotone" className="size-5" />
-                Log out
-              </span>
-            </DropdownMenuItem>
-          </DropdownMenuGroup>
-        </section>
+              <DropdownMenuItem 
+                onClick={() => handleNavigate("/customer/profile")}
+                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-850/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
+              >
+                <span className="flex items-center gap-2.5 text-[13px] font-semibold">
+                  <CreditCard className="size-4.5 text-slate-400" />
+                  Payment Methods
+                </span>
+                <ChevronRight className="size-4 text-slate-350" />
+              </DropdownMenuItem>
+
+              <div className="h-px bg-slate-100 dark:bg-slate-800 my-1.5" />
+
+              <DropdownMenuItem 
+                onClick={() => handleNavigate("/help")}
+                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-850/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
+              >
+                <span className="flex items-center gap-2.5 text-[13px] font-semibold">
+                  <HelpCircle className="size-4.5 text-slate-400" />
+                  Help Center
+                </span>
+                <ChevronRight className="size-4 text-slate-350" />
+              </DropdownMenuItem>
+
+              <DropdownMenuItem 
+                onClick={() => handleNavigate("/help")}
+                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-850/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
+              >
+                <span className="flex items-center gap-2.5 text-[13px] font-semibold">
+                  <PhoneCall className="size-4.5 text-slate-400" />
+                  Contact Support
+                </span>
+                <ChevronRight className="size-4 text-slate-350" />
+              </DropdownMenuItem>
+            </div>
+
+            {/* Logout Footer Button */}
+            <div className="p-3 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/20">
+              <DropdownMenuItem 
+                onClick={() => { setOpen(false); onLogout(); }}
+                className="w-full p-2.5 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-950/20 text-rose-600 dark:text-rose-400 flex items-center justify-center gap-2 transition-all cursor-pointer font-bold text-xs"
+              >
+                <LogOut className="size-4" />
+                Sign Out
+              </DropdownMenuItem>
+            </div>
+          </div>
+        )}
+
+        {/* =====================================================================
+           3. LOGGED IN SELLER VIEW
+           ===================================================================== */}
+        {isLoggedIn && role === "SELLER" && (
+          <div className="flex flex-col">
+            {/* Header profile info */}
+            <div className="p-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/20 flex gap-3 items-center">
+              <Avatar className="size-11 border border-slate-250/50 shadow-xs">
+                <AvatarImage src={avatarUrl} alt={displayName} />
+                <AvatarFallback 
+                  style={{ background: currentRole.avatarGradient }}
+                  className="text-white font-extrabold text-[13px]"
+                >
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
+              <div className="min-w-0 flex-1">
+                <h4 className="font-extrabold text-sm text-slate-900 dark:text-white truncate leading-tight">{displayName}</h4>
+                {email && <p className="text-[11px] text-slate-400 truncate mt-0.5 leading-none">{email}</p>}
+                <Badge className={cn("mt-1.5 border-[0.5px] text-[10px] rounded-md py-0.5 px-2 font-bold capitalize shadow-xs border-transparent pointer-events-none", currentRole.badgeClass)}>
+                  {currentRole.label}
+                </Badge>
+              </div>
+            </div>
+
+            {/* Links Block */}
+            <div className="py-2 px-3 flex flex-col gap-0.5 max-h-[360px] overflow-y-auto no-scrollbar">
+              <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 tracking-wider uppercase px-2.5 pt-1.5 pb-1">Business Management</div>
+              
+              <DropdownMenuItem 
+                onClick={() => handleNavigate("/seller/dashboard")}
+                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-850/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
+              >
+                <span className="flex items-center gap-2.5 text-[13px] font-semibold">
+                  <LayoutDashboard className="size-4.5 text-slate-400" />
+                  Seller Dashboard
+                </span>
+                <ChevronRight className="size-4 text-slate-350" />
+              </DropdownMenuItem>
+
+              <DropdownMenuItem 
+                onClick={() => handleNavigate("/seller/orders")}
+                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-850/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
+              >
+                <span className="flex items-center gap-2.5 text-[13px] font-semibold">
+                  <ShoppingBag className="size-4.5 text-slate-400" />
+                  Manage Orders
+                </span>
+                <ChevronRight className="size-4 text-slate-350" />
+              </DropdownMenuItem>
+
+              <DropdownMenuItem 
+                onClick={() => handleNavigate("/seller/products")}
+                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-850/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
+              >
+                <span className="flex items-center gap-2.5 text-[13px] font-semibold">
+                  <Box className="size-4.5 text-slate-400" />
+                  My Products
+                </span>
+                <ChevronRight className="size-4 text-slate-350" />
+              </DropdownMenuItem>
+
+              <DropdownMenuItem 
+                onClick={() => handleNavigate("/seller/add-product")}
+                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-850/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
+              >
+                <span className="flex items-center gap-2.5 text-[13px] font-semibold">
+                  <PlusCircle className="size-4.5 text-slate-400" />
+                  Add Product
+                </span>
+                <ChevronRight className="size-4 text-slate-350" />
+              </DropdownMenuItem>
+
+              <DropdownMenuItem 
+                onClick={() => handleNavigate("/seller/products")}
+                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-850/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
+              >
+                <span className="flex items-center gap-2.5 text-[13px] font-semibold">
+                  <Warehouse className="size-4.5 text-slate-400" />
+                  Inventory
+                </span>
+                <ChevronRight className="size-4 text-slate-350" />
+              </DropdownMenuItem>
+
+              <DropdownMenuItem 
+                onClick={() => handleNavigate("/seller/dashboard")}
+                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-850/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
+              >
+                <span className="flex items-center gap-2.5 text-[13px] font-semibold">
+                  <Star className="size-4.5 text-slate-400" />
+                  Customer Reviews
+                </span>
+                <ChevronRight className="size-4 text-slate-350" />
+              </DropdownMenuItem>
+
+              <DropdownMenuItem 
+                onClick={() => handleNavigate("/seller/analytics")}
+                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-850/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
+              >
+                <span className="flex items-center gap-2.5 text-[13px] font-semibold">
+                  <BarChart3 className="size-4.5 text-slate-400" />
+                  Business Analytics
+                </span>
+                <ChevronRight className="size-4 text-slate-350" />
+              </DropdownMenuItem>
+
+              <DropdownMenuItem 
+                onClick={() => handleNavigate("/seller/dashboard")}
+                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-850/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
+              >
+                <span className="flex items-center gap-2.5 text-[13px] font-semibold">
+                  <Wallet className="size-4.5 text-slate-400" />
+                  Store Earnings
+                </span>
+                <ChevronRight className="size-4 text-slate-350" />
+              </DropdownMenuItem>
+
+              <div className="h-px bg-slate-100 dark:bg-slate-800 my-1.5" />
+              <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 tracking-wider uppercase px-2.5 pt-1.5 pb-1">Settings</div>
+
+              <DropdownMenuItem 
+                onClick={() => handleNavigate("/seller/profile")}
+                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-850/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
+              >
+                <span className="flex items-center gap-2.5 text-[13px] font-semibold">
+                  <User className="size-4.5 text-slate-400" />
+                  Seller Profile
+                </span>
+                <ChevronRight className="size-4 text-slate-350" />
+              </DropdownMenuItem>
+
+              <DropdownMenuItem 
+                onClick={() => handleNavigate("/seller/settings")}
+                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-850/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
+              >
+                <span className="flex items-center gap-2.5 text-[13px] font-semibold">
+                  <Settings className="size-4.5 text-slate-400" />
+                  Store Settings
+                </span>
+                <ChevronRight className="size-4 text-slate-350" />
+              </DropdownMenuItem>
+            </div>
+
+            {/* Logout Footer Button */}
+            <div className="p-3 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/20">
+              <DropdownMenuItem 
+                onClick={() => { setOpen(false); onLogout(); }}
+                className="w-full p-2.5 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-950/20 text-rose-600 dark:text-rose-400 flex items-center justify-center gap-2 transition-all cursor-pointer font-bold text-xs"
+              >
+                <LogOut className="size-4" />
+                Sign Out
+              </DropdownMenuItem>
+            </div>
+          </div>
+        )}
+
+        {/* =====================================================================
+           4. LOGGED IN ADMIN VIEW
+           ===================================================================== */}
+        {isLoggedIn && role === "ADMIN" && (
+          <div className="flex flex-col">
+            {/* Header profile info */}
+            <div className="p-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/20 flex gap-3 items-center">
+              <Avatar className="size-11 border border-slate-200/50 shadow-xs">
+                <AvatarImage src={avatarUrl} alt={displayName} />
+                <AvatarFallback 
+                  style={{ background: currentRole.avatarGradient }}
+                  className="text-white font-extrabold text-[13px]"
+                >
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
+              <div className="min-w-0 flex-1">
+                <h4 className="font-extrabold text-sm text-slate-900 dark:text-white truncate leading-tight">{displayName}</h4>
+                {email && <p className="text-[11px] text-slate-400 truncate mt-0.5 leading-none">{email}</p>}
+                <Badge className={cn("mt-1.5 border-[0.5px] text-[10px] rounded-md py-0.5 px-2 font-bold capitalize shadow-xs border-transparent pointer-events-none", currentRole.badgeClass)}>
+                  {currentRole.label}
+                </Badge>
+              </div>
+            </div>
+
+            {/* Links Block */}
+            <div className="py-2 px-3 flex flex-col gap-0.5 max-h-[360px] overflow-y-auto no-scrollbar">
+              <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 tracking-wider uppercase px-2.5 pt-1.5 pb-1">System Management</div>
+              
+              <DropdownMenuItem 
+                onClick={() => handleNavigate("/admin/dashboard")}
+                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-855/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
+              >
+                <span className="flex items-center gap-2.5 text-[13px] font-semibold">
+                  <ShieldCheck className="size-4.5 text-slate-400" />
+                  Admin Dashboard
+                </span>
+                <ChevronRight className="size-4 text-slate-350" />
+              </DropdownMenuItem>
+
+              <DropdownMenuItem 
+                onClick={() => handleNavigate("/admin/users")}
+                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-855/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
+              >
+                <span className="flex items-center gap-2.5 text-[13px] font-semibold">
+                  <Users className="size-4.5 text-slate-400" />
+                  Manage Users
+                </span>
+                <ChevronRight className="size-4 text-slate-350" />
+              </DropdownMenuItem>
+
+              <DropdownMenuItem 
+                onClick={() => handleNavigate("/admin/sellers")}
+                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-855/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
+              >
+                <span className="flex items-center gap-2.5 text-[13px] font-semibold">
+                  <Store className="size-4.5 text-slate-400" />
+                  Manage Sellers
+                </span>
+                <ChevronRight className="size-4 text-slate-350" />
+              </DropdownMenuItem>
+
+              <DropdownMenuItem 
+                onClick={() => handleNavigate("/admin/products")}
+                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-855/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
+              >
+                <span className="flex items-center gap-2.5 text-[13px] font-semibold">
+                  <Box className="size-4.5 text-slate-400" />
+                  Manage Products
+                </span>
+                <ChevronRight className="size-4 text-slate-350" />
+              </DropdownMenuItem>
+
+              <DropdownMenuItem 
+                onClick={() => handleNavigate("/admin/orders")}
+                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-855/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
+              >
+                <span className="flex items-center gap-2.5 text-[13px] font-semibold">
+                  <ShoppingCart className="size-4.5 text-slate-400" />
+                  Manage Orders
+                </span>
+                <ChevronRight className="size-4 text-slate-350" />
+              </DropdownMenuItem>
+
+              <DropdownMenuItem 
+                onClick={() => handleNavigate("/admin/payments")}
+                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-855/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
+              >
+                <span className="flex items-center gap-2.5 text-[13px] font-semibold">
+                  <Receipt className="size-4.5 text-slate-400" />
+                  Transactions
+                </span>
+                <ChevronRight className="size-4 text-slate-350" />
+              </DropdownMenuItem>
+
+              <DropdownMenuItem 
+                onClick={() => handleNavigate("/admin/promos")}
+                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-855/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
+              >
+                <span className="flex items-center gap-2.5 text-[13px] font-semibold">
+                  <Ticket className="size-4.5 text-slate-400" />
+                  Manage Coupons
+                </span>
+                <ChevronRight className="size-4 text-slate-350" />
+              </DropdownMenuItem>
+
+              <div className="h-px bg-slate-100 dark:bg-slate-800 my-1.5" />
+              <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 tracking-wider uppercase px-2.5 pt-1.5 pb-1">Administration</div>
+
+              <DropdownMenuItem 
+                onClick={() => handleNavigate("/admin/reports")}
+                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-855/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
+              >
+                <span className="flex items-center gap-2.5 text-[13px] font-semibold">
+                  <FileText className="size-4.5 text-slate-400" />
+                  System Reports
+                </span>
+                <ChevronRight className="size-4 text-slate-350" />
+              </DropdownMenuItem>
+
+              <DropdownMenuItem 
+                onClick={() => handleNavigate("/admin/settings")}
+                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-855/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
+              >
+                <span className="flex items-center gap-2.5 text-[13px] font-semibold">
+                  <Settings className="size-4.5 text-slate-400" />
+                  Site Settings
+                </span>
+                <ChevronRight className="size-4 text-slate-350" />
+              </DropdownMenuItem>
+
+              <DropdownMenuItem 
+                onClick={() => handleNavigate("/admin/audit-logs")}
+                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-855/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
+              >
+                <span className="flex items-center gap-2.5 text-[13px] font-semibold">
+                  <Key className="size-4.5 text-slate-400" />
+                  Security Settings
+                </span>
+                <ChevronRight className="size-4 text-slate-350" />
+              </DropdownMenuItem>
+            </div>
+
+            {/* Logout Footer Button */}
+            <div className="p-3 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/20">
+              <DropdownMenuItem 
+                onClick={() => { setOpen(false); onLogout(); }}
+                className="w-full p-2.5 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-950/20 text-rose-600 dark:text-rose-400 flex items-center justify-center gap-2 transition-all cursor-pointer font-bold text-xs"
+              >
+                <LogOut className="size-4" />
+                Sign Out
+              </DropdownMenuItem>
+            </div>
+          </div>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );
 }
 
 export default UserDropdown;
-

@@ -24,6 +24,37 @@ const courierClient = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
+function unwrapApiResponse(payload) {
+  if (!payload || typeof payload !== 'object') {
+    return payload;
+  }
+
+  if (payload.success === false) {
+    const error = new Error(payload.message || 'Request failed.');
+    error.response = { data: payload, status: 400 };
+    return Promise.reject(error);
+  }
+
+  if (Object.prototype.hasOwnProperty.call(payload, 'success')
+    && Object.prototype.hasOwnProperty.call(payload, 'data')) {
+    return payload.data;
+  }
+
+  return payload;
+}
+
+function shouldShowToast(errorLike) {
+  const response = errorLike?.response;
+  const data = response?.data;
+  if (!response) {
+    return true;
+  }
+  if (response.status === 400 || response.status === 422) {
+    return !data?.errors;
+  }
+  return true;
+}
+
 courierClient.interceptors.request.use((config) => {
   const token = getCourierToken();
   if (token) config.headers.Authorization = `Bearer ${token}`;
@@ -31,10 +62,21 @@ courierClient.interceptors.request.use((config) => {
 });
 
 courierClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    if (response && Object.prototype.hasOwnProperty.call(response, 'data')) {
+      const unwrapped = unwrapApiResponse(response.data);
+      if (unwrapped instanceof Promise) {
+        return unwrapped;
+      }
+      response.data = unwrapped;
+    }
+    return response;
+  },
   (error) => {
     const normalizedError = attachApiErrorMessage(error);
-    toast(normalizedError.userMessage, 'error');
+    if (normalizedError.userMessage && shouldShowToast(normalizedError)) {
+      toast(normalizedError.userMessage, 'error');
+    }
     return Promise.reject(normalizedError);
   }
 );
@@ -54,6 +96,4 @@ export const updateTrackingStatus = (payload) =>
 
 export const resendDeliveryOtp = (trackingId) =>
   courierClient.post(`/tracking/${trackingId}/resend-otp`);
-
-
 

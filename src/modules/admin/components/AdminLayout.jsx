@@ -254,8 +254,8 @@ export default function AdminLayout({ children, pageTitle, pageSubtitle, headerA
       } ${themeClasses.card}`}>
 
         {/* Top header */}
-        <header className={`flex-shrink-0 border-b px-4 lg:px-6 py-3 flex items-center gap-4 transition-colors ${themeClasses.card} ${
-          isDark ? 'border-white/8' : 'border-gray-100'
+        <header className={`flex-shrink-0 border-b px-4 lg:px-6 py-3 flex items-center gap-4 transition-colors ${
+          isDark ? 'bg-[#0d1117] border-white/8' : 'bg-white border-gray-100'
         }`}>
           {/* Mobile hamburger */}
           <button

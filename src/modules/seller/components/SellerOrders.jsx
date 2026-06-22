@@ -329,68 +329,99 @@ const SellerOrders = () => {
                 orderStatus === 'DELIVERED' ? (isDark ? 'bg-emerald-950/20 text-emerald-450 border-emerald-900/40' : 'bg-emerald-50 text-emerald-700 border-emerald-100') :
                 (isDark ? 'bg-zinc-900 text-zinc-400 border-zinc-800' : 'bg-gray-100 text-gray-550 border-gray-200');
  
+              const s = String(order.status).toUpperCase();
+              const paymentStatus = order.paymentStatus || ( !['UNPAID', 'PENDING', 'CANCELLED'].includes(s) ? 'Paid' : 'Unpaid' );
+              
+              const pConf = 
+                paymentStatus.toUpperCase() === 'PAID' ? { cls: 'bg-emerald-50 dark:bg-emerald-950/20 text-[#16A34A] dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/30', label: 'Paid' } :
+                paymentStatus.toUpperCase() === 'REFUNDED' ? { cls: 'bg-purple-50 dark:bg-purple-950/20 text-purple-650 dark:text-purple-400 border border-purple-100 dark:border-purple-900/30', label: 'Refunded' } :
+                { cls: 'bg-amber-50 dark:bg-amber-950/20 text-amber-600 dark:text-amber-400 border border-amber-100 dark:border-amber-900/30', label: 'Pending' };
+
+              const fmtDate = (v) =>
+                v ? new Date(v).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
+
               return (
                 <div 
                   key={order.orderId || order.id} 
-                  className={`border rounded-[20px] p-5 flex flex-col md:flex-row gap-5 md:items-center shadow-[0_8px_30px_rgba(0,0,0,0.02)] transition-all duration-300 cursor-pointer bg-white dark:bg-zinc-950 border-gray-150 dark:border-zinc-900 hover:border-emerald-600/20 dark:hover:border-emerald-500/20 hover:-translate-y-0.5 hover:shadow-md`}
+                  className={`border rounded-xl p-4 md:py-3.5 md:px-5 min-h-[80px] flex flex-col lg:flex-row gap-4 lg:items-center shadow-[0_4px_16px_rgba(0,0,0,0.02)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.05)] transition-all duration-200 hover:-translate-y-0.5 cursor-pointer bg-white dark:bg-zinc-950 border-gray-150 dark:border-zinc-900 hover:border-emerald-600/20 dark:hover:border-emerald-500/20`}
                   onClick={() => handleOpenDetails(order)}
                 >
-                  {/* 1. Order ID, Date, Customer */}
-                  <div className={`w-full md:w-52 flex-shrink-0 space-y-2 pb-3 md:pb-0 border-b md:border-b-0 md:border-r border-gray-100 dark:border-zinc-900 md:pr-5`}>
-                    <div>
-                      <p className={`text-[10px] font-black uppercase tracking-widest mb-0.5 text-gray-400 dark:text-zinc-550`}>Order ID</p>
-                      <p className={`text-xs font-black truncate text-slate-800 dark:text-gray-100`}>{order.customOrderId || `#ORD-${order.orderId || order.id}`}</p>
-                    </div>
-                    <div>
-                      <p className={`text-[10px] font-black uppercase tracking-widest mb-0.5 text-gray-400 dark:text-zinc-550`}>Date / Customer</p>
-                      <p className={`text-[10px] font-black ${isDark ? 'text-white' : 'text-slate-800'}`}>{order.createdAt ? new Date(order.createdAt).toLocaleDateString() : 'N/A'}</p>
-                      <p className={`text-[10px] font-semibold truncate ${isDark ? 'text-zinc-450' : 'text-gray-500'}`}>{sanitizeName(order.customerName)}</p>
-                    </div>
-                  </div>
-
-                  {/* 2. Product Image & Details */}
-                  <div className="flex flex-1 items-center gap-4 min-w-0">
-                    <div className={`w-16 h-16 rounded-xl border flex items-center justify-center p-1.5 flex-shrink-0 bg-gray-50 border-gray-100 dark:bg-zinc-900 dark:border-zinc-800 shadow-2xs`}>
-                      {order.productImage ? (
-                        <img src={resolveImageUrl(order.productImage)} className="max-w-full max-h-full object-contain rounded-md" alt="" />
+                  {/* 1. Left Section: Product details & ID */}
+                  <div className="flex flex-1 items-center gap-3.5 min-w-0">
+                    <div className="w-14 h-14 bg-white border border-gray-150 rounded-xl flex items-center justify-center p-1 flex-shrink-0 overflow-hidden dark:bg-zinc-900 dark:border-zinc-800">
+                      {order.productImage || order.imagePath || order.image ? (
+                        <img src={resolveImageUrl(order.productImage || order.imagePath || order.image)} className="max-w-full max-h-full object-contain rounded-lg" alt="" />
                       ) : (
-                        <svg className={`w-6 h-6 ${isDark ? 'text-zinc-700' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                        <svg className={`w-5 h-5 ${isDark ? 'text-zinc-700' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
                       )}
                     </div>
-                    <div className="flex-1 min-w-0 space-y-1">
-                      <h3 className={`text-xs font-black truncate ${isDark ? 'text-white' : 'text-slate-805'}`}>
+                    
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-sm md:text-base font-bold leading-snug truncate hover:text-[#16A34A] transition-colors text-slate-850 dark:text-white">
                          {order.productNames || 'Ordered Items'}
                       </h3>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className={`text-[10px] font-semibold ${isDark ? 'text-zinc-450' : 'text-gray-500'}`}>Qty: <span className={`font-black ${isDark ? 'text-white' : 'text-slate-800'}`}>{itemsCount}</span></span>
-                        {isUrgent && <span className={`text-[9px] font-black px-2 py-0.5 rounded-full border uppercase tracking-wider animate-pulse bg-red-500/10 text-red-500 border-red-500/20`}>Late Dispatch</span>}
+                      <div className="flex items-center gap-1.5 text-xs font-medium mt-0.5 text-gray-500 dark:text-zinc-450">
+                         <span>Customer: <span className="font-semibold text-slate-850 dark:text-gray-205">{sanitizeName(order.customerName)}</span></span>
+                      </div>
+                      
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs font-medium mt-0.5 text-gray-500 dark:text-zinc-450">
+                        <span>Qty: <strong className="font-semibold text-slate-850 dark:text-gray-205">{itemsCount}</strong></span>
+                        <span className="text-gray-300 dark:text-zinc-800">•</span>
+                        <span>Order ID: <strong className="font-semibold text-slate-850 dark:text-gray-205">{order.customOrderId || `#ORD-${order.orderId || order.id}`}</strong></span>
+                        {isUrgent && (
+                          <>
+                            <span className="text-gray-300 dark:text-zinc-800">•</span>
+                            <span className="inline-flex items-center text-[10px] font-bold text-red-500 uppercase tracking-wider animate-pulse">Late Dispatch</span>
+                          </>
+                        )}
                       </div>
                     </div>
                   </div>
 
-                  {/* 3. Price & Status */}
-                  <div className="w-full md:w-36 flex-shrink-0 space-y-1.5 text-right md:text-left">
-                    <p className="text-sm font-extrabold text-emerald-600 dark:text-emerald-400">{formatMoney(order.sellerNetAmount || order.totalAmount || 0)}</p>
-                    <div>
-                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border text-[9px] font-black uppercase tracking-wider ${sBadge}`}>
-                        {orderStatus}
+                  {/* 2. Center Section: Compact Payment & Dates */}
+                  <div className="w-full lg:w-48 flex-shrink-0 flex flex-col gap-1 border-t lg:border-t-0 lg:border-l lg:border-r border-gray-100 dark:border-zinc-900 pt-3 lg:pt-0 lg:px-4.5 text-xs font-medium text-gray-500 dark:text-zinc-450">
+                    <div className="flex items-center gap-1.5">
+                      <span>Payment:</span>
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${pConf.cls}`}>
+                        {order.paymentMethod || 'COD'} • {pConf.label}
                       </span>
                     </div>
-                    <p className={`text-[9px] font-black uppercase tracking-widest ${isDark ? 'text-zinc-550' : 'text-gray-400'}`}>
-                      {order.paymentMethod || 'COD'}
-                    </p>
+                    
+                    <div className="flex items-center gap-1.5">
+                      <span>Placed:</span>
+                      <strong className="font-semibold text-slate-850 dark:text-gray-205">{fmtDate(order.createdAt)}</strong>
+                    </div>
+                    
+                    <div className="text-[10px] text-gray-450 dark:text-zinc-555 font-medium">
+                      {orderStatus === 'DELIVERED' && order.deliveredAt && `Delivered ${fmtDate(order.deliveredAt)}`}
+                      {orderStatus === 'SHIPPED' && order.shippedAt && `Shipped ${fmtDate(order.shippedAt)}`}
+                      {orderStatus === 'CANCELLED' && order.cancelledAt && `Cancelled ${fmtDate(order.cancelledAt)}`}
+                      {!['DELIVERED', 'SHIPPED', 'CANCELLED'].includes(orderStatus) && `Expected: ${fmtDate(new Date(new Date(order.createdAt).getTime() + 7 * 24 * 60 * 60 * 1000))}`}
+                    </div>
                   </div>
 
-                  {/* 4. Actions */}
-                  <div className="flex items-center justify-end md:justify-start gap-1.5 flex-shrink-0">
-                    <button 
-                      onClick={(e) => { e.stopPropagation(); handleOpenDetails(order); }} 
-                      className={`px-4 py-2 border rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800 hover:border-emerald-600/20 active:scale-[0.98]`}
-                    >
-                      Manage
-                      <svg className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>
-                    </button>
+                  {/* 3. Right Section: Price, Status & Actions */}
+                  <div className="w-full lg:w-auto flex-shrink-0 flex flex-row lg:flex-col xl:flex-row items-center gap-3.5 justify-between lg:justify-start">
+                    <div className="flex flex-col gap-0.5 min-w-[90px] lg:text-right xl:text-left">
+                      <span className="text-lg font-bold text-[#16A34A] font-mono leading-none">{formatMoney(order.sellerNetAmount || order.totalAmount || 0)}</span>
+                      <span className="text-[9px] text-gray-400 dark:text-zinc-500 font-bold uppercase tracking-wider leading-none">Net Earnings</span>
+                    </div>
+
+                    <span className={`h-8 px-3 rounded-full text-[10px] font-bold uppercase tracking-wider flex items-center justify-center gap-1 select-none ${sBadge}`}>
+                      {order.status}
+                    </span>
+
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); handleOpenDetails(order); }} 
+                        className="h-8 px-3 rounded-lg text-white text-[10px] font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-1 cursor-pointer shadow-xs active:scale-95 border-none bg-[#16A34A] hover:bg-emerald-700"
+                      >
+                        Manage
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>
+                      </button>
+                    </div>
                   </div>
+
                 </div>
               );
             })}

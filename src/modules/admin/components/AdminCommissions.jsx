@@ -56,16 +56,16 @@ const VatTooltip = ({ row, themeClasses }) => {
         <Info size={13} />
       </button>
       {show && (
-        <div className={`absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50 rounded-xl p-3 w-56 shadow-2xl pointer-events-none transition-colors ${themeClasses.bg.secondary} text-white`}>
-          <p className={`font-black text-xs mb-2 text-emerald-300`}>Financial Breakdown</p>
-          <div className="space-y-1">
-            <div className="flex justify-between"><span className="text-gray-400">Input VAT (13%):</span><span>{money(inputVat)}</span></div>
-            <div className="flex justify-between"><span className="text-gray-400">Output VAT (13%):</span><span>{money(outputVat)}</span></div>
-            <div className={`flex justify-between border-t pt-1 border-gray-700`}><span className="text-gray-400">VAT Payable:</span><span className="text-amber-400">{money(vatPayable)}</span></div>
-            <div className={`flex justify-between border-t pt-1 border-gray-700`}><span className="text-gray-400">Gross Profit:</span><span className="text-emerald-400">{money(grossProfit)}</span></div>
-            <div className="flex justify-between"><span className="text-gray-400">Net to Seller:</span><span className="text-emerald-400">{money(row.netAmount)}</span></div>
+        <div className={`absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50 rounded-xl p-3 w-56 shadow-2xl pointer-events-none border transition-colors ${themeClasses.bg.secondary} ${themeClasses.border.primary} ${themeClasses.text.primary}`}>
+          <p className={`font-black text-xs mb-2 ${themeClasses.text.accent}`}>Financial Breakdown</p>
+          <div className="space-y-1 text-[11px] font-bold">
+            <div className="flex justify-between"><span className={themeClasses.text.tertiary}>Input VAT (13%):</span><span>{money(inputVat)}</span></div>
+            <div className="flex justify-between"><span className={themeClasses.text.tertiary}>Output VAT (13%):</span><span>{money(outputVat)}</span></div>
+            <div className={`flex justify-between border-t pt-1 transition-colors ${themeClasses.border.primary}`}><span className={themeClasses.text.tertiary}>VAT Payable:</span><span className={themeClasses.text.warning}>{money(vatPayable)}</span></div>
+            <div className={`flex justify-between border-t pt-1 transition-colors ${themeClasses.border.primary}`}><span className={themeClasses.text.tertiary}>Gross Profit:</span><span className={themeClasses.text.success}>{money(grossProfit)}</span></div>
+            <div className="flex justify-between"><span className={themeClasses.text.tertiary}>Net to Seller:</span><span className={themeClasses.text.success}>{money(row.netAmount)}</span></div>
             {row.platformSponsoredDiscount > 0 && (
-              <div className={`flex justify-between border-t pt-1 border-gray-700`}><span className="text-gray-400">Platform Discount:</span><span className="text-red-400">-{money(row.platformSponsoredDiscount)}</span></div>
+              <div className={`flex justify-between border-t pt-1 transition-colors ${themeClasses.border.primary}`}><span className={themeClasses.text.tertiary}>Platform Discount:</span><span className={themeClasses.text.danger}>-{money(row.platformSponsoredDiscount)}</span></div>
             )}
           </div>
         </div>

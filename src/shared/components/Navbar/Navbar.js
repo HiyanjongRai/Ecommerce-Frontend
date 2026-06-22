@@ -20,37 +20,22 @@ import {
 } from 'lucide-react';
 import { useCustomer } from '../../../modules/customer/contexts/CustomerContext';
 import LoginModal from '../../../modules/auth/components/LoginModal';
+import UserDropdown from '../ui/user-dropdown';
 import { getCart, getWishlist, removeCartItem, removeFromWishlist, addToCart, getActivePromos, searchProducts, getCategories } from '../../api/customerApi';
 import { getProductLink } from '../../utils/slugHelper';
 import { toast } from 'react-toastify';
 
 const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
 
-const resolveAvatarUrl = (user) => {
-  const imagePath =
-    user?.profileImagePath ||
-    user?.profileImage ||
-    user?.image ||
-    user?.avatar ||
-    null;
-  if (!imagePath) return null;
-  return imagePath.startsWith('http')
-    ? imagePath
-    : `${BASE_URL}${imagePath.startsWith('/') ? '' : '/'}${imagePath}`;
-};
-
 export default function Navbar() {
   const navigate = useNavigate();
-  const { user, cartCount, wishlistIds, logoutUser, refreshCart, refreshWishlist } = useCustomer();
+  const { user, cartCount, wishlistIds, logoutUser, refreshCart, refreshWishlist, unreadNotifs } = useCustomer();
   const isLoggedIn = Boolean(user?.id || user?.email || user?.username);
-  const accountLabel = isLoggedIn ? (user?.username || user?.fullName || user?.email?.split('@')?.[0]) : 'User';
-  const accountInitial = accountLabel?.[0]?.toUpperCase() || 'U';
 
   const [searchQuery, setSearchQuery] = useState('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
-  const [isAccountDropdownOpen, setIsAccountDropdownOpen] = useState(false);
-  const [avatarUrl, setAvatarUrl] = useState(null);
+  const [authModalTab, setAuthModalTab] = useState('login');
 
   // Verdant Specific States
   const [isAnnouncementVisible, setIsAnnouncementVisible] = useState(true);
@@ -67,29 +52,17 @@ export default function Navbar() {
   const [selectedCategory, setSelectedCategory] = useState('All');
 
   const cartRef = useRef(null);
-  const accountRef = useRef(null);
   const searchRef = useRef(null);
 
   const [suggestions, setSuggestions] = useState([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [isSearchSuggestionsOpen, setIsSearchSuggestionsOpen] = useState(false);
 
-  useEffect(() => {
-    if (!user) {
-      setAvatarUrl(null);
-      return;
-    }
-    setAvatarUrl(resolveAvatarUrl(user));
-  }, [user]);
-
   // Click outside listener for dropdowns
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (cartRef.current && !cartRef.current.contains(event.target)) {
         setIsCartOpen(false);
-      }
-      if (accountRef.current && !accountRef.current.contains(event.target)) {
-        setIsAccountDropdownOpen(false);
       }
       if (searchRef.current && !searchRef.current.contains(event.target)) {
         setIsSearchSuggestionsOpen(false);
@@ -245,9 +218,7 @@ export default function Navbar() {
     }
   };
 
-  const handleUserIconClick = () => {
-    setIsAccountDropdownOpen(!isAccountDropdownOpen);
-  };
+
 
   const handleRemoveCartItem = async (e, cartItemId) => {
     e.preventDefault();
@@ -525,137 +496,18 @@ export default function Navbar() {
                 )}
               </div>
 
-              {/* Account Dropdown Trigger */}
-              <div className="relative flex items-center" ref={accountRef}>
-                <button 
-                  onClick={handleUserIconClick}
-                  className="flex items-center justify-center text-slate-850 hover:text-[#16A34A] transition-colors relative focus:outline-none"
-                  title={isLoggedIn ? 'Account Options' : 'Sign In'}
-                >
-                  <div className="w-6 h-6 rounded-full border border-slate-300 flex items-center justify-center overflow-hidden bg-white">
-                    {avatarUrl ? (
-                      <img src={avatarUrl} alt={accountLabel} className="w-full h-full object-cover" />
-                    ) : (
-                      <User className="w-3.5 h-3.5 text-slate-600" />
-                    )}
-                  </div>
-                </button>
-
-                {/* Account Dropdown Options */}
-                {isAccountDropdownOpen && (
-                  <div className="absolute right-[-12px] mt-72 w-60 bg-white border border-gray-200 rounded-2xl shadow-xl z-50 overflow-hidden font-inter text-slate-800 animate-in fade-in slide-in-from-top-2 duration-200">
-                    {isLoggedIn ? (
-                      <div className="p-3.5 border-b border-gray-150 bg-gray-50 flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-full bg-[#16A34A] flex items-center justify-center text-white text-xs font-bold">
-                          {accountInitial}
-                        </div>
-                        <div className="min-w-0">
-                          <p className="font-bold text-xs truncate leading-tight text-slate-800">{accountLabel}</p>
-                          <span className="text-[9px] font-bold text-emerald-600 uppercase tracking-wider">Verified User</span>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="p-3.5 border-b border-gray-150 bg-gray-50 text-center">
-                        <p className="text-[11px] text-gray-500 mb-2 font-medium">Welcome to Jhapcham</p>
-                        <button
-                          onClick={() => {
-                            setIsAccountDropdownOpen(false);
-                            setIsLoginModalOpen(true);
-                          }}
-                          className="w-full py-1.5 bg-[#16A34A] text-white text-xs font-bold rounded-lg hover:bg-emerald-700 transition-colors shadow-xs"
-                        >
-                          Sign In / Register
-                        </button>
-                      </div>
-                    )}
-                    <div className="py-1 text-xs">
-                      {isLoggedIn && (
-                        <>
-                          {user?.role === 'SELLER' ? (
-                            <>
-                              <Link to="/seller/dashboard" onClick={() => setIsAccountDropdownOpen(false)} className="block px-4 py-2 hover:bg-emerald-50/50 hover:text-emerald-600 transition-colors font-medium">
-                                Seller Dashboard
-                              </Link>
-                              <Link to="/seller/profile" onClick={() => setIsAccountDropdownOpen(false)} className="block px-4 py-2 hover:bg-emerald-50/50 hover:text-emerald-600 transition-colors font-medium">
-                                Store Profile
-                              </Link>
-                              <Link to="/seller/products" onClick={() => setIsAccountDropdownOpen(false)} className="block px-4 py-2 hover:bg-emerald-50/50 hover:text-emerald-600 transition-colors font-medium">
-                                My Products
-                              </Link>
-                              <Link to="/seller/orders" onClick={() => setIsAccountDropdownOpen(false)} className="block px-4 py-2 hover:bg-emerald-50/50 hover:text-emerald-600 transition-colors font-medium">
-                                Manage Orders
-                              </Link>
-                              <Link to="/seller/settings" onClick={() => setIsAccountDropdownOpen(false)} className="block px-4 py-2 hover:bg-emerald-50/50 hover:text-emerald-600 transition-colors font-medium">
-                                Store Settings
-                              </Link>
-                            </>
-                          ) : user?.role === 'ADMIN' ? (
-                            <>
-                              <Link to="/admin/dashboard" onClick={() => setIsAccountDropdownOpen(false)} className="block px-4 py-2 hover:bg-emerald-50/50 hover:text-emerald-600 transition-colors font-medium">
-                                Admin Dashboard
-                              </Link>
-                              <Link to="/admin/users" onClick={() => setIsAccountDropdownOpen(false)} className="block px-4 py-2 hover:bg-emerald-50/50 hover:text-emerald-600 transition-colors font-medium">
-                                Manage Users
-                              </Link>
-                              <Link to="/admin/sellers" onClick={() => setIsAccountDropdownOpen(false)} className="block px-4 py-2 hover:bg-emerald-50/50 hover:text-emerald-600 transition-colors font-medium">
-                                Manage Sellers
-                              </Link>
-                              <Link to="/admin/settings" onClick={() => setIsAccountDropdownOpen(false)} className="block px-4 py-2 hover:bg-emerald-50/50 hover:text-emerald-600 transition-colors font-medium">
-                                Admin Settings
-                              </Link>
-                            </>
-                          ) : (
-                            <>
-                              <Link to="/customer/dashboard" onClick={() => setIsAccountDropdownOpen(false)} className="block px-4 py-2 hover:bg-emerald-50/50 hover:text-emerald-600 transition-colors font-medium">
-                                My Dashboard
-                              </Link>
-                              <Link to="/customer/profile" onClick={() => setIsAccountDropdownOpen(false)} className="block px-4 py-2 hover:bg-emerald-50/50 hover:text-emerald-600 transition-colors font-medium">
-                                My Profile
-                              </Link>
-                              <Link to="/customer/orders" onClick={() => setIsAccountDropdownOpen(false)} className="block px-4 py-2 hover:bg-emerald-50/50 hover:text-emerald-600 transition-colors font-medium">
-                                My Orders
-                              </Link>
-                            </>
-                          )}
-                          <div className="border-t border-gray-100 my-1" />
-                        </>
-                      )}
-
-                      {/* Utility items merged into Account dropdown */}
-                      <Link to="/customer/orders" onClick={() => setIsAccountDropdownOpen(false)} className="px-4 py-2 hover:bg-emerald-50/50 hover:text-emerald-600 flex items-center gap-2 transition-colors text-gray-650">
-                        <Package className="w-3.5 h-3.5 text-gray-400" />
-                        <span>Track Order</span>
-                      </Link>
-
-                      <Link to="/help" onClick={() => setIsAccountDropdownOpen(false)} className="px-4 py-2 hover:bg-emerald-50/50 hover:text-emerald-600 flex items-center gap-2 transition-colors text-gray-650">
-                        <HelpCircle className="w-3.5 h-3.5 text-gray-400" />
-                        <span>Help & FAQs</span>
-                      </Link>
-
-                      {!(user?.role === 'SELLER' || user?.role === 'ADMIN') && (
-                        <Link to="/register" onClick={() => setIsAccountDropdownOpen(false)} className="px-4 py-2 hover:bg-emerald-50/50 hover:text-emerald-600 flex items-center gap-2 transition-colors text-amber-600 font-semibold">
-                          <User className="w-3.5 h-3.5 text-amber-500" />
-                          <span>Sell on Jhapcham</span>
-                        </Link>
-                      )}
-
-                      <div className="px-4 py-2 flex items-center gap-2 text-gray-400 select-none">
-                        <Globe className="w-3.5 h-3.5" />
-                        <span className="text-gray-500 font-medium">Currency: <strong className="text-slate-700">NPR</strong></span>
-                      </div>
-
-                      {isLoggedIn && (
-                        <button 
-                          onClick={() => { logoutUser(); setIsAccountDropdownOpen(false); }}
-                          className="w-full text-left px-4 py-2 border-t border-gray-100 hover:bg-slate-900 hover:text-white text-red-600 transition-colors font-semibold"
-                        >
-                          Sign Out
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
+              {/* Account Dropdown */}
+              <UserDropdown
+                user={user}
+                unreadNotifs={unreadNotifs}
+                wishlistCount={wishlistIds?.size || 0}
+                cartCount={cartCount}
+                onLogout={logoutUser}
+                onRequireLogin={(tab) => {
+                  setAuthModalTab(tab);
+                  setIsLoginModalOpen(true);
+                }}
+              />
 
             </div>
 
@@ -897,7 +749,7 @@ export default function Navbar() {
       <LoginModal 
         isOpen={isLoginModalOpen} 
         onClose={() => setIsLoginModalOpen(false)} 
-        initialTab="login"
+        initialTab={authModalTab}
         initialRole="CUSTOMER"
       />
     </header>

@@ -26,13 +26,13 @@ export default function AdminRefundList({
   return (
     <div className="max-w-5xl mx-auto p-4 lg:p-6 space-y-6">
       {/* Filters */}
-      <div className="flex gap-2 bg-gray-50 border border-gray-200 rounded-xl p-1.5">
+      <div className={`flex gap-2 border rounded-xl p-1.5 transition-colors ${themeClasses.bg.secondary} ${themeClasses.border.primary}`}>
         <button
           onClick={() => setFilter('DISPUTES')}
           className={`flex-1 py-2 text-xs font-bold rounded-lg uppercase transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
             filter === 'DISPUTES'
-              ? 'bg-white text-gray-800 border border-gray-200 shadow-sm'
-              : 'text-gray-400 hover:text-gray-655'
+              ? `${themeClasses.bg.primary} ${themeClasses.text.primary} border ${themeClasses.border.primary} shadow-xs`
+              : `${themeClasses.text.tertiary} hover:${themeClasses.text.secondary}`
           }`}
         >
           <Gavel size={14} />
@@ -47,8 +47,8 @@ export default function AdminRefundList({
           onClick={() => setFilter('PAYMENTS')}
           className={`flex-1 py-2 text-xs font-bold rounded-lg uppercase transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
             filter === 'PAYMENTS'
-              ? 'bg-white text-gray-800 border border-gray-200 shadow-sm'
-              : 'text-gray-455 hover:text-gray-655'
+              ? `${themeClasses.bg.primary} ${themeClasses.text.primary} border ${themeClasses.border.primary} shadow-xs`
+              : `${themeClasses.text.tertiary} hover:${themeClasses.text.secondary}`
           }`}
         >
           <CreditCard size={14} />
@@ -63,8 +63,8 @@ export default function AdminRefundList({
           onClick={() => setFilter('ALL')}
           className={`flex-1 py-2 text-xs font-bold rounded-lg uppercase transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
             filter === 'ALL'
-              ? 'bg-white text-gray-800 border border-gray-200 shadow-sm'
-              : 'text-gray-400 hover:text-gray-655'
+              ? `${themeClasses.bg.primary} ${themeClasses.text.primary} border ${themeClasses.border.primary} shadow-xs`
+              : `${themeClasses.text.tertiary} hover:${themeClasses.text.secondary}`
           }`}
         >
           <ShoppingBag size={14} />
@@ -74,15 +74,15 @@ export default function AdminRefundList({
 
       {/* List content */}
       {loading ? (
-        <div className="py-16 text-center text-gray-450">
-          <RefreshCw size={24} className="animate-spin mx-auto mb-3 text-[#e8f3e9]0" />
+        <div className={`py-16 text-center transition-colors ${themeClasses.text.tertiary}`}>
+          <RefreshCw size={24} className="animate-spin mx-auto mb-3" />
           <p className="text-xs font-black uppercase tracking-wider">Loading refunds desk...</p>
         </div>
       ) : displayRefunds.length === 0 ? (
-        <div className="bg-white border border-dashed border-gray-300 rounded-xl p-10 text-center text-gray-450">
-          <ShieldAlert size={32} className="mx-auto mb-3 text-gray-300" />
+        <div className={`border border-dashed rounded-[20px] p-10 text-center transition-colors ${themeClasses.card} ${themeClasses.border.primary} ${themeClasses.text.tertiary}`}>
+          <ShieldAlert size={32} className={`mx-auto mb-3 transition-colors ${themeClasses.text.tertiary}`} />
           <p className="text-sm font-bold">Queue is empty</p>
-          <p className="text-xs text-gray-400 mt-1">No requests match your current selected filter.</p>
+          <p className="text-xs mt-1">No requests match your current selected filter.</p>
         </div>
       ) : (
         <div className="space-y-3">

@@ -48,7 +48,7 @@ export default function AdminAuditLogs() {
         <button
           onClick={() => loadLogs(pageInfo.number)}
           disabled={loading}
-          className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-xs font-black uppercase transition-colors ${themeClasses.button.outline} disabled:opacity-60`}
+          className={`inline-flex items-center gap-2 rounded-xl border px-4 py-2.5 text-xs font-black uppercase transition-colors cursor-pointer ${themeClasses.button.outline} disabled:opacity-60`}
         >
           <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
           Refresh
@@ -56,10 +56,10 @@ export default function AdminAuditLogs() {
       }
     >
       <div className="mx-auto max-w-7xl space-y-5 p-4 lg:p-6">
-        <div className={`rounded-lg border shadow-sm p-5 transition-colors ${themeClasses.card}`}>
+        <div className={`rounded-[20px] border p-5 shadow-[0_8px_30px_rgba(0,0,0,0.03)] transition-colors ${themeClasses.card}`}>
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div className="flex items-center gap-3">
-              <span className={`flex h-11 w-11 items-center justify-center rounded-lg transition-colors ${themeClasses.status.success}`}>
+              <span className={`flex h-11 w-11 items-center justify-center rounded-xl transition-colors ${themeClasses.status.success}`}>
                 <ShieldCheck size={21} />
               </span>
               <div>
@@ -80,10 +80,10 @@ export default function AdminAuditLogs() {
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
                   placeholder="Search action, target, or admin..."
-                  className={`w-full rounded-lg border py-2 pl-9 pr-3 text-sm font-semibold outline-none focus:border-emerald-300 transition-colors ${themeClasses.bg.secondary} ${themeClasses.border.primary} ${themeClasses.text.primary}`}
+                  className={`w-full rounded-xl border py-2.5 pl-9 pr-3 text-xs font-semibold outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-colors ${themeClasses.bg.secondary} ${themeClasses.border.primary} ${themeClasses.text.primary}`}
                 />
               </div>
-              <button className={`rounded-lg px-4 py-2 text-xs font-black uppercase transition-colors ${themeClasses.button.primary}`}>
+              <button className={`rounded-xl px-5 py-2.5 text-xs font-black uppercase transition-colors cursor-pointer ${themeClasses.button.primary}`}>
                 Search
               </button>
             </form>
@@ -91,18 +91,18 @@ export default function AdminAuditLogs() {
         </div>
 
         {error && (
-          <div className={`rounded-lg border px-4 py-3 text-sm font-semibold transition-colors ${themeClasses.status.danger}`}>
+          <div className={`rounded-xl border px-4 py-3 text-xs font-bold transition-colors ${themeClasses.status.danger}`}>
             {error}
           </div>
         )}
 
-        <div className={`overflow-hidden rounded-lg border shadow-sm transition-colors ${themeClasses.card}`}>
+        <div className={`overflow-hidden rounded-[20px] border transition-colors ${themeClasses.card}`}>
           <div className="overflow-x-auto">
             <table className={`min-w-full divide-y transition-colors ${themeClasses.border.primary}`}>
               <thead className={`transition-colors ${themeClasses.bg.secondary}`}>
                 <tr>
                   {['Time', 'Admin', 'Action', 'Target', 'Summary', 'Metadata'].map((head) => (
-                    <th key={head} className={`px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest transition-colors ${themeClasses.text.tertiary}`}>
+                    <th key={head} className={`px-5 py-4 text-left text-[11px] font-black uppercase tracking-wider transition-colors ${themeClasses.text.tertiary}`}>
                       {head}
                     </th>
                   ))}
@@ -111,43 +111,43 @@ export default function AdminAuditLogs() {
               <tbody className={`divide-y transition-colors ${themeClasses.border.primary}`}>
                 {logs.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className={`px-4 py-10 text-center text-sm font-semibold transition-colors ${themeClasses.text.tertiary}`}>
+                    <td colSpan={6} className={`px-5 py-10 text-center text-xs font-semibold transition-colors ${themeClasses.text.tertiary}`}>
                       {loading ? 'Loading audit logs...' : 'No audit logs found.'}
                     </td>
                   </tr>
                 ) : logs.map((log) => (
                   <tr key={log.id} className={`transition-colors hover:${themeClasses.bg.secondary}`}>
-                    <td className={`whitespace-nowrap px-4 py-3 text-xs font-semibold transition-colors ${themeClasses.text.secondary}`}>{dateTime(log.createdAt)}</td>
-                    <td className={`whitespace-nowrap px-4 py-3 text-xs font-black transition-colors ${themeClasses.text.primary}`}>{log.actorUsername || 'SYSTEM'}</td>
-                    <td className="whitespace-nowrap px-4 py-3">
-                      <span className={`rounded-md border px-2 py-1 text-[10px] font-black uppercase tracking-wider transition-colors ${themeClasses.status.success}`}>
+                    <td className={`whitespace-nowrap px-5 py-4 text-xs font-semibold transition-colors ${themeClasses.text.secondary}`}>{dateTime(log.createdAt)}</td>
+                    <td className={`whitespace-nowrap px-5 py-4 text-xs font-black transition-colors ${themeClasses.text.primary}`}>{log.actorUsername || 'SYSTEM'}</td>
+                    <td className="whitespace-nowrap px-5 py-4">
+                      <span className={`rounded-xl border px-2.5 py-1 text-[10px] font-black uppercase tracking-wider transition-colors ${themeClasses.status.success}`}>
                         {nice(log.action)}
                       </span>
                     </td>
-                    <td className={`whitespace-nowrap px-4 py-3 text-xs font-semibold transition-colors ${themeClasses.text.secondary}`}>
+                    <td className={`whitespace-nowrap px-5 py-4 text-xs font-semibold transition-colors ${themeClasses.text.secondary}`}>
                       {nice(log.targetType)} #{log.targetId || 'N/A'}
                     </td>
-                    <td className={`min-w-[260px] px-4 py-3 text-xs font-semibold transition-colors ${themeClasses.text.secondary}`}>{log.summary}</td>
-                    <td className={`max-w-[320px] truncate px-4 py-3 font-mono text-[10px] transition-colors ${themeClasses.text.tertiary}`}>{log.metadata || '-'}</td>
+                    <td className={`min-w-[260px] px-5 py-4 text-xs font-semibold transition-colors ${themeClasses.text.secondary}`}>{log.summary}</td>
+                    <td className={`max-w-[320px] truncate px-5 py-4 font-mono text-[10px] transition-colors ${themeClasses.text.tertiary}`}>{log.metadata || '-'}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-          <div className={`flex items-center justify-between border-t px-4 py-3 text-xs font-bold transition-colors ${themeClasses.border.primary} ${themeClasses.text.tertiary}`}>
+          <div className={`flex items-center justify-between border-t px-6 py-4 text-xs font-bold transition-colors ${themeClasses.border.primary} ${themeClasses.text.tertiary}`}>
             <span>Page {pageInfo.number + 1} of {Math.max(pageInfo.totalPages, 1)}</span>
             <div className="flex gap-2">
               <button
                 disabled={loading || pageInfo.number <= 0}
                 onClick={() => loadLogs(pageInfo.number - 1)}
-                className={`rounded-md border px-3 py-1.5 transition-colors disabled:opacity-50 ${themeClasses.button.outline}`}
+                className={`rounded-xl border px-4 py-2 transition-colors cursor-pointer disabled:opacity-50 ${themeClasses.button.outline}`}
               >
                 Previous
               </button>
               <button
                 disabled={loading || pageInfo.number + 1 >= pageInfo.totalPages}
                 onClick={() => loadLogs(pageInfo.number + 1)}
-                className={`rounded-md border px-3 py-1.5 transition-colors disabled:opacity-50 ${themeClasses.button.outline}`}
+                className={`rounded-xl border px-4 py-2 transition-colors cursor-pointer disabled:opacity-50 ${themeClasses.button.outline}`}
               >
                 Next
               </button>
