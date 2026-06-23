@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import {
-  getSellerDashboardStats, getSellerInventory, getSellerOrders
+  getSellerDashboardStats, getSellerInventory, getSellerOrders, getSellerProfile
 } from '../services/sellerService';
 import { useSellerTheme } from '../hooks/useSellerTheme';
 import { Sparkles, TrendingUp, TrendingDown, Tag, Package, Lightbulb, AlertTriangle } from 'lucide-react';
@@ -31,10 +31,13 @@ const SellerInsights = () => {
   useEffect(() => {
     const fetchInsightsData = async () => {
       try {
+        const profileRes = await getSellerProfile().catch(() => ({ data: {} }));
+        const userId = profileRes.data?.userId;
+
         const [statsRes, inventoryRes, ordersRes] = await Promise.all([
           getSellerDashboardStats().catch(() => ({ data: {} })),
           getSellerInventory().catch(() => ({ data: [] })),
-          getSellerOrders().catch(() => ({ data: [] }))
+          userId ? getSellerOrders(userId).catch(() => ({ data: [] })) : Promise.resolve({ data: [] })
         ]);
 
         const inventoryList = inventoryRes?.data?.content || inventoryRes?.data || [];

@@ -85,7 +85,7 @@ export const ToastProvider = ({ children }) => {
               toastState.type === 'warning' ? '#FFFBEB' : '#EFF6FF',
             borderLeft: `5px solid ${
               toastState.type === 'error' ? '#EF4444' :
-              toastState.type === 'success' ? '#10B981' :
+              toastState.type === 'success' ? '#16A34A' :
               toastState.type === 'warning' ? '#F59E0B' : '#3B82F6'
             }`,
             animation: 'slideInRight 0.3s ease-out',
@@ -94,7 +94,7 @@ export const ToastProvider = ({ children }) => {
           <div className="flex-1 p-4 flex items-start gap-3">
             <div className="shrink-0 mt-0.5">
               {toastState.type === 'error' && <AlertCircle className="w-5 h-5 text-[#EF4444]" />}
-              {toastState.type === 'success' && <CheckCircle className="w-5 h-5 text-[#10B981]" />}
+              {toastState.type === 'success' && <CheckCircle className="w-5 h-5 text-[#16A34A]" />}
               {toastState.type === 'warning' && <AlertTriangle className="w-5 h-5 text-[#F59E0B]" />}
               {toastState.type === 'info' && <Info className="w-5 h-5 text-[#3B82F6]" />}
             </div>

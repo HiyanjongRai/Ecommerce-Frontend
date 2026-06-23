@@ -127,7 +127,8 @@ const Checkout = () => {
   const [step, setStep] = useState(1);
 
   // LocationIQ Integration
-  const LOCATIONIQ_API_KEY = 'pk.fd5c30a78c687b73c6f36ad5a5123e33'; // Real LocationIQ key
+  const LOCATIONIQ_API_KEY = process.env.REACT_APP_LOCATIONIQ_API_KEY || '';
+  const APP_ORIGIN = window.location.origin;
   const [addressSuggestions, setAddressSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [detectingLocation, setDetectingLocation] = useState(false);
@@ -238,6 +239,11 @@ const Checkout = () => {
     
     if (val.length > 3) {
       try {
+        if (!LOCATIONIQ_API_KEY) {
+          setAddressSuggestions([]);
+          setShowSuggestions(false);
+          return;
+        }
         const res = await fetch(`https://us1.locationiq.com/v1/autocomplete.php?key=${LOCATIONIQ_API_KEY}&q=${encodeURIComponent(val)}&limit=5&countrycodes=np&addressdetails=1`);
         if (res.ok) {
           const data = await res.json();
@@ -310,6 +316,10 @@ const Checkout = () => {
       async (position) => {
         try {
           const { latitude, longitude } = position.coords;
+          if (!LOCATIONIQ_API_KEY) {
+            alert("Address lookup is unavailable until the LocationIQ API key is configured.");
+            return;
+          }
           const res = await fetch(`https://us1.locationiq.com/v1/reverse.php?key=${LOCATIONIQ_API_KEY}&lat=${latitude}&lon=${longitude}&format=json&addressdetails=1`);
           if (res.ok) {
             const data = await res.json();
@@ -394,8 +404,8 @@ const Checkout = () => {
           product_code: sigData.productCode,
           product_service_charge: '0.00',
           product_delivery_charge: '0.00',
-          success_url: `http://localhost:3000/payment/success`,
-          failure_url: `http://localhost:3000/payment/failure`,
+          success_url: `${APP_ORIGIN}/payment/success`,
+          failure_url: `${APP_ORIGIN}/payment/failure`,
           signed_field_names: 'total_amount,transaction_uuid,product_code',
           signature: sigData.signature,
           paymentUrl: sigData.paymentUrl

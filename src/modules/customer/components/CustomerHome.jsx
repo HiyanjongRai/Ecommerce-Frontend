@@ -203,105 +203,105 @@ const CustomerHome = () => {
 
       {/* ── Hero Banner ── */}
       <div
-        className="relative overflow-hidden rounded-[20px] py-4 px-6 shadow-[0_8px_30px_rgba(22,163,74,0.08)] border border-emerald-800/10"
+        className="relative overflow-hidden rounded-[16px] py-3 px-5 shadow-[0_4px_20px_rgba(22,163,74,0.06)] border border-emerald-800/10"
         style={{ background: 'linear-gradient(135deg, #111827 0%, #064e3b 100%)' }}
       >
-        <div className="absolute right-0 top-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute right-0 top-0 w-48 h-48 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 z-10">
+        <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 z-10">
           <div>
-            <h2 className="text-white text-2xl font-bold leading-tight tracking-tight">
+            <h2 className="text-white text-lg md:text-xl font-bold leading-tight tracking-tight">
               Welcome back, {firstName}! 👋
             </h2>
-            <p className="text-gray-300 text-xs font-semibold mt-1">
+            <p className="text-gray-300 text-[10px] font-semibold mt-0.5">
               {today} • Track and manage your orders
             </p>
           </div>
           {/* Loyalty Widget */}
-          <div className="flex-shrink-0 flex items-center gap-3 bg-white/[0.04] backdrop-blur-md border border-white/[0.08] rounded-xl px-3 py-1.5 shadow-sm">
-            <div className="w-7 h-7 rounded-full bg-white/5 flex items-center justify-center border border-white/10">
-              <svg className="w-3.5 h-3.5 text-yellow-400" fill="currentColor" viewBox="0 0 24 24">
+          <div className="flex-shrink-0 flex items-center gap-2 bg-white/[0.04] backdrop-blur-md border border-white/[0.08] rounded-lg px-2 py-1 shadow-sm">
+            <div className="w-5.5 h-5.5 rounded-full bg-white/5 flex items-center justify-center border border-white/10">
+              <svg className="w-2.5 h-2.5 text-yellow-400" fill="currentColor" viewBox="0 0 24 24">
                 <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
               </svg>
             </div>
             <div>
-              <p className="text-[8px] text-white/50 font-black uppercase tracking-widest mb-0.5">Tier</p>
-              <p className="text-white text-[11px] font-black" style={{ color: tier.color === '#92400e' ? '#fbbf24' : tier.color }}>
+              <p className="text-[7px] text-white/50 font-black uppercase tracking-widest mb-0.5">Tier</p>
+              <p className="text-white text-[9.5px] font-black leading-none" style={{ color: tier.color === '#92400e' ? '#fbbf24' : tier.color }}>
                 {tier.label}
               </p>
             </div>
-            <div className="w-px h-5 bg-white/10 mx-1" />
+            <div className="w-px h-4 bg-white/10 mx-0.5" />
             <div>
-              <p className="text-[8px] text-white/50 font-black uppercase tracking-widest mb-0.5">Points</p>
-              <p className="text-white text-[11px] font-black">{loyaltyPts.toLocaleString()} pts</p>
+              <p className="text-[7px] text-white/50 font-black uppercase tracking-widest mb-0.5">Points</p>
+              <p className="text-white text-[9.5px] font-black leading-none">{loyaltyPts.toLocaleString()} pts</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* ── Stat Cards ── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
         {/* 1. Total Orders */}
-        <div className="bg-white border border-[#E5E7EB] rounded-[20px] p-5 shadow-[0_8px_24px_rgba(0,0,0,0.06)] flex flex-col justify-between min-h-[130px] hover:shadow-[0_12px_32px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 transition-all duration-300">
+        <div className="bg-white border border-[#E5E7EB] rounded-[16px] p-4 shadow-[0_4px_16px_rgba(0,0,0,0.04)] flex flex-col justify-between min-h-[105px] hover:shadow-[0_8px_24px_rgba(0,0,0,0.06)] hover:-translate-y-0.5 transition-all duration-300">
           <div className="flex items-center justify-between">
-            <p className="text-[11px] font-black uppercase tracking-wider text-gray-400">Total Orders</p>
-            <div className="w-9 h-9 rounded-xl bg-gray-50 flex items-center justify-center border border-[#E5E7EB] shadow-xs">
-              <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+            <p className="text-[9px] font-black uppercase tracking-wider text-gray-400">Total Orders</p>
+            <div className="w-7.5 h-7.5 rounded-lg bg-gray-50 flex items-center justify-center border border-[#E5E7EB] shadow-xs">
+              <svg className="w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                 <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
               </svg>
             </div>
           </div>
-          <div className="mt-3">
-            <p className="text-[28px] lg:text-[32px] font-bold text-slate-800 leading-none tracking-tight">{totalOrders}</p>
-            <p className="text-[11px] text-gray-500 font-semibold mt-2">{delivered} orders delivered</p>
+          <div className="mt-2">
+            <p className="text-xl lg:text-2xl font-bold text-slate-800 leading-none tracking-tight">{totalOrders}</p>
+            <p className="text-[9px] text-gray-500 font-semibold mt-1">{delivered} orders delivered</p>
           </div>
         </div>
 
         {/* 2. Active Orders */}
-        <div className="bg-white border border-[#E5E7EB] rounded-[20px] p-5 shadow-[0_8px_24px_rgba(0,0,0,0.06)] flex flex-col justify-between min-h-[130px] hover:shadow-[0_12px_32px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 transition-all duration-300">
+        <div className="bg-white border border-[#E5E7EB] rounded-[16px] p-4 shadow-[0_4px_16px_rgba(0,0,0,0.04)] flex flex-col justify-between min-h-[105px] hover:shadow-[0_8px_24px_rgba(0,0,0,0.06)] hover:-translate-y-0.5 transition-all duration-300">
           <div className="flex items-center justify-between">
-            <p className="text-[11px] font-black uppercase tracking-wider text-gray-400">Active Orders</p>
-            <div className="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center border border-amber-100 shadow-xs">
-              <svg className="w-4 h-4 text-[#F59E0B]" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+            <p className="text-[9px] font-black uppercase tracking-wider text-gray-400">Active Orders</p>
+            <div className="w-7.5 h-7.5 rounded-lg bg-amber-50 flex items-center justify-center border border-amber-100 shadow-xs">
+              <svg className="w-3.5 h-3.5 text-[#F59E0B]" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                 <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
               </svg>
             </div>
           </div>
-          <div className="mt-3">
-            <p className="text-[28px] lg:text-[32px] font-bold text-slate-800 leading-none tracking-tight">{activeOrders}</p>
-            <p className="text-[11px] text-gray-500 font-semibold mt-2">In progress & tracking</p>
+          <div className="mt-2">
+            <p className="text-xl lg:text-2xl font-bold text-slate-800 leading-none tracking-tight">{activeOrders}</p>
+            <p className="text-[9px] text-gray-500 font-semibold mt-1">In progress & tracking</p>
           </div>
         </div>
 
         {/* 3. Total Spending */}
-        <div className="bg-white border border-[#E5E7EB] rounded-[20px] p-5 shadow-[0_8px_24px_rgba(0,0,0,0.06)] flex flex-col justify-between min-h-[130px] hover:shadow-[0_12px_32px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 transition-all duration-300">
+        <div className="bg-white border border-[#E5E7EB] rounded-[16px] p-4 shadow-[0_4px_16px_rgba(0,0,0,0.04)] flex flex-col justify-between min-h-[105px] hover:shadow-[0_8px_24px_rgba(0,0,0,0.06)] hover:-translate-y-0.5 transition-all duration-300">
           <div className="flex items-center justify-between">
-            <p className="text-[11px] font-black uppercase tracking-wider text-gray-400">Total Spent</p>
-            <div className="w-9 h-9 rounded-xl bg-[#f0fdf4] flex items-center justify-center border border-emerald-100 shadow-xs">
-              <svg className="w-4 h-4 text-[#16A34A]" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+            <p className="text-[9px] font-black uppercase tracking-wider text-gray-400">Total Spent</p>
+            <div className="w-7.5 h-7.5 rounded-lg bg-[#f0fdf4] flex items-center justify-center border border-emerald-100 shadow-xs">
+              <svg className="w-3.5 h-3.5 text-[#16A34A]" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                 <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
               </svg>
             </div>
           </div>
-          <div className="mt-3">
-            <p className="text-[28px] lg:text-[32px] font-bold text-slate-800 leading-none tracking-tight">Rs. {totalSpent.toLocaleString()}</p>
-            <p className="text-[11px] text-gray-500 font-semibold mt-2">Avg. Rs. {avgOrder.toLocaleString()} / order</p>
+          <div className="mt-2">
+            <p className="text-xl lg:text-2xl font-bold text-slate-800 leading-none tracking-tight">Rs. {totalSpent.toLocaleString()}</p>
+            <p className="text-[9px] text-gray-500 font-semibold mt-1">Avg. Rs. {avgOrder.toLocaleString()} / order</p>
           </div>
         </div>
 
         {/* 4. Loyalty Points */}
-        <div className="bg-white border border-[#E5E7EB] rounded-[20px] p-5 shadow-[0_8px_24px_rgba(0,0,0,0.06)] flex flex-col justify-between min-h-[130px] hover:shadow-[0_12px_32px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 transition-all duration-300">
+        <div className="bg-white border border-[#E5E7EB] rounded-[16px] p-4 shadow-[0_4px_16px_rgba(0,0,0,0.04)] flex flex-col justify-between min-h-[105px] hover:shadow-[0_8px_24px_rgba(0,0,0,0.06)] hover:-translate-y-0.5 transition-all duration-300">
           <div className="flex items-center justify-between">
-            <p className="text-[11px] font-black uppercase tracking-wider text-gray-400">Points Balance</p>
-            <div className="w-9 h-9 rounded-xl bg-yellow-50 flex items-center justify-center border border-yellow-100/50 shadow-xs">
-              <svg className="w-4 h-4 text-[#F59E0B]" fill="currentColor" viewBox="0 0 24 24">
+            <p className="text-[9px] font-black uppercase tracking-wider text-gray-400">Points Balance</p>
+            <div className="w-7.5 h-7.5 rounded-lg bg-yellow-50 flex items-center justify-center border border-yellow-100/50 shadow-xs">
+              <svg className="w-3.5 h-3.5 text-[#F59E0B]" fill="currentColor" viewBox="0 0 24 24">
                 <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
               </svg>
             </div>
           </div>
-          <div className="mt-3">
-            <p className="text-[28px] lg:text-[32px] font-bold text-slate-800 leading-none tracking-tight">{loyaltyPts.toLocaleString()}</p>
-            <p className="text-[11px] font-bold mt-2" style={{ color: tier.color === '#92400e' ? '#d97706' : tier.color }}>
+          <div className="mt-2">
+            <p className="text-xl lg:text-2xl font-bold text-slate-800 leading-none tracking-tight">{loyaltyPts.toLocaleString()}</p>
+            <p className="text-[9px] font-bold mt-1" style={{ color: tier.color === '#92400e' ? '#d97706' : tier.color }}>
               {tier.label} Member
             </p>
           </div>
@@ -312,22 +312,22 @@ const CustomerHome = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
 
         {/* Left Column: Recent Orders */}
-        <div className="lg:col-span-2 space-y-4">
-          <div className="flex items-center justify-between px-2">
-            <h3 className="text-xs font-black uppercase tracking-wider text-gray-400">Recent Orders</h3>
+        <div className="lg:col-span-2 space-y-3.5">
+          <div className="flex items-center justify-between px-1.5">
+            <h3 className="text-[10px] font-black uppercase tracking-wider text-gray-400">Recent Orders</h3>
             <Link
               to="/customer/orders"
-              className="text-xs font-black text-[#16A34A] hover:text-emerald-700 transition-colors flex items-center gap-1.5"
+              className="text-[10px] font-black text-[#16A34A] hover:text-[#15803D] transition-colors flex items-center gap-1.5"
             >
               View all
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                 <path d="M5 12h14M12 5l7 7-7 7"/>
               </svg>
             </Link>
           </div>
 
           {loading ? (
-            <div className="flex items-center gap-3 p-12 justify-center text-gray-450 text-xs font-black uppercase tracking-wider bg-white rounded-[20px] border border-gray-100 shadow-[0_8px_30px_rgba(0,0,0,0.02)]">
+            <div className="flex items-center gap-3 p-10 justify-center text-gray-450 text-[11px] font-black uppercase tracking-wider bg-white rounded-[16px] border border-gray-100 shadow-[0_4px_16px_rgba(0,0,0,0.02)]">
               <svg className="animate-spin w-4 h-4 text-[#16A34A]" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
@@ -335,20 +335,20 @@ const CustomerHome = () => {
               Fetching recent orders...
             </div>
           ) : orders.length === 0 ? (
-            <div className="text-center py-16 px-6 bg-white rounded-[20px] border border-gray-100 shadow-[0_8px_30px_rgba(0,0,0,0.02)]">
-              <div className="w-14 h-14 bg-gray-50 border border-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm">
-                <svg className="w-6 h-6 text-gray-350" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+            <div className="text-center py-12 px-5 bg-white rounded-[16px] border border-gray-100 shadow-[0_4px_16px_rgba(0,0,0,0.02)]">
+              <div className="w-11 h-11 bg-gray-50 border border-gray-100 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-sm">
+                <svg className="w-5 h-5 text-gray-350" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                   <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
                 </svg>
               </div>
-              <p className="text-xs font-black text-gray-900 uppercase tracking-wider mb-1.5">No orders yet</p>
-              <p className="text-xs text-gray-505 font-semibold">Your purchase history will appear here.</p>
-              <Link to="/" className="inline-flex mt-5 bg-[#16A34A] hover:bg-emerald-700 text-white text-xs font-black uppercase tracking-wider px-5 py-2.5 rounded-xl transition-colors shadow-sm">
+              <p className="text-[10px] font-black text-gray-900 uppercase tracking-wider mb-1">No orders yet</p>
+              <p className="text-[10px] text-gray-505 font-semibold">Your purchase history will appear here.</p>
+              <Link to="/" className="inline-flex mt-4 bg-[#16A34A] hover:bg-emerald-700 text-[10px] font-black uppercase tracking-wider px-4 py-2 rounded-lg transition-colors shadow-sm">
                 Start Shopping
               </Link>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3">
               {orders.slice(0, 5).map(o => {
                 const productName = o.productNames || 'Order Items';
                 const productImage = o.productImage;
@@ -361,25 +361,25 @@ const CustomerHome = () => {
                 return (
                   <div 
                     key={o.orderId || o.id} 
-                    className="bg-white border border-[#E5E7EB] rounded-2xl p-4 md:py-3.5 md:px-5 min-h-[80px] flex flex-col md:flex-row gap-4 md:items-center shadow-[0_4px_16px_rgba(0,0,0,0.04)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(0,0,0,0.06)] cursor-pointer"
+                    className="bg-white border border-[#E5E7EB] rounded-xl p-3 md:py-2.5 md:px-4 min-h-[70px] flex flex-col md:flex-row gap-3 md:items-center shadow-[0_2px_8px_rgba(0,0,0,0.02)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_4px_16px_rgba(0,0,0,0.04)] cursor-pointer"
                     onClick={() => navigate(`/customer/orders?orderId=${o.orderId}`)}
                   >
                     {/* 1. Left Section: Product details & ID */}
-                    <div className="flex flex-1 items-center gap-3.5 min-w-0">
-                      <div className="w-14 h-14 bg-white border border-gray-150 rounded-xl flex items-center justify-center p-1 flex-shrink-0 overflow-hidden">
+                    <div className="flex flex-1 items-center gap-3 min-w-0">
+                      <div className="w-11 h-11 bg-white border border-gray-150 rounded-lg flex items-center justify-center p-0.5 flex-shrink-0 overflow-hidden">
                         {productImage ? (
-                          <img src={getImgUrl(productImage)} className="max-w-full max-h-full object-contain rounded-lg" alt="" />
+                          <img src={getImgUrl(productImage)} className="max-w-full max-h-full object-contain rounded-md" alt="" />
                         ) : (
-                          <svg className="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                          <svg className="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
                         )}
                       </div>
                       
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-sm md:text-base font-bold text-slate-800 leading-snug truncate hover:text-[#16A34A] transition-colors">
+                        <h3 className="text-xs md:text-sm font-bold text-slate-800 leading-tight truncate hover:text-[#16A34A] transition-colors">
                            {productName}
                         </h3>
                         
-                        <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-gray-500 font-medium mt-0.5">
+                        <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[10.5px] text-gray-500 font-medium mt-0.5">
                           <span>Qty: <strong className="text-slate-800 font-semibold">{itemsCount}</strong></span>
                           <span className="text-gray-300">•</span>
                           <span>Order ID: <strong className="text-slate-850 font-semibold">{o.customOrderId || `#ORD-${o.orderId}`}</strong></span>
@@ -388,32 +388,32 @@ const CustomerHome = () => {
                     </div>
 
                     {/* 2. Center Section: Compact Payment & Dates */}
-                    <div className="w-full md:w-auto flex-shrink-0 flex flex-col gap-1 border-t md:border-t-0 md:border-l md:border-r border-gray-100 pt-3 md:pt-0 md:px-4.5 text-xs text-gray-500 font-medium min-w-[130px]">
+                    <div className="w-full md:w-auto flex-shrink-0 flex flex-col gap-0.5 border-t md:border-t-0 md:border-l md:border-r border-gray-100 pt-2 md:pt-0 md:px-3.5 text-[10px] text-gray-500 font-medium min-w-[120px]">
                       {o.paymentMethod && (
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-1">
                           <span>Payment:</span>
                           {o.paymentMethod.toUpperCase() === 'ESEWA' ? (
-                            <span className="inline-flex items-center gap-1 bg-emerald-50 text-[#16A34A] border border-emerald-100 px-2 py-0.5 rounded-full text-[10px] font-bold">
+                            <span className="inline-flex items-center gap-0.5 bg-emerald-50 text-[#16A34A] border border-emerald-100 px-1.5 py-0.2 rounded-full text-[9px] font-bold">
                               eSewa • {pConf.label}
                             </span>
                           ) : o.paymentMethod.toUpperCase() === 'KHALTI' ? (
-                            <span className="inline-flex items-center gap-1 bg-purple-50 text-violet-600 border border-purple-100 px-2 py-0.5 rounded-full text-[10px] font-bold">
+                            <span className="inline-flex items-center gap-0.5 bg-purple-50 text-violet-600 border border-purple-100 px-1.5 py-0.2 rounded-full text-[9px] font-bold">
                               Khalti • {pConf.label}
                             </span>
                           ) : (
-                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${pConf.cls}`}>
+                            <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded-full text-[9px] font-bold uppercase tracking-wider ${pConf.cls}`}>
                               {o.paymentMethod} • {pConf.label}
                             </span>
                           )}
                         </div>
                       )}
                       
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex items-center gap-1">
                         <span>Placed:</span>
                         <strong className="text-slate-800 font-semibold">{fmtDate(o.createdAt)}</strong>
                       </div>
                       
-                      <div className="text-[10px] text-gray-400 font-medium">
+                      <div className="text-[9px] text-gray-400 font-medium">
                         {o.status === 'DELIVERED' && o.deliveredAt && `Delivered ${fmtDate(o.deliveredAt)}`}
                         {o.status === 'SHIPPED' && o.shippedAt && `Shipped ${fmtDate(o.shippedAt)}`}
                         {o.status === 'CANCELLED' && o.cancelledAt && `Cancelled ${fmtDate(o.cancelledAt)}`}
@@ -422,23 +422,23 @@ const CustomerHome = () => {
                     </div>
 
                     {/* 3. Right Section: Price, Status & Actions */}
-                    <div className="w-full md:w-auto flex-shrink-0 flex flex-row md:flex-col items-center md:items-end gap-2.5 justify-between md:justify-center border-t md:border-t-0 border-gray-100 pt-3 md:pt-0 min-w-[130px]">
+                    <div className="w-full md:w-auto flex-shrink-0 flex flex-row md:flex-col items-center md:items-end gap-2 justify-between md:justify-center border-t md:border-t-0 border-gray-100 pt-2 md:pt-0 min-w-[125px]">
                       <div className="flex flex-col gap-0.5 md:text-right">
-                        <span className="text-lg font-bold text-[#16A34A] font-mono leading-none">{money(o.grandTotal)}</span>
-                        <span className="text-[9px] text-gray-455 font-bold uppercase tracking-wider leading-none">Grand Total</span>
+                        <span className="text-sm font-bold text-[#16A34A] font-mono leading-none">{money(o.grandTotal)}</span>
+                        <span className="text-[8px] text-gray-450 font-bold uppercase tracking-wider leading-none">Grand Total</span>
                       </div>
 
-                      <span className={`h-8 px-3 rounded-full text-[10px] font-bold uppercase tracking-wider flex items-center justify-center gap-1 select-none ${sBadge}`}>
+                      <span className={`h-6.5 px-2.5 rounded-full text-[9px] font-bold uppercase tracking-wider flex items-center justify-center gap-0.5 select-none ${sBadge}`}>
                         {sIcon} {sLabel}
                       </span>
 
                       <div className="flex items-center gap-1 flex-shrink-0">
                         <button 
                           onClick={(e) => { e.stopPropagation(); navigate(`/customer/orders?orderId=${o.orderId}`); }} 
-                          className="h-8 px-3 rounded-lg bg-[#16A34A] hover:bg-emerald-700 text-white text-[10px] font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-1 cursor-pointer shadow-xs active:scale-95"
+                          className="h-6.5 px-2.5 rounded-lg bg-[#16A34A] hover:bg-emerald-700 text-white text-[9px] font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-1 cursor-pointer shadow-xs active:scale-95"
                         >
                           Details
-                          <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>
+                          <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>
                         </button>
                       </div>
                     </div>
@@ -450,34 +450,34 @@ const CustomerHome = () => {
         </div>
 
         {/* Right Column: Spaced Interactive Widgets */}
-        <div className="space-y-6 lg:col-span-1">
+        <div className="space-y-4 lg:col-span-1">
           {/* Quick Access (2x2 Grid) */}
-          <div className="bg-white border border-[#E5E7EB] rounded-[20px] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.06)] flex flex-col gap-4">
-            <h3 className="text-[18px] font-bold text-slate-800">Quick Access</h3>
-            <div className="grid grid-cols-2 gap-3">
+          <div className="bg-white border border-[#E5E7EB] rounded-[16px] p-4.5 shadow-[0_4px_20px_rgba(0,0,0,0.04)] flex flex-col gap-3">
+            <h3 className="text-sm font-bold text-slate-800">Quick Access</h3>
+            <div className="grid grid-cols-2 gap-2.5">
               {QUICK_LINKS.map(link => (
                 <Link
                   key={link.to}
                   to={link.to}
-                  className="flex flex-col items-center justify-center p-4 bg-white border border-[#E5E7EB] rounded-2xl shadow-[0_4px_12px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 transition-all duration-200 group text-center"
+                  className="flex flex-col items-center justify-center p-3 bg-white border border-[#E5E7EB] rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.06)] hover:-translate-y-0.5 transition-all duration-200 group text-center"
                 >
                   <div
-                    className="w-10 h-10 rounded-xl flex items-center justify-center mb-2.5 transition-transform group-hover:scale-105 shadow-xs"
+                    className="w-8 h-8 rounded-lg flex items-center justify-center mb-1.5 transition-transform group-hover:scale-105 shadow-xs"
                     style={{ background: link.bg, color: link.color }}
                   >
-                    {link.icon}
+                    {React.cloneElement(link.icon, { className: "w-4 h-4" })}
                   </div>
-                  <p className="text-[12px] font-bold text-slate-800 group-hover:text-[#16A34A] transition-colors leading-tight">{link.label}</p>
+                  <p className="text-[10.5px] font-bold text-slate-800 group-hover:text-[#16A34A] transition-colors leading-tight">{link.label}</p>
                 </Link>
               ))}
             </div>
           </div>
 
           {/* Loyalty progress bar */}
-          <div className="bg-white border border-[#E5E7EB] rounded-[20px] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.06)] flex flex-col gap-3">
+          <div className="bg-white border border-[#E5E7EB] rounded-[16px] p-4.5 shadow-[0_4px_20px_rgba(0,0,0,0.04)] flex flex-col gap-2.5">
             <div className="flex items-center justify-between">
-              <h3 className="text-[18px] font-bold text-slate-800">Tier Status Progress</h3>
-              <span className="text-[10px] font-bold uppercase bg-emerald-50 text-[#16A34A] px-2 py-0.5 rounded border border-emerald-100">
+              <h3 className="text-sm font-bold text-slate-800">Tier Status Progress</h3>
+              <span className="text-[8px] font-bold uppercase bg-emerald-50 text-[#16A34A] px-1.5 py-0.2 rounded border border-emerald-100">
                 {tier.label}
               </span>
             </div>
@@ -485,23 +485,23 @@ const CustomerHome = () => {
             {(() => {
               const meta = getProgressMeta(loyaltyPts);
               return (
-                <div className="space-y-2 mt-1">
-                  <div className="flex justify-between items-end text-xs font-bold">
+                <div className="space-y-1.5 mt-0.5">
+                  <div className="flex justify-between items-end text-[10.5px] font-bold">
                     <span className="text-gray-900">{loyaltyPts.toLocaleString()} pts</span>
                     {meta.nextLabel === 'Max Tier reached' ? (
                       <span className="text-gray-400">{meta.nextLabel}</span>
                     ) : (
-                      <span className="text-gray-450 font-medium">Next: {meta.nextLabel}</span>
+                      <span className="text-gray-455 font-medium">Next: {meta.nextLabel}</span>
                     )}
                   </div>
-                  <div className="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
+                  <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
                     <div 
-                      className="bg-[#16A34A] h-2.5 rounded-full transition-all duration-500" 
+                      className="bg-[#16A34A] h-2 rounded-full transition-all duration-500" 
                       style={{ width: `${meta.percentage}%` }}
                     />
                   </div>
                   {meta.nextLabel !== 'Max Tier reached' && (
-                    <p className="text-[10px] text-gray-400 font-semibold mt-1">
+                    <p className="text-[9px] text-gray-400 font-semibold mt-0.5">
                       {(meta.target - meta.current).toLocaleString()} points left to upgrade
                     </p>
                   )}
@@ -511,23 +511,23 @@ const CustomerHome = () => {
           </div>
 
           {/* Active Refunds */}
-          <div className="bg-white border border-[#E5E7EB] rounded-[20px] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.06)] flex flex-col gap-3.5">
+          <div className="bg-white border border-[#E5E7EB] rounded-[16px] p-4.5 shadow-[0_4px_20px_rgba(0,0,0,0.04)] flex flex-col gap-2.5">
             <div className="flex items-center justify-between">
-              <h3 className="text-[18px] font-bold text-slate-800">Active Returns & Refunds</h3>
-              <span className="text-[10px] font-bold bg-amber-50 text-[#F59E0B] px-2 py-0.5 rounded border border-amber-100">
+              <h3 className="text-sm font-bold text-slate-800">Active Returns & Refunds</h3>
+              <span className="text-[8px] font-bold bg-amber-50 text-[#F59E0B] px-1.5 py-0.2 rounded border border-amber-100">
                 {activeRefunds.length} Active
               </span>
             </div>
             
             {activeRefunds.length === 0 ? (
-              <div className="text-center py-6 bg-gray-50/50 rounded-2xl border border-dashed border-gray-150 p-4">
-                <p className="text-xs font-bold text-gray-450">No active refund requests.</p>
-                <Link to="/customer/orders" className="text-[10px] font-black text-[#16A34A] hover:underline uppercase tracking-wider mt-1.5 block">
+              <div className="text-center py-4 bg-gray-50/50 rounded-xl border border-dashed border-gray-150 p-3">
+                <p className="text-[10px] font-bold text-gray-455">No active refund requests.</p>
+                <Link to="/customer/orders" className="text-[9px] font-black text-[#16A34A] hover:underline uppercase tracking-wider mt-1 block">
                   Request refund / exchange
                 </Link>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {activeRefunds.slice(0, 3).map(ref => {
                   const refId = ref.customRefundId || `#REF-${ref.refundId || ref.id}`;
                   const reason = ref.reason || 'No reason provided';
@@ -538,19 +538,19 @@ const CustomerHome = () => {
                     <Link
                       key={ref.id}
                       to="/customer/disputes"
-                      className="flex items-center gap-3 p-3 bg-gray-50/50 hover:bg-emerald-50/30 border border-gray-100 rounded-xl transition-all duration-200 group"
+                      className="flex items-center gap-2 p-2.5 bg-gray-50/50 hover:bg-emerald-50/30 border border-gray-100 rounded-xl transition-all duration-200 group"
                     >
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-[10.5px] font-black text-gray-900 font-mono">{refId}</span>
-                          <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wider ${meta.badge || 'bg-gray-100 text-gray-600'}`}>
+                        <div className="flex items-center justify-between mb-0.5">
+                          <span className="text-[9px] font-black text-gray-900 font-mono">{refId}</span>
+                          <span className={`inline-flex items-center px-1 py-0.2 rounded text-[7.5px] font-black uppercase tracking-wider ${meta.badge || 'bg-gray-100 text-gray-600'}`}>
                             {meta.label}
                           </span>
                         </div>
-                        <p className="text-[11.5px] font-bold text-gray-700 truncate">{reason}</p>
-                        <p className="text-[9px] text-gray-400 font-semibold mt-0.5">Type: {ref.refundType || 'REFUND'} {amount && `• ${amount}`}</p>
+                        <p className="text-[10.5px] font-bold text-gray-700 truncate">{reason}</p>
+                        <p className="text-[8.5px] text-gray-400 font-semibold mt-0.5">Type: {ref.refundType || 'REFUND'} {amount && `• ${amount}`}</p>
                       </div>
-                      <ChevronRight size={14} className="text-gray-400 group-hover:text-[#16A34A] transition-colors" />
+                      <ChevronRight size={12} className="text-gray-400 group-hover:text-[#16A34A] transition-colors" />
                     </Link>
                   );
                 })}
@@ -559,32 +559,32 @@ const CustomerHome = () => {
           </div>
 
           {/* Recent Notifications */}
-          <div className="bg-white border border-[#E5E7EB] rounded-[20px] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.06)] flex flex-col gap-3.5">
+          <div className="bg-white border border-[#E5E7EB] rounded-[16px] p-4.5 shadow-[0_4px_20px_rgba(0,0,0,0.04)] flex flex-col gap-2.5">
             <div className="flex items-center justify-between">
-              <h3 className="text-[18px] font-bold text-slate-800">Recent Notifications</h3>
-              <Link to="/customer/notifications" className="text-[10px] font-black text-[#16A34A] hover:underline uppercase tracking-wider">
+              <h3 className="text-sm font-bold text-slate-800">Recent Notifications</h3>
+              <Link to="/customer/notifications" className="text-[9px] font-black text-[#16A34A] hover:underline uppercase tracking-wider">
                 View all
               </Link>
             </div>
             
             {recentNotifsList.length === 0 ? (
-              <p className="text-xs font-bold text-gray-400 text-center py-4 bg-gray-50/50 rounded-2xl">No recent notifications.</p>
+              <p className="text-[10px] font-bold text-gray-400 text-center py-3 bg-gray-50/50 rounded-xl">No recent notifications.</p>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {recentNotifsList.map(notif => (
                   <Link
                     key={notif.id}
                     to="/customer/notifications"
-                    className="flex gap-3 items-start p-2.5 hover:bg-gray-50/50 rounded-xl transition-all duration-200"
+                    className="flex gap-2 p-2 hover:bg-gray-50/50 rounded-xl transition-all duration-200"
                   >
-                    <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 text-xs ${!notif.isRead ? 'bg-[#e6f7ec] text-[#16A34A]' : 'bg-gray-100 text-gray-400'}`}>
+                    <div className={`w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0 text-[10px] ${!notif.isRead ? 'bg-[#e6f7ec] text-[#16A34A]' : 'bg-gray-100 text-gray-400'}`}>
                       {NOTIF_ICONS[notif.type] || NOTIF_ICONS.SYSTEM || <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className={`text-xs leading-snug truncate ${!notif.isRead ? 'font-black text-gray-900' : 'font-semibold text-gray-700'}`}>
+                      <p className={`text-[11px] leading-snug truncate ${!notif.isRead ? 'font-black text-gray-900' : 'font-semibold text-gray-700'}`}>
                         {notif.title || notif.message}
                       </p>
-                      <p className="text-[9px] text-gray-400 font-semibold mt-0.5">
+                      <p className="text-[8px] text-gray-400 font-semibold mt-0.5">
                         {notif.createdAt ? new Date(notif.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : ''}
                       </p>
                     </div>
@@ -595,26 +595,26 @@ const CustomerHome = () => {
           </div>
 
           {/* Recommended Products */}
-          <div className="bg-white border border-[#E5E7EB] rounded-[20px] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.06)] flex flex-col gap-3.5">
-            <h3 className="text-[18px] font-bold text-slate-800">Recommended for You</h3>
+          <div className="bg-white border border-[#E5E7EB] rounded-[16px] p-4.5 shadow-[0_4px_20px_rgba(0,0,0,0.04)] flex flex-col gap-2.5">
+            <h3 className="text-sm font-bold text-slate-800">Recommended for You</h3>
             
             {recProducts.length === 0 ? (
-              <p className="text-xs font-bold text-gray-400 text-center py-4 bg-gray-50/50 rounded-2xl">No recommendations available.</p>
+              <p className="text-[10px] font-bold text-gray-400 text-center py-3 bg-gray-50/50 rounded-xl">No recommendations available.</p>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {recProducts.map(prod => {
                   const img = prod.imagePath || prod.image || (prod.images && prod.images[0]);
                   return (
                     <a
                       key={prod.id}
                       href={`/product/${prod.slug || prod.id}`}
-                      className="flex items-center gap-3 p-2 bg-gray-50/30 hover:bg-emerald-50/30 border border-gray-100 hover:border-emerald-100/50 rounded-xl transition-all duration-200 group"
+                      className="flex items-center gap-2 p-1.5 bg-gray-50/30 hover:bg-emerald-50/30 border border-gray-100 hover:border-emerald-100/50 rounded-xl transition-all duration-200 group"
                     >
-                      <div className="w-11 h-11 bg-white border border-gray-100 rounded-lg flex items-center justify-center overflow-hidden p-1 shrink-0">
+                      <div className="w-9 h-9 bg-white border border-gray-100 rounded-lg flex items-center justify-center overflow-hidden p-0.5 shrink-0">
                         {img ? (
                           <img src={getImgUrl(img)} className="max-w-full max-h-full object-contain" alt="" />
                         ) : (
-                          <svg className="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                          <svg className="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                             <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
                           </svg>
                         )}

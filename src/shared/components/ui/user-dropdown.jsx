@@ -91,13 +91,13 @@ export function UserDropdown({
   const roleConfig = {
     CUSTOMER: {
       label: "Customer",
-      badgeClass: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-900/50",
-      avatarGradient: "linear-gradient(135deg, #10B981 0%, #059669 100%)",
+      badgeClass: "bg-green-50 text-green-700 border-green-200 dark:bg-green-950/30 dark:text-green-400 dark:border-green-900/50",
+      avatarGradient: "linear-gradient(135deg, #16A34A 0%, #15803D 100%)",
     },
     SELLER: {
       label: "Verified Seller",
-      badgeClass: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-900/50",
-      avatarGradient: "linear-gradient(135deg, #10B981 0%, #059669 100%)",
+      badgeClass: "bg-green-50 text-green-700 border-green-200 dark:bg-green-950/30 dark:text-green-400 dark:border-green-900/50",
+      avatarGradient: "linear-gradient(135deg, #16A34A 0%, #15803D 100%)",
     },
     ADMIN: {
       label: "System Admin",
@@ -112,24 +112,24 @@ export function UserDropdown({
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
         <button 
-          className="flex items-center justify-center relative focus:outline-none group rounded-full transition-all focus:ring-2 focus:ring-emerald-500/20"
+          className="flex items-center justify-center relative focus:outline-none group rounded-full transition-all focus:ring-2 focus:ring-green-500/20"
           title={isLoggedIn ? `Account: ${displayName}` : "Sign In"}
         >
-          <div className="size-9 rounded-full border border-slate-200 hover:border-emerald-500 flex items-center justify-center overflow-hidden bg-white shadow-xs transition-all duration-200 group-hover:scale-105">
+          <div className="size-9 rounded-full border border-slate-200 hover:border-green-500 flex items-center justify-center overflow-hidden bg-white shadow-xs transition-all duration-200 group-hover:scale-105">
             {avatarUrl ? (
               <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
             ) : (
-              <User className="size-4.5 text-slate-650 group-hover:text-emerald-600 transition-colors" />
+              <User className="size-4.5 text-slate-650 group-hover:text-green-600 transition-colors" />
             )}
           </div>
           {isLoggedIn && (
-            <span className="absolute bottom-0 right-0 size-2.5 rounded-full bg-emerald-500 border-2 border-white dark:border-gray-900 shadow-xs" />
+            <span className="absolute bottom-0 right-0 size-2.5 rounded-full bg-green-500 border-2 border-white dark:border-gray-900 shadow-xs" />
           )}
         </button>
       </DropdownMenuTrigger>
 
       <DropdownMenuContent
-        className="w-[320px] rounded-2xl bg-white dark:bg-slate-900 p-0 border border-slate-150 dark:border-slate-800 shadow-xl overflow-hidden font-inter text-slate-850 dark:text-slate-100 animate-in fade-in slide-in-from-top-3 duration-250 z-[100]"
+        className="w-[320px] rounded-2xl bg-white dark:bg-slate-900 p-0 border border-slate-150 dark:border-slate-800 shadow-xl overflow-hidden font-inter text-slate-800 dark:text-slate-100 animate-in fade-in slide-in-from-top-3 duration-250 z-[100]"
         align="end"
         sideOffset={10}
       >
@@ -152,14 +152,14 @@ export function UserDropdown({
               <div className="flex gap-2 mt-4">
                 <button
                   onClick={() => { setOpen(false); onRequireLogin("login"); }}
-                  className="flex-1 py-2 px-3 bg-[#16A34A] hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition-all duration-150 flex items-center justify-center gap-1.5 shadow-sm active:scale-98"
+                  className="flex-1 py-2 px-3 bg-[#16A34A] hover:bg-green-700 text-white text-xs font-bold rounded-xl transition-all duration-150 flex items-center justify-center gap-1.5 shadow-sm active:scale-98"
                 >
                   <LogIn className="size-3.5" />
                   Sign In
                 </button>
                 <button
                   onClick={() => { setOpen(false); onRequireLogin("register"); }}
-                  className="flex-1 py-2 px-3 border border-slate-200 hover:border-emerald-500 dark:border-slate-700 dark:hover:border-emerald-500 text-slate-700 dark:text-slate-350 hover:text-emerald-600 hover:bg-emerald-50/10 text-xs font-bold rounded-xl transition-all duration-150 flex items-center justify-center gap-1.5 active:scale-98"
+                  className="flex-1 py-2 px-3 border border-slate-200 hover:border-green-500 dark:border-slate-700 dark:hover:border-green-500 text-slate-700 dark:text-slate-350 hover:text-green-600 hover:bg-green-50/10 text-xs font-bold rounded-xl transition-all duration-150 flex items-center justify-center gap-1.5 active:scale-98"
                 >
                   <UserPlus className="size-3.5" />
                   Register
@@ -182,7 +182,7 @@ export function UserDropdown({
 
               <DropdownMenuItem 
                 onClick={() => handleNavigate("/help")}
-                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer text-slate-750 dark:text-slate-350 transition-colors focus:bg-slate-50 outline-none"
+                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer text-slate-700 dark:text-slate-350 transition-colors focus:bg-slate-50 outline-none"
               >
                 <span className="flex items-center gap-2.5 text-[13px] font-semibold">
                   <HelpCircle className="size-4.5 text-slate-400" />
@@ -193,7 +193,7 @@ export function UserDropdown({
 
               <DropdownMenuItem 
                 onClick={() => handleNavigate("/help")}
-                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer text-slate-750 dark:text-slate-350 transition-colors focus:bg-slate-50 outline-none"
+                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer text-slate-700 dark:text-slate-350 transition-colors focus:bg-slate-50 outline-none"
               >
                 <span className="flex items-center gap-2.5 text-[13px] font-semibold">
                   <PhoneCall className="size-4.5 text-slate-400" />
@@ -269,7 +269,7 @@ export function UserDropdown({
             <div className="py-2 px-3 flex flex-col gap-0.5 max-h-[320px] overflow-y-auto no-scrollbar">
               <DropdownMenuItem 
                 onClick={() => handleNavigate("/customer/profile")}
-                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-850/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
+                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
               >
                 <span className="flex items-center gap-2.5 text-[13px] font-semibold">
                   <User className="size-4.5 text-slate-400" />
@@ -280,7 +280,7 @@ export function UserDropdown({
 
               <DropdownMenuItem 
                 onClick={() => handleNavigate("/customer/orders")}
-                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-850/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
+                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
               >
                 <span className="flex items-center gap-2.5 text-[13px] font-semibold">
                   <Package className="size-4.5 text-slate-400" />
@@ -291,14 +291,14 @@ export function UserDropdown({
 
               <DropdownMenuItem 
                 onClick={() => handleNavigate("/customer/wishlist")}
-                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-850/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
+                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
               >
                 <span className="flex items-center gap-2.5 text-[13px] font-semibold">
                   <Heart className="size-4.5 text-slate-400" />
                   Wishlist
                 </span>
                 {wishlistCount > 0 && (
-                  <Badge className="bg-emerald-600 text-white text-[10px] border-transparent font-bold">
+                  <Badge className="bg-green-600 text-white text-[10px] border-transparent font-bold">
                     {wishlistCount}
                   </Badge>
                 )}
@@ -306,7 +306,7 @@ export function UserDropdown({
 
               <DropdownMenuItem 
                 onClick={() => handleNavigate("/customer/profile")}
-                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-850/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
+                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
               >
                 <span className="flex items-center gap-2.5 text-[13px] font-semibold">
                   <MapPin className="size-4.5 text-slate-400" />
@@ -317,7 +317,7 @@ export function UserDropdown({
 
               <DropdownMenuItem 
                 onClick={() => handleNavigate("/customer/notifications")}
-                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-850/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
+                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
               >
                 <span className="flex items-center gap-2.5 text-[13px] font-semibold">
                   <Bell className="size-4.5 text-slate-400" />
@@ -332,7 +332,7 @@ export function UserDropdown({
 
               <DropdownMenuItem 
                 onClick={() => handleNavigate("/customer/profile")}
-                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-850/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
+                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
               >
                 <span className="flex items-center gap-2.5 text-[13px] font-semibold">
                   <CreditCard className="size-4.5 text-slate-400" />
@@ -345,7 +345,7 @@ export function UserDropdown({
 
               <DropdownMenuItem 
                 onClick={() => handleNavigate("/help")}
-                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-850/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
+                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
               >
                 <span className="flex items-center gap-2.5 text-[13px] font-semibold">
                   <HelpCircle className="size-4.5 text-slate-400" />
@@ -356,7 +356,7 @@ export function UserDropdown({
 
               <DropdownMenuItem 
                 onClick={() => handleNavigate("/help")}
-                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-850/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
+                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
               >
                 <span className="flex items-center gap-2.5 text-[13px] font-semibold">
                   <PhoneCall className="size-4.5 text-slate-400" />
@@ -410,7 +410,7 @@ export function UserDropdown({
               
               <DropdownMenuItem 
                 onClick={() => handleNavigate("/seller/dashboard")}
-                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-850/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
+                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
               >
                 <span className="flex items-center gap-2.5 text-[13px] font-semibold">
                   <LayoutDashboard className="size-4.5 text-slate-400" />
@@ -421,7 +421,7 @@ export function UserDropdown({
 
               <DropdownMenuItem 
                 onClick={() => handleNavigate("/seller/orders")}
-                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-850/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
+                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
               >
                 <span className="flex items-center gap-2.5 text-[13px] font-semibold">
                   <ShoppingBag className="size-4.5 text-slate-400" />
@@ -432,7 +432,7 @@ export function UserDropdown({
 
               <DropdownMenuItem 
                 onClick={() => handleNavigate("/seller/products")}
-                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-850/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
+                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
               >
                 <span className="flex items-center gap-2.5 text-[13px] font-semibold">
                   <Box className="size-4.5 text-slate-400" />
@@ -443,7 +443,7 @@ export function UserDropdown({
 
               <DropdownMenuItem 
                 onClick={() => handleNavigate("/seller/add-product")}
-                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-850/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
+                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
               >
                 <span className="flex items-center gap-2.5 text-[13px] font-semibold">
                   <PlusCircle className="size-4.5 text-slate-400" />
@@ -454,7 +454,7 @@ export function UserDropdown({
 
               <DropdownMenuItem 
                 onClick={() => handleNavigate("/seller/products")}
-                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-850/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
+                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
               >
                 <span className="flex items-center gap-2.5 text-[13px] font-semibold">
                   <Warehouse className="size-4.5 text-slate-400" />
@@ -465,7 +465,7 @@ export function UserDropdown({
 
               <DropdownMenuItem 
                 onClick={() => handleNavigate("/seller/dashboard")}
-                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-850/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
+                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
               >
                 <span className="flex items-center gap-2.5 text-[13px] font-semibold">
                   <Star className="size-4.5 text-slate-400" />
@@ -476,7 +476,7 @@ export function UserDropdown({
 
               <DropdownMenuItem 
                 onClick={() => handleNavigate("/seller/analytics")}
-                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-850/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
+                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
               >
                 <span className="flex items-center gap-2.5 text-[13px] font-semibold">
                   <BarChart3 className="size-4.5 text-slate-400" />
@@ -487,7 +487,7 @@ export function UserDropdown({
 
               <DropdownMenuItem 
                 onClick={() => handleNavigate("/seller/dashboard")}
-                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-850/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
+                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
               >
                 <span className="flex items-center gap-2.5 text-[13px] font-semibold">
                   <Wallet className="size-4.5 text-slate-400" />
@@ -501,7 +501,7 @@ export function UserDropdown({
 
               <DropdownMenuItem 
                 onClick={() => handleNavigate("/seller/profile")}
-                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-850/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
+                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
               >
                 <span className="flex items-center gap-2.5 text-[13px] font-semibold">
                   <User className="size-4.5 text-slate-400" />
@@ -512,7 +512,7 @@ export function UserDropdown({
 
               <DropdownMenuItem 
                 onClick={() => handleNavigate("/seller/settings")}
-                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-850/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
+                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
               >
                 <span className="flex items-center gap-2.5 text-[13px] font-semibold">
                   <Settings className="size-4.5 text-slate-400" />
@@ -566,7 +566,7 @@ export function UserDropdown({
               
               <DropdownMenuItem 
                 onClick={() => handleNavigate("/admin/dashboard")}
-                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-855/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
+                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
               >
                 <span className="flex items-center gap-2.5 text-[13px] font-semibold">
                   <ShieldCheck className="size-4.5 text-slate-400" />
@@ -577,7 +577,7 @@ export function UserDropdown({
 
               <DropdownMenuItem 
                 onClick={() => handleNavigate("/admin/users")}
-                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-855/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
+                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
               >
                 <span className="flex items-center gap-2.5 text-[13px] font-semibold">
                   <Users className="size-4.5 text-slate-400" />
@@ -588,7 +588,7 @@ export function UserDropdown({
 
               <DropdownMenuItem 
                 onClick={() => handleNavigate("/admin/sellers")}
-                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-855/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
+                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
               >
                 <span className="flex items-center gap-2.5 text-[13px] font-semibold">
                   <Store className="size-4.5 text-slate-400" />
@@ -599,7 +599,7 @@ export function UserDropdown({
 
               <DropdownMenuItem 
                 onClick={() => handleNavigate("/admin/products")}
-                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-855/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
+                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
               >
                 <span className="flex items-center gap-2.5 text-[13px] font-semibold">
                   <Box className="size-4.5 text-slate-400" />
@@ -610,7 +610,7 @@ export function UserDropdown({
 
               <DropdownMenuItem 
                 onClick={() => handleNavigate("/admin/orders")}
-                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-855/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
+                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
               >
                 <span className="flex items-center gap-2.5 text-[13px] font-semibold">
                   <ShoppingCart className="size-4.5 text-slate-400" />
@@ -621,7 +621,7 @@ export function UserDropdown({
 
               <DropdownMenuItem 
                 onClick={() => handleNavigate("/admin/payments")}
-                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-855/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
+                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
               >
                 <span className="flex items-center gap-2.5 text-[13px] font-semibold">
                   <Receipt className="size-4.5 text-slate-400" />
@@ -632,7 +632,7 @@ export function UserDropdown({
 
               <DropdownMenuItem 
                 onClick={() => handleNavigate("/admin/promos")}
-                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-855/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
+                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
               >
                 <span className="flex items-center gap-2.5 text-[13px] font-semibold">
                   <Ticket className="size-4.5 text-slate-400" />
@@ -646,7 +646,7 @@ export function UserDropdown({
 
               <DropdownMenuItem 
                 onClick={() => handleNavigate("/admin/reports")}
-                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-855/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
+                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
               >
                 <span className="flex items-center gap-2.5 text-[13px] font-semibold">
                   <FileText className="size-4.5 text-slate-400" />
@@ -657,7 +657,7 @@ export function UserDropdown({
 
               <DropdownMenuItem 
                 onClick={() => handleNavigate("/admin/settings")}
-                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-855/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
+                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
               >
                 <span className="flex items-center gap-2.5 text-[13px] font-semibold">
                   <Settings className="size-4.5 text-slate-400" />
@@ -668,7 +668,7 @@ export function UserDropdown({
 
               <DropdownMenuItem 
                 onClick={() => handleNavigate("/admin/audit-logs")}
-                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-855/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
+                className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer text-slate-700 dark:text-slate-300 transition-colors focus:bg-slate-50 outline-none"
               >
                 <span className="flex items-center gap-2.5 text-[13px] font-semibold">
                   <Key className="size-4.5 text-slate-400" />

@@ -166,7 +166,7 @@ export default function ProductListing() {
               placeholder="Min" 
               value={priceMin} 
               onChange={e=>setPriceMin(e.target.value)} 
-              className="w-full pl-7 pr-2.5 py-2 border border-gray-200 rounded-xl text-xs font-semibold focus:border-[#16A34A] focus:ring-1 focus:ring-emerald-500/15 outline-none transition-all" 
+              className="w-full pl-7 pr-2.5 py-2 border border-gray-200 rounded-xl text-xs font-semibold focus:border-[#16A34A] focus:ring-1 focus:ring-green-500/15 outline-none transition-all" 
             />
           </div>
           <span className="text-gray-300 text-xs">—</span>
@@ -176,7 +176,7 @@ export default function ProductListing() {
               placeholder="Max" 
               value={priceMax} 
               onChange={e=>setPriceMax(e.target.value)} 
-              className="w-full pl-7 pr-2.5 py-2 border border-gray-200 rounded-xl text-xs font-semibold focus:border-[#16A34A] focus:ring-1 focus:ring-emerald-500/15 outline-none transition-all" 
+              className="w-full pl-7 pr-2.5 py-2 border border-gray-200 rounded-xl text-xs font-semibold focus:border-[#16A34A] focus:ring-1 focus:ring-green-500/15 outline-none transition-all" 
             />
           </div>
         </div>
@@ -187,7 +187,7 @@ export default function ProductListing() {
         <select 
           value={minRating} 
           onChange={e=>setMinRating(Number(e.target.value))} 
-          className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs font-bold text-slate-700 bg-white focus:border-[#16A34A] focus:ring-1 focus:ring-emerald-500/15 outline-none transition-all cursor-pointer"
+          className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs font-bold text-slate-700 bg-white focus:border-[#16A34A] focus:ring-1 focus:ring-green-500/15 outline-none transition-all cursor-pointer"
         >
           <option value={0}>Any Rating</option>
           <option value={1}>1 ★ & up</option>
@@ -265,7 +265,7 @@ export default function ProductListing() {
               >
                 <span>Filters</span>
                 {activeFiltersCount > 0 && (
-                  <span className="bg-emerald-500 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center">
+                  <span className="bg-green-500 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center">
                     {activeFiltersCount}
                   </span>
                 )}
@@ -274,7 +274,7 @@ export default function ProductListing() {
               <select 
                 value={sortBy} 
                 onChange={e=>setSortBy(e.target.value)} 
-                className="px-3.5 py-2 border border-gray-200 rounded-xl text-xs font-bold text-slate-700 bg-white outline-none focus:border-[#16A34A] focus:ring-1 focus:ring-emerald-500/15 cursor-pointer transition-all"
+                className="px-3.5 py-2 border border-gray-200 rounded-xl text-xs font-bold text-slate-700 bg-white outline-none focus:border-[#16A34A] focus:ring-1 focus:ring-green-500/15 cursor-pointer transition-all"
               >
                 <option value="relevance">Best Match</option>
                 <option value="price_asc">Price: Low to High</option>

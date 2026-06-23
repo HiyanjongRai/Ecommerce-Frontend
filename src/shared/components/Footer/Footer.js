@@ -12,9 +12,9 @@ import {
 } from 'lucide-react';
 
 export default function Footer({ isVerdant = false }) {
-  const accentColor = isVerdant ? 'text-moss' : 'text-emerald-400';
-  const hoverColor = isVerdant ? 'hover:text-moss' : 'hover:text-emerald-400';
-  const ctaBg = isVerdant ? 'bg-moss text-linen' : 'bg-emerald-600 text-white';
+  const accentColor = isVerdant ? 'text-moss' : 'text-green-400';
+  const hoverColor = isVerdant ? 'hover:text-moss' : 'hover:text-green-400';
+  const ctaBg = isVerdant ? 'bg-moss text-linen' : 'bg-green-600 text-white';
 
   return (
     <footer className="bg-neutral-900 text-gray-400 text-xs mt-16">
@@ -24,7 +24,7 @@ export default function Footer({ isVerdant = false }) {
         <div className="max-w-[1440px] mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
           <div>
             <h4 className="text-lg font-black uppercase tracking-wider">Get in Touch With Us</h4>
-            <p className={`text-xs mt-1 ${isVerdant ? 'text-sage' : 'text-emerald-100'}`}>
+            <p className={`text-xs mt-1 ${isVerdant ? 'text-sage' : 'text-green-100'}`}>
               Have questions or need support? Our team is here to help you 24/7.
             </p>
           </div>
@@ -53,14 +53,13 @@ export default function Footer({ isVerdant = false }) {
               </span>
             </Link>
           ) : (
-            <div className="flex items-center gap-1">
-              <span className="text-xl font-black tracking-tighter text-white">
-                JHAP<span className="text-emerald-400">CHAM</span>
-              </span>
-              <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest pt-1">
-                eCommerce
-              </span>
-            </div>
+            <Link to="/" className="flex items-center flex-shrink-0 group outline-none">
+              <img 
+                src="/Assets/Logo/logo.png" 
+                alt="Jhapcham Logo" 
+                className="h-9 w-auto object-contain transition-transform group-hover:scale-105" 
+              />
+            </Link>
           )}
           <p className="leading-relaxed text-gray-400">
             {isVerdant 
@@ -87,7 +86,7 @@ export default function Footer({ isVerdant = false }) {
                 className={`w-9 h-9 rounded-full border border-gray-700 flex items-center justify-center transition-all ${
                   isVerdant 
                     ? 'hover:border-moss hover:text-moss' 
-                    : 'hover:border-emerald-400 hover:text-emerald-400'
+                    : 'hover:border-green-400 hover:text-green-400'
                 }`}
               >
                 <Icon className="w-4 h-4" />
@@ -168,7 +167,7 @@ export default function Footer({ isVerdant = false }) {
                 key={tag}
                 to={`/product-list?q=${encodeURIComponent(tag)}`}
                 className={`bg-neutral-800 text-gray-300 px-3 py-1.5 rounded-pill text-[10px] font-bold leading-none transition-all ${
-                  isVerdant ? 'hover:bg-moss hover:text-white' : 'hover:bg-emerald-600 hover:text-white'
+                  isVerdant ? 'hover:bg-moss hover:text-white' : 'hover:bg-green-600 hover:text-white'
                 }`}
               >
                 {tag}

@@ -82,7 +82,7 @@ const CustomerLayout = () => {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="flex items-center gap-3 text-gray-500">
-          <svg className="animate-spin w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24">
+          <svg className="animate-spin w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
           </svg>
@@ -330,21 +330,21 @@ const CustomerLayout = () => {
         }
       `}</style>
       {/* Breadcrumb Banner */}
-      <div className={`${darkMode ? 'theme-dark' : ''} bg-white border-b border-[#E5E7EB] py-4 mb-6 shadow-xs`}>
+      <div className={`${darkMode ? 'theme-dark' : ''} bg-white border-b border-[#E5E7EB] py-2.5 mb-4 shadow-xs`}>
         <div className="max-w-[1440px] mx-auto px-6">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
             {/* Left Column: Breadcrumbs, Title, Subtitle */}
-            <div className="space-y-1">
-              <nav className="flex items-center gap-2 text-[13px] font-medium text-[#6B7280] mb-1.5">
-                <Link to="/" className="hover:text-emerald-600 transition-colors">Home</Link>
+            <div className="space-y-0.5">
+              <nav className="flex items-center gap-2 text-[11px] font-semibold text-[#6B7280]">
+                <Link to="/" className="hover:text-green-600 transition-colors">Home</Link>
                 <span className="text-gray-300">/</span>
-                <span className="hover:text-emerald-600 cursor-pointer transition-colors">Shop</span>
+                <span className="hover:text-green-600 cursor-pointer transition-colors">Shop</span>
                 <span className="text-gray-300">/</span>
                 <span className="text-gray-500">{currentLabel}</span>
               </nav>
-              <h1 className="text-3xl font-bold text-slate-800 leading-tight tracking-tight">{currentLabel}</h1>
+              <h1 className="text-xl md:text-2xl font-bold text-slate-800 leading-tight tracking-tight">{currentLabel}</h1>
               {SUBTITLES[location.pathname] && (
-                <p className="text-[13px] text-gray-500 font-medium">{SUBTITLES[location.pathname]}</p>
+                <p className="text-[11px] text-gray-400 font-medium">{SUBTITLES[location.pathname]}</p>
               )}
             </div>
             {/* Right Column: Notification Bell */}

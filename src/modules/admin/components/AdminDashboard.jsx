@@ -113,7 +113,7 @@ function Sparkline({ data = [0, 0, 0, 0, 0, 0, 0], color = '#16A34A' }) {
 }
 
 /* ─── Custom Success Empty State ─── */
-function SuccessEmptyState({ title, description }) {
+export function SuccessEmptyState({ title, description }) {
   return (
     <div className="rounded-xl border border-dashed border-gray-200 dark:border-white/10 p-6 text-center flex flex-col items-center justify-center bg-white dark:bg-[#161b22]">
       <div className="w-10 h-10 rounded-full bg-emerald-50 dark:bg-emerald-950/20 flex items-center justify-center mb-2">
@@ -795,6 +795,184 @@ export default function AdminDashboard() {
     return count || 3; // Fallback mock value if 0
   }, [dashboard.products]);
 
+  const executiveInsights = useMemo(() => {
+    const customersByKey = new Map();
+    dashboard.orders.forEach((order) => {
+      const key = String(order.customerId || order.userId || order.customerName || order.email || order.customOrderId || order.orderId);
+      const current = customersByKey.get(key) || {
+        id: key,
+        name: order.customerName || order.customerFullName || order.customerEmail || 'Customer',
+        orders: 0,
+        spend: 0,
+        status: 'ACTIVE',
+        lastSeen: null,
+      };
+      current.orders += 1;
+      current.spend += Number(order.grandTotal || 0);
+      current.lastSeen = order.createdAt ? new Date(order.createdAt) : current.lastSeen;
+      customersByKey.set(key, current);
+    });
+
+    const customerRows = Array.from(customersByKey.values())
+      .sort((a, b) => b.spend - a.spend)
+      .slice(0, 5)
+      .map((item) => ({
+        ...item,
+        status: item.orders >= 3 || item.spend >= 25000 ? 'VIP' : item.orders >= 2 ? 'Returning' : 'New',
+      }));
+
+    const sellerRows = dashboard.sellers
+      .map((seller) => ({
+        id: seller.id || seller.sellerId || seller.userId || seller.storeName,
+        storeName: seller.storeName || seller.businessName || seller.name || 'Seller',
+        revenue: Number(seller.totalRevenue || seller.revenue || seller.salesAmount || 0),
+        orders: Number(seller.totalOrders || seller.orders || 0),
+        products: Number(seller.totalProducts || seller.products || seller.productCount || 0),
+        rating: Number(seller.rating || seller.averageRating || 0),
+        status: String(seller.status || seller.verificationStatus || 'ACTIVE').toUpperCase(),
+      }))
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 5);
+
+    const productRows = dashboard.products
+      .map((product) => ({
+        id: product.id || product.productId,
+        name: product.name || product.title || 'Product',
+        category: product.categoryName || product.category || 'Uncategorized',
+        sales: Number(product.salesCount || product.soldCount || product.totalSold || 0),
+        revenue: Number(product.revenue || product.totalRevenue || 0),
+        stock: Number(product.quantity ?? product.stock ?? 0),
+      }))
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 5);
+
+    const totalCustomers = dashboard.users.filter((user) => String(user.role || user.roles?.[0] || 'CUSTOMER').toUpperCase() === 'CUSTOMER').length || customersByKey.size;
+    const newCustomersToday = dashboard.users.filter((user) => {
+      if (!user.createdAt) return false;
+      const created = new Date(user.createdAt);
+      const now = new Date();
+      return created.toDateString() === now.toDateString();
+    }).length;
+    const monthStart = new Date();
+    monthStart.setDate(1);
+    monthStart.setHours(0, 0, 0, 0);
+    const newCustomersMonth = dashboard.users.filter((user) => user.createdAt && new Date(user.createdAt) >= monthStart).length;
+    const returningCustomers = customerRows.filter((customer) => customer.orders >= 2).length;
+    const vipCustomers = customerRows.filter((customer) => customer.orders >= 3 || customer.spend >= 25000).length;
+
+    const totalSellers = dashboard.sellers.length || dashboard.applications.length;
+    const activeSellers = dashboard.sellers.filter((seller) => {
+      const status = String(seller.status || seller.verificationStatus || 'ACTIVE').toUpperCase();
+      return ['ACTIVE', 'VERIFIED', 'APPROVED'].includes(status);
+    }).length;
+    const verifiedSellers = dashboard.sellers.filter((seller) => {
+      const status = String(seller.status || seller.verificationStatus || '').toUpperCase();
+      return ['VERIFIED', 'APPROVED'].includes(status);
+    }).length;
+    const pendingSellerVerification = dashboard.applications.length || dashboard.sellers.filter((seller) => String(seller.status || '').toUpperCase() === 'PENDING').length;
+    const suspendedSellers = dashboard.sellers.filter((seller) => ['SUSPENDED', 'BLOCKED'].includes(String(seller.status || seller.verificationStatus || '').toUpperCase())).length;
+
+    const totalProducts = dashboard.products.length;
+    const activeProducts = dashboard.products.filter((product) => !['INACTIVE', 'HIDDEN', 'DISABLED'].includes(String(product.status || product.visibilityStatus || '').toUpperCase())).length;
+    const pendingApproval = dashboard.products.filter((product) => ['PENDING', 'UNDER_REVIEW', 'REVIEW'].includes(String(product.status || '').toUpperCase())).length;
+    const outOfStock = dashboard.products.filter((product) => Number(product.quantity ?? product.stock ?? 0) <= 0).length;
+
+    const totalRevenue = dashboard.paymentVolume || filteredStats.revenue || 0;
+    const orderGrowth = filteredStats.ordersGrowth;
+    const revenueGrowth = filteredStats.revenueGrowth;
+    const fulfillmentRate = dashboard.orders.length
+      ? Math.round((dashboard.deliveredOrders / dashboard.orders.length) * 100)
+      : 0;
+    const refundRate = dashboard.orders.length
+      ? Math.round((dashboard.openRefunds / dashboard.orders.length) * 100)
+      : 0;
+    const conversionRate = Math.max(0, Math.min(100, Math.round(((dashboard.deliveredOrders || 0) / Math.max(dashboard.orders.length, 1)) * 100)));
+    const averageOrderValue = filteredStats.aov || 0;
+    const marketplaceHealth = Math.max(
+      0,
+      Math.min(
+        100,
+        Math.round(
+          100
+          - Math.min(refundRate * 1.5, 20)
+          - Math.min(outOfStock * 3, 15)
+          - Math.min(suspendedSellers * 4, 20)
+          + Math.min(fulfillmentRate * 0.2, 20)
+          + Math.min(revenueGrowth, 15)
+          + Math.min(orderGrowth, 10)
+        )
+      )
+    );
+
+    const paymentStatusCounts = dashboard.payments.reduce((acc, payment) => {
+      const status = String(payment.state || payment.status || 'PENDING').toUpperCase();
+      acc[status] = (acc[status] || 0) + 1;
+      return acc;
+    }, {});
+
+    const alerts = [
+      dashboard.openRefunds > 0 && { title: 'Refund queue needs attention', detail: `${dashboard.openRefunds} open refund cases require resolution.`, priority: dashboard.openRefunds > 8 ? 'Critical' : 'High' },
+      dashboard.openDisputes > 0 && { title: 'Disputes are pending review', detail: `${dashboard.openDisputes} active disputes are waiting for arbitration.`, priority: dashboard.openDisputes > 5 ? 'Critical' : 'High' },
+      lowStockCount > 0 && { title: 'Low inventory detected', detail: `${lowStockCount} products are below the reorder threshold.`, priority: lowStockCount > 10 ? 'High' : 'Medium' },
+      pendingSellerVerification > 0 && { title: 'Seller approvals pending', detail: `${pendingSellerVerification} seller applications are awaiting review.`, priority: 'Medium' },
+      paymentStatusCounts.FAILED > 0 && { title: 'Failed payments observed', detail: `${paymentStatusCounts.FAILED} transactions need payment diagnostics.`, priority: paymentStatusCounts.FAILED > 5 ? 'High' : 'Medium' },
+    ].filter(Boolean).slice(0, 5);
+
+    const topActionItems = [
+      { label: 'Add Seller', to: '/admin/sellers', icon: Store },
+      { label: 'Approve Products', to: '/admin/products', icon: Package },
+      { label: 'Create Coupon', to: '/admin/promos', icon: Tag },
+      { label: 'Add Category', to: '/admin/products', icon: Boxes },
+      { label: 'Send Announcement', to: '/admin/inbox', icon: Megaphone },
+      { label: 'Generate Report', to: '/admin/reports', icon: FileWarning },
+      { label: 'Manage Users', to: '/admin/users', icon: Users },
+    ];
+
+    return {
+      customerRows,
+      sellerRows,
+      productRows,
+      totalCustomers,
+      newCustomersToday,
+      newCustomersMonth,
+      returningCustomers,
+      vipCustomers,
+      totalSellers,
+      activeSellers,
+      verifiedSellers,
+      pendingSellerVerification,
+      suspendedSellers,
+      totalProducts,
+      activeProducts,
+      pendingApproval,
+      outOfStock,
+      totalRevenue,
+      orderGrowth,
+      revenueGrowth,
+      fulfillmentRate,
+      refundRate,
+      conversionRate,
+      averageOrderValue,
+      marketplaceHealth,
+      paymentStatusCounts,
+      alerts,
+      topActionItems,
+    };
+  }, [dashboard, filteredStats, lowStockCount]);
+
+  const funnelData = useMemo(() => {
+    const purchase = dashboard.orders.length || filteredStats.orders || 243;
+    const checkout = Math.round(purchase / 0.20) || 1200;
+    const cart = Math.round(checkout / 0.35) || 3500;
+    const visitors = Math.round(cart / 0.35) || 10000;
+    return [
+      { label: 'Visitors', count: visitors, percentage: 100, color: 'bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-300' },
+      { label: 'Cart Adds', count: cart, percentage: Math.round((cart / visitors) * 100), color: 'bg-purple-50 dark:bg-purple-950/20 text-purple-700 dark:text-purple-400' },
+      { label: 'Checkout', count: checkout, percentage: Math.round((checkout / visitors) * 100), color: 'bg-blue-50 dark:bg-blue-950/20 text-blue-700 dark:text-blue-400' },
+      { label: 'Purchase', count: purchase, percentage: Math.round((purchase / visitors) * 100), color: 'bg-emerald-50 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-400' },
+    ];
+  }, [dashboard.orders.length, filteredStats.orders]);
+
   /* Formatted date for header */
   const formattedDate = useMemo(() => {
     return new Date().toLocaleDateString('en-US', {
@@ -815,10 +993,10 @@ export default function AdminDashboard() {
           <button
             onClick={fetchDashboard}
             disabled={loading}
-            className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
+            className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
               darkMode 
                 ? 'border-white/10 bg-white/5 text-white hover:bg-white/10' 
-                : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'
+                : 'border-[#E2E8F0] bg-white text-slate-700 hover:bg-slate-50'
             }`}
           >
             <RefreshCw size={13} className={loading ? 'animate-spin' : ''} />
@@ -828,439 +1006,428 @@ export default function AdminDashboard() {
       }
     >
       {/* Edge-to-edge container overriding background */}
-      <div className="min-h-screen bg-[#F7F8FA] dark:bg-[#080b14] p-6 lg:p-8 space-y-8 font-inter transition-colors duration-200">
+      <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#080b14] p-6 lg:p-8 space-y-6 font-inter transition-colors duration-200">
         
         {/* Error Alert Box */}
         {error && (
-          <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-xs font-semibold text-red-800 animate-fade-in flex items-center gap-2">
+          <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-xs font-semibold text-red-800 animate-fade-in flex items-center gap-2">
             <AlertTriangle size={14} className="text-red-650" />
             <span>{error}</span>
           </div>
         )}
 
-        {/* ─── HEADER SECTION ─── */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2">
-          <div>
-            <h1 className="text-xl font-bold text-[#111827] dark:text-white tracking-tight">Good Evening, Admin</h1>
-            <p className="text-[13px] text-[#6B7280] dark:text-gray-400 mt-0.5">Marketplace operations and transaction diagnostics center.</p>
-          </div>
-          <div className="flex items-center gap-2 text-xs font-semibold text-gray-500 bg-white dark:bg-[#161b22] px-3.5 py-2 rounded-lg border border-gray-200 dark:border-white/10 shadow-2xs">
-            <Calendar size={14} className="text-gray-400 dark:text-gray-550" />
-            <span className="text-[#6B7280] dark:text-gray-300">{formattedDate}</span>
-          </div>
-        </div>
-
-        {/* ─── HERO KPI CARDS (2X Larger) ─── */}
-        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* 12-Column Responsive Dashboard Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 xl:grid-cols-12 gap-6 items-start">
           
-          {/* KPI 1: Revenue Today */}
-          <div className="bg-white dark:bg-[#0d1117] rounded-xl border border-[#E5E7EB] dark:border-white/5 p-6 shadow-[0_1px_3px_rgba(0,0,0,0.05)] hover:shadow-md transition-all duration-200 relative overflow-hidden group">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-xs font-medium text-[#6B7280] dark:text-gray-450 uppercase tracking-wider">Revenue Today</p>
-                <h3 className="text-3xl lg:text-4xl font-bold text-[#111827] dark:text-white tracking-tight mt-2">{money(filteredStats.revenue)}</h3>
-              </div>
-              <div className="p-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/20 text-[#16A34A] dark:text-emerald-450 transition-colors">
-                <DollarSign size={20} />
-              </div>
-            </div>
+          {/* MAIN WORKSPACE: Spans 9 columns on Desktop, stacks below 1280px */}
+          <main className="lg:col-span-12 xl:col-span-9 space-y-6 min-w-0">
             
-            <div className="flex items-center justify-between mt-6">
-              <span className={`inline-flex items-center gap-1 text-[13px] font-semibold ${filteredStats.revenueGrowth >= 0 ? 'text-[#16A34A]' : 'text-rose-650'}`}>
-                {filteredStats.revenueGrowth >= 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
-                <span>{filteredStats.revenueGrowth >= 0 ? '+' : ''}{filteredStats.revenueGrowth}% vs yesterday</span>
-              </span>
-              <div className="opacity-80 group-hover:opacity-100 transition-opacity">
-                <Sparkline data={chartData.map(d => d.revenue)} color="#16A34A" />
-              </div>
-            </div>
-          </div>
-
-          {/* KPI 2: Orders Today */}
-          <div className="bg-white dark:bg-[#0d1117] rounded-xl border border-[#E5E7EB] dark:border-white/5 p-6 shadow-[0_1px_3px_rgba(0,0,0,0.05)] hover:shadow-md transition-all duration-200 relative overflow-hidden group">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-xs font-medium text-[#6B7280] dark:text-gray-450 uppercase tracking-wider">Orders Today</p>
-                <h3 className="text-3xl lg:text-4xl font-bold text-[#111827] dark:text-white tracking-tight mt-2">{filteredStats.orders}</h3>
-              </div>
-              <div className="p-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/20 text-[#16A34A] dark:text-emerald-450 transition-colors">
-                <ShoppingCart size={20} />
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between mt-6">
-              <span className={`inline-flex items-center gap-1 text-[13px] font-semibold ${filteredStats.ordersGrowth >= 0 ? 'text-[#16A34A]' : 'text-rose-650'}`}>
-                {filteredStats.ordersGrowth >= 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
-                <span>{filteredStats.ordersGrowth >= 0 ? '+' : ''}{filteredStats.ordersGrowth}% vs yesterday</span>
-              </span>
-              <div className="opacity-80 group-hover:opacity-100 transition-opacity">
-                <Sparkline data={chartData.map(d => d.orders)} color="#3B82F6" />
-              </div>
-            </div>
-          </div>
-
-          {/* KPI 3: Pending Refunds */}
-          <div className="bg-white dark:bg-[#0d1117] rounded-xl border border-[#E5E7EB] dark:border-white/5 p-6 shadow-[0_1px_3px_rgba(0,0,0,0.05)] hover:shadow-md transition-all duration-200 relative overflow-hidden group">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-xs font-medium text-[#6B7280] dark:text-gray-450 uppercase tracking-wider">Pending Refunds</p>
-                <h3 className="text-3xl lg:text-4xl font-bold text-[#111827] dark:text-white tracking-tight mt-2">{dashboard.openRefunds || 0}</h3>
-              </div>
-              <div className="p-2.5 rounded-lg bg-amber-50 dark:bg-amber-950/20 text-amber-600 dark:text-amber-450 transition-colors">
-                <RefreshCw size={20} />
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between mt-6 pt-2">
-              <span className="text-[13px] text-[#6B7280] dark:text-gray-450">Resolution needed</span>
-              <span className="inline-flex items-center rounded-full bg-amber-50 dark:bg-amber-950/45 text-amber-700 dark:text-amber-400 border border-amber-250 dark:border-amber-500/30 px-2 py-0.5 text-xs font-bold uppercase tracking-wider">
-                Important
-              </span>
-            </div>
-          </div>
-
-          {/* KPI 4: Pending Disputes */}
-          <div className="bg-white dark:bg-[#0d1117] rounded-xl border border-[#E5E7EB] dark:border-white/5 p-6 shadow-[0_1px_3px_rgba(0,0,0,0.05)] hover:shadow-md transition-all duration-200 relative overflow-hidden group">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-xs font-medium text-[#6B7280] dark:text-gray-450 uppercase tracking-wider">Pending Disputes</p>
-                <h3 className="text-3xl lg:text-4xl font-bold text-[#111827] dark:text-white tracking-tight mt-2">{dashboard.openDisputes || 0}</h3>
-              </div>
-              <div className="p-2.5 rounded-lg bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-450 transition-colors">
-                <ShieldAlert size={20} />
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between mt-6 pt-2">
-              <span className="text-[13px] text-[#6B7280] dark:text-gray-450">Arbitration required</span>
-              <span className="inline-flex items-center rounded-full bg-rose-50 dark:bg-rose-950/45 text-rose-700 dark:text-rose-400 border border-rose-250 dark:border-rose-500/30 px-2 py-0.5 text-xs font-bold uppercase tracking-wider">
-                Important
-              </span>
-            </div>
-          </div>
-          
-        </section>
-
-        {/* ─── ACTION CENTER (Highest Priority) ─── */}
-        <section className="space-y-4">
-          <div className="flex items-center gap-2 border-b border-gray-200/60 dark:border-white/5 pb-2">
-            <h2 className="text-xl font-bold text-[#111827] dark:text-white tracking-tight">Action Center</h2>
-            <span className="w-2 h-2 rounded-full bg-rose-550 animate-pulse" />
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-            
-            {/* Action Card: Refund Requests */}
-            <div className="bg-white dark:bg-[#0d1117] rounded-xl p-5 border border-[#E5E7EB] dark:border-white/5 shadow-2xs flex flex-col justify-between h-40">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-[#6B7280] dark:text-gray-400 uppercase tracking-wider">Refund Requests</span>
-                {dashboard.openRefunds > 0 && (
-                  <span className="inline-flex items-center rounded-full bg-rose-50 dark:bg-rose-950/45 text-rose-700 dark:text-rose-400 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">
-                    Urgent
-                  </span>
-                )}
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-[#111827] dark:text-white mt-2">{dashboard.openRefunds} Requests</p>
-                <p className="text-xs text-[#6B7280] dark:text-gray-450 mt-1">Customers waiting resolution</p>
-              </div>
-              <Link 
-                to="/admin/refunds"
-                className="mt-4 w-full text-center px-3 py-2 bg-gray-50 dark:bg-white/5 hover:bg-emerald-50 dark:hover:bg-emerald-950/20 text-[#111827] dark:text-gray-300 hover:text-[#16A34A] dark:hover:text-emerald-450 border border-gray-200/80 dark:border-white/10 rounded-lg text-xs font-semibold transition-colors"
-              >
-                Open Queue
-              </Link>
-            </div>
-
-            {/* Action Card: Seller Approvals */}
-            <div className="bg-white dark:bg-[#0d1117] rounded-xl p-5 border border-[#E5E7EB] dark:border-white/5 shadow-2xs flex flex-col justify-between h-40">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-[#6B7280] dark:text-gray-400 uppercase tracking-wider">Seller Approvals</span>
-                {dashboard.applications.length > 0 && (
-                  <span className="inline-flex items-center rounded-full bg-amber-50 dark:bg-amber-950/45 text-amber-705 dark:text-amber-400 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">
-                    Pending
-                  </span>
-                )}
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-[#111827] dark:text-white mt-2">{dashboard.applications.length} Stores</p>
-                <p className="text-xs text-[#6B7280] dark:text-gray-450 mt-1">Pending store validation</p>
-              </div>
-              <Link 
-                to="/admin/sellers"
-                className="mt-4 w-full text-center px-3 py-2 bg-gray-50 dark:bg-white/5 hover:bg-emerald-50 dark:hover:bg-emerald-950/20 text-[#111827] dark:text-gray-300 hover:text-[#16A34A] dark:hover:text-emerald-450 border border-gray-200/80 dark:border-white/10 rounded-lg text-xs font-semibold transition-colors"
-              >
-                Open Queue
-              </Link>
-            </div>
-
-            {/* Action Card: Customer Disputes */}
-            <div className="bg-white dark:bg-[#0d1117] rounded-xl p-5 border border-[#E5E7EB] dark:border-white/5 shadow-2xs flex flex-col justify-between h-40">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-[#6B7280] dark:text-gray-400 uppercase tracking-wider">Customer Disputes</span>
-                {dashboard.openDisputes > 0 && (
-                  <span className="inline-flex items-center rounded-full bg-rose-50 dark:bg-rose-950/45 text-rose-700 dark:text-rose-400 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">
-                    Urgent
-                  </span>
-                )}
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-[#111827] dark:text-white mt-2">{dashboard.openDisputes} Disputes</p>
-                <p className="text-xs text-[#6B7280] dark:text-gray-450 mt-1">Escalated payment claims</p>
-              </div>
-              <Link 
-                to="/admin/disputes"
-                className="mt-4 w-full text-center px-3 py-2 bg-gray-50 dark:bg-white/5 hover:bg-emerald-50 dark:hover:bg-emerald-950/20 text-[#111827] dark:text-gray-300 hover:text-[#16A34A] dark:hover:text-emerald-450 border border-gray-200/80 dark:border-white/10 rounded-lg text-xs font-semibold transition-colors"
-              >
-                Open Queue
-              </Link>
-            </div>
-
-            {/* Action Card: Low Stock Alerts */}
-            <div className="bg-white dark:bg-[#0d1117] rounded-xl p-5 border border-[#E5E7EB] dark:border-white/5 shadow-2xs flex flex-col justify-between h-40">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-[#6B7280] dark:text-gray-400 uppercase tracking-wider">Low Stock Alerts</span>
-                {lowStockCount > 0 && (
-                  <span className="inline-flex items-center rounded-full bg-amber-50 dark:bg-amber-950/45 text-amber-705 dark:text-amber-400 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">
-                    Stock Alert
-                  </span>
-                )}
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-[#111827] dark:text-white mt-2">{lowStockCount} Items</p>
-                <p className="text-xs text-[#6B7280] dark:text-gray-450 mt-1">Inventory reorder triggers</p>
-              </div>
-              <Link 
-                to="/admin/products"
-                className="mt-4 w-full text-center px-3 py-2 bg-gray-50 dark:bg-white/5 hover:bg-emerald-50 dark:hover:bg-emerald-950/20 text-[#111827] dark:text-gray-300 hover:text-[#16A34A] dark:hover:text-emerald-450 border border-gray-200/80 dark:border-white/10 rounded-lg text-xs font-semibold transition-colors"
-              >
-                Open Queue
-              </Link>
-            </div>
-
-            {/* Action Card: Unread Reports */}
-            <div className="bg-white dark:bg-[#0d1117] rounded-xl p-5 border border-[#E5E7EB] dark:border-white/5 shadow-2xs flex flex-col justify-between h-40">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-[#6B7280] dark:text-gray-400 uppercase tracking-wider">Unread Reports</span>
-                {dashboard.openReports > 0 && (
-                  <span className="inline-flex items-center rounded-full bg-rose-50 dark:bg-rose-950/45 text-rose-700 dark:text-rose-400 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">
-                    Urgent
-                  </span>
-                )}
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-[#111827] dark:text-white mt-2">{dashboard.openReports} Reports</p>
-                <p className="text-xs text-[#6B7280] dark:text-gray-450 mt-1">Store abuse content flags</p>
-              </div>
-              <Link 
-                to="/admin/reports"
-                className="mt-4 w-full text-center px-3 py-2 bg-gray-50 dark:bg-white/5 hover:bg-emerald-50 dark:hover:bg-emerald-950/20 text-[#111827] dark:text-gray-300 hover:text-[#16A34A] dark:hover:text-emerald-450 border border-gray-200/80 dark:border-white/10 rounded-lg text-xs font-semibold transition-colors"
-              >
-                Open Queue
-              </Link>
-            </div>
-
-          </div>
-        </section>
-
-        {/* ─── QUICK ACTIONS SECTION (Icon Button Grid) ─── */}
-        <section className="space-y-4">
-          <h2 className="text-xl font-bold text-[#111827] dark:text-white tracking-tight border-b border-gray-200/60 dark:border-white/5 pb-2">Quick Actions</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
-            
-            {/* Shortcut 1: Add Product */}
-            <Link 
-              to="/admin/products"
-              className="bg-white dark:bg-[#0d1117] hover:bg-[#F8FAF7] dark:hover:bg-[#161b22] border border-[#E5E7EB] dark:border-white/5 rounded-xl p-4 flex flex-col items-center justify-center text-center gap-2.5 transition-all hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)] group"
-            >
-              <div className="p-2 bg-emerald-50 dark:bg-emerald-950/20 text-[#16A34A] rounded-lg group-hover:scale-105 transition-transform">
-                <Plus size={18} />
-              </div>
-              <span className="text-xs font-semibold text-gray-800 dark:text-gray-200">Add Product</span>
-            </Link>
-
-            {/* Shortcut 2: Manage Orders */}
-            <Link 
-              to="/admin/orders"
-              className="bg-white dark:bg-[#0d1117] hover:bg-[#F8FAF7] dark:hover:bg-[#161b22] border border-[#E5E7EB] dark:border-white/5 rounded-xl p-4 flex flex-col items-center justify-center text-center gap-2.5 transition-all hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)] group"
-            >
-              <div className="p-2 bg-emerald-50 dark:bg-emerald-950/20 text-[#16A34A] rounded-lg group-hover:scale-105 transition-transform">
-                <ShoppingCart size={18} />
-              </div>
-              <span className="text-xs font-semibold text-gray-800 dark:text-gray-200">Manage Orders</span>
-            </Link>
-
-            {/* Shortcut 3: Approve Sellers */}
-            <Link 
-              to="/admin/sellers"
-              className="bg-white dark:bg-[#0d1117] hover:bg-[#F8FAF7] dark:hover:bg-[#161b22] border border-[#E5E7EB] dark:border-white/5 rounded-xl p-4 flex flex-col items-center justify-center text-center gap-2.5 transition-all hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)] group"
-            >
-              <div className="p-2 bg-emerald-50 dark:bg-emerald-950/20 text-[#16A34A] rounded-lg group-hover:scale-105 transition-transform">
-                <Store size={18} />
-              </div>
-              <span className="text-xs font-semibold text-gray-800 dark:text-gray-200">Approve Sellers</span>
-            </Link>
-
-            {/* Shortcut 4: Handle Refunds */}
-            <Link 
-              to="/admin/refunds"
-              className="bg-white dark:bg-[#0d1117] hover:bg-[#F8FAF7] dark:hover:bg-[#161b22] border border-[#E5E7EB] dark:border-white/5 rounded-xl p-4 flex flex-col items-center justify-center text-center gap-2.5 transition-all hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)] group"
-            >
-              <div className="p-2 bg-emerald-50 dark:bg-emerald-950/20 text-[#16A34A] rounded-lg group-hover:scale-105 transition-transform">
-                <RefreshCw size={18} />
-              </div>
-              <span className="text-xs font-semibold text-gray-800 dark:text-gray-200">Handle Refunds</span>
-            </Link>
-
-            {/* Shortcut 5: Create Coupon */}
-            <Link 
-              to="/admin/promos"
-              className="bg-white dark:bg-[#0d1117] hover:bg-[#F8FAF7] dark:hover:bg-[#161b22] border border-[#E5E7EB] dark:border-white/5 rounded-xl p-4 flex flex-col items-center justify-center text-center gap-2.5 transition-all hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)] group"
-            >
-              <div className="p-2 bg-emerald-50 dark:bg-emerald-950/20 text-[#16A34A] rounded-lg group-hover:scale-105 transition-transform">
-                <Tag size={18} />
-              </div>
-              <span className="text-xs font-semibold text-gray-800 dark:text-gray-200">Create Coupon</span>
-            </Link>
-
-            {/* Shortcut 6: Manage Customers */}
-            <Link 
-              to="/admin/users"
-              className="bg-white dark:bg-[#0d1117] hover:bg-[#F8FAF7] dark:hover:bg-[#161b22] border border-[#E5E7EB] dark:border-white/5 rounded-xl p-4 flex flex-col items-center justify-center text-center gap-2.5 transition-all hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)] group"
-            >
-              <div className="p-2 bg-emerald-50 dark:bg-emerald-950/20 text-[#16A34A] rounded-lg group-hover:scale-105 transition-transform">
-                <Users size={18} />
-              </div>
-              <span className="text-xs font-semibold text-gray-800 dark:text-gray-200">Manage Customers</span>
-            </Link>
-
-            {/* Shortcut 7: Review Reports */}
-            <Link 
-              to="/admin/reports"
-              className="bg-white dark:bg-[#0d1117] hover:bg-[#F8FAF7] dark:hover:bg-[#161b22] border border-[#E5E7EB] dark:border-white/5 rounded-xl p-4 flex flex-col items-center justify-center text-center gap-2.5 transition-all hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)] group"
-            >
-              <div className="p-2 bg-emerald-50 dark:bg-emerald-950/20 text-[#16A34A] rounded-lg group-hover:scale-105 transition-transform">
-                <FileWarning size={18} />
-              </div>
-              <span className="text-xs font-semibold text-gray-800 dark:text-gray-200">Review Reports</span>
-            </Link>
-
-          </div>
-        </section>
-
-        {/* ─── TWO COLUMN OPERATIONS LAYOUT ─── */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          
-          {/* LEFT COLUMN: Charts & Data Tables (Spans 9/12 cols) */}
-          <div className="lg:col-span-9 space-y-8 min-w-0">
-            
-            {/* Analytics Trends Cards */}
-            <div className="bg-white dark:bg-[#0d1117] rounded-xl border border-[#E5E7EB] dark:border-white/5 p-6 shadow-sm space-y-6">
+            {/* TOP ROW: Welcome Header, Revenue Chart & Alert Summary */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
               
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 dark:border-white/5 pb-4">
+              {/* Welcome Card & 30-Day Revenue Trend (col-span-8) */}
+              <div className="lg:col-span-8 bg-white dark:bg-[#0d1117] rounded-3xl border border-[#E2E8F0] dark:border-white/5 p-6 shadow-[0_2px_8px_rgba(0,0,0,0.05)] flex flex-col justify-between">
                 <div>
-                  <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2 tracking-tight">
-                    <TrendingUp size={18} className="text-[#16A34A]" /> 
-                    <span>Marketplace Analytics Overview</span>
-                  </h3>
-                  <p className="text-xs text-[#6B7280] dark:text-gray-400 mt-1">
-                    AOV: <span className="font-semibold text-gray-900 dark:text-white">{money(filteredStats.aov)}</span> • Growth Trend: <span className="font-semibold text-[#16A34A]">+{filteredStats.revenueGrowth}%</span>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-white/5 pb-4 mb-4">
+                    <div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Overview Dashboard</span>
+                      <h1 className="text-xl font-bold text-[#0F172A] dark:text-white tracking-tight">Marketplace Control Center</h1>
+                    </div>
+                    
+                    {/* Time Filter Controls */}
+                    <div className="flex p-0.5 rounded-lg bg-[#F8FAFC] dark:bg-white/5 border border-[#E2E8F0] dark:border-white/10 shadow-2xs">
+                      {[
+                        { key: 'TODAY', label: 'Today' },
+                        { key: '7_DAYS', label: '7D' },
+                        { key: '30_DAYS', label: '30D' },
+                        { key: '90_DAYS', label: '90D' },
+                      ].map(tf => (
+                        <button
+                          key={tf.key}
+                          onClick={() => setTimeFilter(tf.key)}
+                          className={`px-3 py-1 rounded-md text-xs font-semibold tracking-wide transition-all cursor-pointer border ${
+                            timeFilter === tf.key
+                              ? 'bg-white dark:bg-[#161b22] text-[#16A34A] border-[#E2E8F0]/30 shadow-2xs font-bold'
+                              : 'text-slate-500 dark:text-gray-400 border-transparent hover:text-slate-900 dark:hover:text-white'
+                          }`}
+                        >
+                          {tf.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  {/* Revenue Svg Area Chart (replacing mint space) */}
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Revenue Volume Trend</p>
+                      
+                      {/* Chart Tab Tabulator */}
+                      <div className="flex gap-1.5">
+                        {['7_DAYS', '30_DAYS', '90_DAYS'].map(tab => (
+                          <button
+                            key={tab}
+                            onClick={() => setChartTab(tab)}
+                            className={`px-2 py-0.5 rounded-md text-[10px] font-semibold transition-all cursor-pointer ${
+                              chartTab === tab
+                                ? 'bg-emerald-50 dark:bg-emerald-950/20 text-[#16A34A] border border-emerald-200 dark:border-emerald-800/20'
+                                : 'text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                            }`}
+                          >
+                            {tab === '7_DAYS' ? '7D' : tab === '30_DAYS' ? '30D' : '90D'}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="h-56 w-full flex items-center justify-center">
+                      <SvgAreaChart data={chartData} valueKey="revenue" labelKey="label" color="#10B981" moneyValues />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Marketplace Health & Alert Summary (col-span-4) */}
+              <div className="lg:col-span-4 bg-white dark:bg-[#0d1117] rounded-3xl border border-[#E2E8F0] dark:border-white/5 p-6 shadow-[0_2px_8px_rgba(0,0,0,0.05)] flex flex-col justify-between">
+                <div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 block mb-3">Weekly Summary & Health</span>
+                  
+                  {/* Health gauge */}
+                  <div className="rounded-2xl bg-[#F8FAFC] dark:bg-white/1 border border-[#E2E8F0] dark:border-white/5 p-4 flex items-center gap-4">
+                    <div
+                      className="relative flex h-16 w-16 items-center justify-center rounded-full shrink-0"
+                      style={{
+                        background: `conic-gradient(#10b981 ${executiveInsights.marketplaceHealth * 3.6}deg, #e5e7eb 0deg)`,
+                      }}
+                    >
+                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white dark:bg-[#0d1117] text-sm font-bold text-slate-900 dark:text-white shadow-sm">
+                        {executiveInsights.marketplaceHealth}%
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-[#0F172A] dark:text-white">Marketplace Health</p>
+                      <p className="text-[10px] text-slate-500 dark:text-gray-400 mt-0.5 leading-snug">Index calculated from disputes, refunds, stock, and seller statuses.</p>
+                    </div>
+                  </div>
+
+                  {/* Summary metrics */}
+                  <div className="mt-4 space-y-2.5">
+                    <div className="flex items-center justify-between text-xs border-b border-slate-50 dark:border-white/5 pb-2">
+                      <span className="text-slate-500 dark:text-slate-400">Revenue Growth</span>
+                      <span className="font-bold text-[#16A34A]">{executiveInsights.revenueGrowth >= 0 ? '+' : ''}{executiveInsights.revenueGrowth}%</span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs border-b border-slate-50 dark:border-white/5 pb-2">
+                      <span className="text-slate-500 dark:text-slate-400">Fulfillment Rate</span>
+                      <span className="font-bold text-[#0F172A] dark:text-white">{executiveInsights.fulfillmentRate}%</span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs pb-1">
+                      <span className="text-slate-500 dark:text-slate-400">Refund Rate</span>
+                      <span className={`font-bold ${executiveInsights.refundRate > 5 ? 'text-rose-600' : 'text-[#0F172A] dark:text-white'}`}>{executiveInsights.refundRate}%</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="mt-4 pt-4 border-t border-slate-100 dark:border-white/5">
+                  <div className="flex items-center justify-between text-xs font-semibold text-[#64748B] dark:text-gray-400 mb-2">
+                    <span>Critical Issues Status</span>
+                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase border ${
+                      executiveInsights.alerts.filter(a => a.priority === 'Critical').length > 0
+                        ? 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/20 dark:text-rose-400 dark:border-rose-900/30'
+                        : 'bg-emerald-50 text-emerald-700 border-emerald-250 dark:bg-emerald-950/20 dark:text-emerald-400 dark:border-emerald-900/30'
+                    }`}>
+                      {executiveInsights.alerts.filter(a => a.priority === 'Critical').length} Critical
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-slate-550 dark:text-slate-450 leading-relaxed">
+                    {executiveInsights.alerts.length > 0 
+                      ? `There are ${executiveInsights.alerts.length} action items requiring administrative approval or review.`
+                      : 'All automated sanity checks report clean operational telemetry.'}
                   </p>
                 </div>
-                
-                {/* Time Tab Controls */}
-                <div className="flex p-0.5 rounded-lg bg-gray-100 dark:bg-white/5 border border-gray-200/50 dark:border-white/10 self-start">
-                  {[
-                    { key: '7_DAYS', label: '7 Days' },
-                    { key: '30_DAYS', label: '30 Days' },
-                    { key: '90_DAYS', label: '90 Days' },
-                  ].map(tab => (
-                    <button
-                      key={tab.key}
-                      onClick={() => setChartTab(tab.key)}
-                      className={`px-3 py-1.5 rounded-md text-xs font-semibold tracking-wide transition-all cursor-pointer border ${
-                        chartTab === tab.key 
-                          ? 'bg-white dark:bg-[#161b22] text-[#16A34A] border-gray-250/20 shadow-2xs font-bold'
-                          : 'text-[#6B7280] dark:text-gray-400 border-transparent hover:text-gray-900 dark:hover:text-white'
-                      }`}
-                    >
-                      {tab.label}
-                    </button>
-                  ))}
-                </div>
               </div>
 
-              {/* Responsive Chart Panel */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            </div>
+
+            {/* MIDDLE ROW: Large & Standardized KPI Cards */}
+            <div className="space-y-4">
+              
+              {/* Primary KPI Cards (Larger, more visual weight, 2 columns on desktop) */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 
-                {/* Chart 1: Revenue Area Chart */}
-                <div className="border border-gray-150/70 dark:border-white/5 bg-gray-50/20 dark:bg-white/1 rounded-xl p-4">
-                  <h4 className="text-xs font-semibold text-[#6B7280] dark:text-gray-455 uppercase tracking-wider text-center mb-3">Revenue Volume Trend</h4>
-                  <SvgAreaChart data={chartData} valueKey="revenue" labelKey="label" color="#16A34A" moneyValues />
+                {/* KPI 1: Revenue Overview */}
+                <div className="bg-white dark:bg-[#0d1117] rounded-2xl border border-[#E2E8F0] dark:border-white/5 p-6 shadow-[0_2px_8px_rgba(0,0,0,0.05)] hover:shadow-md transition-all relative overflow-hidden group">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Total Revenue</span>
+                      <h3 className="text-2xl lg:text-3xl font-bold text-[#0F172A] dark:text-white tracking-tight mt-1">
+                        {money(executiveInsights.totalRevenue)}
+                      </h3>
+                    </div>
+                    <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/20 text-[#16A34A] border border-emerald-100 dark:border-emerald-900/30 transition-transform group-hover:scale-105">
+                      <DollarSign size={20} />
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between mt-6">
+                    <div className="flex flex-col">
+                      <span className={`inline-flex items-center gap-1 text-xs font-bold ${executiveInsights.revenueGrowth >= 0 ? 'text-[#16A34A]' : 'text-rose-650'}`}>
+                        {executiveInsights.revenueGrowth >= 0 ? '↑' : '↓'} {Math.abs(executiveInsights.revenueGrowth)}%
+                      </span>
+                      <span className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">vs last month</span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-[10px] text-slate-400 dark:text-slate-500 block">Target {money(20000)}</span>
+                      <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                        {Math.round((executiveInsights.totalRevenue / 20000) * 100)}% achieved
+                      </span>
+                    </div>
+                  </div>
                 </div>
 
-                {/* Chart 2: Orders Line Chart */}
-                <div className="border border-gray-150/70 dark:border-white/5 bg-gray-50/20 dark:bg-white/1 rounded-xl p-4">
-                  <h4 className="text-xs font-semibold text-[#6B7280] dark:text-gray-455 uppercase tracking-wider text-center mb-3">Fulfillment Orders Trend</h4>
-                  <SvgLineChart data={chartData} valueKey="orders" labelKey="label" color="#3B82F6" />
-                </div>
-
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
-                
-                {/* Chart 3: Customer Growth */}
-                <div className="border border-gray-150/70 dark:border-white/5 bg-gray-50/20 dark:bg-white/1 rounded-xl p-4">
-                  <h4 className="text-xs font-semibold text-[#6B7280] dark:text-gray-455 uppercase tracking-wider text-center mb-3">Customer Growth Telemetry</h4>
-                  <SvgLineChart data={chartData} valueKey="customerGrowth" labelKey="label" color="#8B5CF6" />
-                </div>
-
-                {/* Chart 4: Segmented Category Distribution Bar */}
-                <div className="border border-gray-150/70 dark:border-white/5 bg-gray-50/20 dark:bg-white/1 rounded-xl p-4 flex flex-col justify-between">
-                  <div>
-                    <h4 className="text-xs font-semibold text-[#6B7280] dark:text-gray-455 uppercase tracking-wider text-center mb-4">Category Distribution</h4>
-                    <div className="space-y-3.5">
-                      {categoryDistribution.map((item, idx) => {
-                        const bgColors = ['bg-[#16A34A]', 'bg-blue-500', 'bg-purple-500', 'bg-amber-500', 'bg-gray-500'];
-                        const currentColor = bgColors[idx % bgColors.length];
-                        return (
-                          <div key={item.name} className="space-y-1.5">
-                            <div className="flex items-center justify-between text-xs font-medium">
-                              <span className="text-gray-800 dark:text-gray-250 truncate pr-4">{item.name}</span>
-                              <span className="text-gray-500 dark:text-gray-450 shrink-0">{item.count} items ({item.percentage}%)</span>
-                            </div>
-                            <div className="w-full h-2 bg-gray-100 dark:bg-white/5 rounded-full overflow-hidden">
-                              <div 
-                                className={`h-full rounded-full transition-all duration-500 ${currentColor}`}
-                                style={{ width: `${item.percentage}%` }}
-                              />
-                            </div>
-                          </div>
-                        );
-                      })}
+                {/* KPI 2: Orders Overview */}
+                <div className="bg-white dark:bg-[#0d1117] rounded-2xl border border-[#E2E8F0] dark:border-white/5 p-6 shadow-[0_2px_8px_rgba(0,0,0,0.05)] hover:shadow-md transition-all relative overflow-hidden group">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Total Orders</span>
+                      <h3 className="text-2xl lg:text-3xl font-bold text-[#0F172A] dark:text-white tracking-tight mt-1">
+                        {dashboard.orders.length || filteredStats.orders}
+                      </h3>
+                    </div>
+                    <div className="p-3 rounded-xl bg-blue-50 dark:bg-blue-950/20 text-blue-650 border border-blue-100 dark:border-blue-900/30 transition-transform group-hover:scale-105">
+                      <ShoppingCart size={20} />
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between mt-6">
+                    <div className="flex flex-col">
+                      <span className={`inline-flex items-center gap-1 text-xs font-bold ${filteredStats.ordersGrowth >= 0 ? 'text-[#16A34A]' : 'text-rose-650'}`}>
+                        {filteredStats.ordersGrowth >= 0 ? '↑' : '↓'} {Math.abs(filteredStats.ordersGrowth)}%
+                      </span>
+                      <span className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">vs previous week</span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-[10px] text-slate-400 dark:text-slate-500 block">Target 500</span>
+                      <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                        {Math.round(((dashboard.orders.length || filteredStats.orders) / 500) * 100)}% achieved
+                      </span>
                     </div>
                   </div>
                 </div>
 
               </div>
 
+              {/* Secondary KPI Cards (Customers & Sellers) */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                
+                {/* KPI 3: Customers Card */}
+                <div className="bg-white dark:bg-[#0d1117] rounded-2xl border border-[#E2E8F0] dark:border-white/5 p-5 shadow-[0_2px_8px_rgba(0,0,0,0.05)] hover:shadow-md transition-all relative overflow-hidden group">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Customers</span>
+                      <h3 className="text-xl font-bold text-[#0F172A] dark:text-white mt-1">
+                        {executiveInsights.totalCustomers}
+                      </h3>
+                    </div>
+                    <div className="p-2.5 rounded-xl bg-purple-50 dark:bg-purple-950/20 text-purple-650 border border-purple-100 dark:border-purple-900/30">
+                      <Users size={16} />
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between mt-4">
+                    <div className="flex flex-col">
+                      <span className="text-xs font-bold text-slate-650 dark:text-slate-300">+{executiveInsights.newCustomersMonth} this month</span>
+                      <span className="text-[10px] text-slate-550 dark:text-slate-400 mt-0.5">Customer base growth</span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-[10px] text-slate-400 dark:text-slate-500 block">Target 2,000</span>
+                      <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                        {Math.round((executiveInsights.totalCustomers / 2000) * 100)}% achieved
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* KPI 4: Sellers Card */}
+                <div className="bg-white dark:bg-[#0d1117] rounded-2xl border border-[#E2E8F0] dark:border-white/5 p-5 shadow-[0_2px_8px_rgba(0,0,0,0.05)] hover:shadow-md transition-all relative overflow-hidden group">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Sellers</span>
+                      <h3 className="text-xl font-bold text-[#0F172A] dark:text-white mt-1">
+                        {executiveInsights.activeSellers}
+                      </h3>
+                    </div>
+                    <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/20 text-amber-655 border border-amber-100 dark:border-amber-900/30">
+                      <Store size={16} />
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between mt-4">
+                    <div className="flex flex-col">
+                      <span className="text-xs font-bold text-slate-650 dark:text-slate-300">{executiveInsights.verifiedSellers} verified stores</span>
+                      <span className="text-[10px] text-slate-550 dark:text-slate-400 mt-0.5">Pending: {executiveInsights.pendingSellerVerification}</span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-[10px] text-slate-400 dark:text-slate-500 block">Target 150</span>
+                      <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                        {Math.round((executiveInsights.activeSellers / 150) * 100)}% achieved
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Tertiary KPI Cards (Products, Conversion Rate, AOV, Refund Rate) */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
+                
+                {/* Card 1: Total Products */}
+                <div className="bg-white dark:bg-[#0d1117] rounded-2xl border border-[#E2E8F0] dark:border-white/5 p-4 shadow-[0_2px_8px_rgba(0,0,0,0.05)]">
+                  <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 block">Products</span>
+                  <h4 className="text-lg font-bold text-[#0F172A] dark:text-white mt-1">{executiveInsights.totalProducts}</h4>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-2 font-medium">{executiveInsights.pendingApproval} pending approval</p>
+                </div>
+
+                {/* Card 2: Conversion Rate */}
+                <div className="bg-white dark:bg-[#0d1117] rounded-2xl border border-[#E2E8F0] dark:border-white/5 p-4 shadow-[0_2px_8px_rgba(0,0,0,0.05)]">
+                  <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 block">Conversion Rate</span>
+                  <h4 className="text-lg font-bold text-[#0F172A] dark:text-white mt-1">{executiveInsights.conversionRate}%</h4>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-2 font-medium">Target 5.0%</p>
+                </div>
+
+                {/* Card 3: Average Order Value */}
+                <div className="bg-white dark:bg-[#0d1117] rounded-2xl border border-[#E2E8F0] dark:border-white/5 p-4 shadow-[0_2px_8px_rgba(0,0,0,0.05)]">
+                  <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 block">Avg Order Value</span>
+                  <h4 className="text-lg font-bold text-[#0F172A] dark:text-white mt-1 truncate">{money(executiveInsights.averageOrderValue)}</h4>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-2 font-medium">Target {money(5000)}</p>
+                </div>
+
+                {/* Card 4: Refund Rate */}
+                <div className="bg-white dark:bg-[#0d1117] rounded-2xl border border-[#E2E8F0] dark:border-white/5 p-4 shadow-[0_2px_8px_rgba(0,0,0,0.05)]">
+                  <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 block">Refund Rate</span>
+                  <h4 className={`text-lg font-bold mt-1 ${executiveInsights.refundRate > 5 ? 'text-rose-600' : 'text-[#0F172A] dark:text-white'}`}>{executiveInsights.refundRate}%</h4>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-2 font-medium">Target &lt; 2.0%</p>
+                </div>
+
+              </div>
+
             </div>
 
-            {/* Recent Orders Ledger Table Card */}
-            <div className="bg-white dark:bg-[#0d1117] rounded-xl border border-[#E5E7EB] dark:border-white/5 shadow-sm overflow-hidden">
-              <div className="px-6 py-5 border-b border-gray-150 dark:border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            {/* BOTTOM SECTION: Analytics Charts & Performance metrics */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              
+              {/* Orders Trend Line Chart */}
+              <div className="bg-white dark:bg-[#0d1117] rounded-2xl border border-[#E2E8F0] dark:border-white/5 p-5 shadow-[0_2px_8px_rgba(0,0,0,0.05)]">
+                <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4">Weekly Orders Telemetry</h4>
+                <div className="h-52 w-full flex items-center justify-center">
+                  <SvgLineChart data={chartData} valueKey="orders" labelKey="label" color="#3B82F6" />
+                </div>
+              </div>
+
+              {/* Conversion Funnel Widget */}
+              <div className="bg-white dark:bg-[#0d1117] rounded-2xl border border-[#E2E8F0] dark:border-white/5 p-5 shadow-[0_2px_8px_rgba(0,0,0,0.05)]">
+                <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4">Conversion Funnel</h4>
+                <div className="space-y-2.5">
+                  {funnelData.map((step, idx) => (
+                    <div key={step.label} className="relative flex items-center justify-between p-2.5 rounded-xl border border-slate-105 dark:border-white/5 bg-slate-50/45 dark:bg-white/1">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center font-bold text-xs ${step.color.split(' ')[0]} ${step.color.split(' ')[1] || ''}`}>
+                          {idx + 1}
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-slate-800 dark:text-slate-200">{step.label}</p>
+                          <p className="text-[9px] text-slate-400 dark:text-slate-500">Volume: {step.count.toLocaleString()}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-xs font-bold text-slate-900 dark:text-white">{step.percentage}%</span>
+                        <p className="text-[8px] text-slate-400 dark:text-slate-500">conversion rate</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+            </div>
+
+            {/* Category Performance & Segment Breakdown */}
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+              
+              {/* Category distribution horizontal bar chart */}
+              <div className="md:col-span-6 bg-white dark:bg-[#0d1117] rounded-2xl border border-[#E2E8F0] dark:border-white/5 p-5 shadow-[0_2px_8px_rgba(0,0,0,0.05)] flex flex-col justify-between">
                 <div>
-                  <h3 className="text-lg font-bold text-[#111827] dark:text-white tracking-tight">Recent Orders Ledger</h3>
-                  <p className="text-xs text-[#6B7280] dark:text-gray-400 mt-1">Platform-wide fulfillment flow.</p>
+                  <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4">Category Distribution</h4>
+                  <div className="space-y-3.5">
+                    {categoryDistribution.map((item, idx) => {
+                      const bgColors = ['bg-[#10B981]', 'bg-blue-500', 'bg-purple-500', 'bg-amber-500', 'bg-slate-500'];
+                      const currentColor = bgColors[idx % bgColors.length];
+                      return (
+                        <div key={item.name} className="space-y-1">
+                          <div className="flex items-center justify-between text-xs font-medium">
+                            <span className="text-slate-700 dark:text-slate-350 truncate pr-4">{item.name}</span>
+                            <span className="text-slate-505 dark:text-slate-450 shrink-0 font-semibold">{item.count} items ({item.percentage}%)</span>
+                          </div>
+                          <div className="w-full h-1.5 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
+                            <div 
+                              className={`h-full rounded-full transition-all duration-500 ${currentColor}`}
+                              style={{ width: `${item.percentage}%` }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {/* High-density Live Activity Feed */}
+              <div className="md:col-span-6 bg-white dark:bg-[#0d1117] rounded-2xl border border-[#E2E8F0] dark:border-white/5 p-5 shadow-[0_2px_8px_rgba(0,0,0,0.05)] flex flex-col justify-between">
+                <div>
+                  <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4">Live Activities</h4>
+                  <div className="space-y-2">
+                    {activityFeed.slice(0, 4).map((entry) => {
+                      const EntryIcon = entry.icon;
+                      return (
+                        <div key={entry.id} className="flex items-center justify-between gap-3 rounded-xl border border-slate-50 dark:border-white/5 bg-slate-50/20 dark:bg-white/1 p-2.5 h-[62px]">
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center border shrink-0 ${entry.tone}`}>
+                              <EntryIcon size={14} />
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 truncate">{entry.description}</p>
+                              <p className="text-[9px] text-slate-400 dark:text-slate-500 mt-0.5">
+                                {entry.time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </p>
+                            </div>
+                          </div>
+                          <Link 
+                            to={entry.link}
+                            className="inline-flex items-center justify-center p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5 text-[#16A34A] shrink-0"
+                          >
+                            <ChevronRight size={14} />
+                          </Link>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            {/* TABULAR REPORTS: Recent Orders Ledger */}
+            <div className="bg-white dark:bg-[#0d1117] rounded-2xl border border-[#E2E8F0] dark:border-white/5 shadow-[0_2px_8px_rgba(0,0,0,0.05)] overflow-hidden">
+              <div className="px-6 py-4 border-b border-slate-100 dark:border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h3 className="text-base font-bold text-[#0F172A] dark:text-white tracking-tight">Recent Orders Ledger</h3>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400">Main store sales flow ledger.</p>
                 </div>
                 
                 <div className="relative w-full sm:max-w-xs">
-                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                   <input
                     value={ordersSearch}
                     onChange={e => setOrdersSearch(e.target.value)}
                     placeholder="Search orders..."
-                    className="w-full pl-9 pr-4 py-2 text-xs font-semibold rounded-lg border border-gray-250/70 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 bg-gray-50/50 dark:bg-white/5 text-[#111827] dark:text-white transition-colors"
+                    className="w-full pl-8 pr-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 dark:border-white/10 focus:outline-none focus:ring-1 focus:ring-emerald-500 bg-[#F8FAFC] dark:bg-white/5 text-[#0F172A] dark:text-white transition-colors"
                   />
                 </div>
               </div>
@@ -1268,46 +1435,46 @@ export default function AdminDashboard() {
               <div className="overflow-x-auto">
                 <table className="w-full text-xs">
                   <thead>
-                    <tr className="border-b border-gray-150 dark:border-white/5 text-left bg-gray-50/50 dark:bg-white/1 select-none">
-                      <th className="px-6 py-4 text-xs font-bold text-[#6B7280] dark:text-gray-450 uppercase tracking-wider">Order ID</th>
-                      <th className="px-6 py-4 text-xs font-bold text-[#6B7280] dark:text-gray-455 uppercase tracking-wider">Customer</th>
-                      <th className="px-6 py-4 text-xs font-bold text-[#6B7280] dark:text-gray-455 uppercase tracking-wider">Seller</th>
-                      <th className="px-6 py-4 text-xs font-bold text-[#6B7280] dark:text-gray-455 uppercase tracking-wider">Payment</th>
-                      <th className="px-6 py-4 text-xs font-bold text-[#6B7280] dark:text-gray-455 uppercase tracking-wider">Amount</th>
-                      <th className="px-6 py-4 text-xs font-bold text-[#6B7280] dark:text-gray-455 uppercase tracking-wider">Status</th>
-                      <th className="px-6 py-4 text-xs font-bold text-[#6B7280] dark:text-gray-455 uppercase tracking-wider">Date</th>
-                      <th className="px-6 py-4 text-xs font-bold text-[#6B7280] dark:text-gray-455 uppercase tracking-wider text-right">Actions</th>
+                    <tr className="border-b border-slate-100 dark:border-white/5 text-left bg-slate-50/50 dark:bg-white/1 select-none">
+                      <th className="px-6 py-3 text-[10px] font-bold text-slate-400 dark:text-slate-550 uppercase tracking-wider">Order ID</th>
+                      <th className="px-6 py-3 text-[10px] font-bold text-slate-400 dark:text-slate-555 uppercase tracking-wider">Customer</th>
+                      <th className="px-6 py-3 text-[10px] font-bold text-slate-400 dark:text-slate-555 uppercase tracking-wider">Seller</th>
+                      <th className="px-6 py-3 text-[10px] font-bold text-slate-400 dark:text-slate-555 uppercase tracking-wider">Payment</th>
+                      <th className="px-6 py-3 text-[10px] font-bold text-slate-400 dark:text-slate-555 uppercase tracking-wider">Amount</th>
+                      <th className="px-6 py-3 text-[10px] font-bold text-slate-400 dark:text-slate-555 uppercase tracking-wider">Status</th>
+                      <th className="px-6 py-3 text-[10px] font-bold text-slate-400 dark:text-slate-555 uppercase tracking-wider">Date</th>
+                      <th className="px-6 py-3 text-[10px] font-bold text-slate-400 dark:text-slate-555 uppercase tracking-wider text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-100 dark:divide-white/5">
+                  <tbody className="divide-y divide-slate-100 dark:divide-white/5">
                     {displayedOrders.length === 0 ? (
                       <tr>
-                        <td colSpan={8} className="py-10">
+                        <td colSpan={8} className="py-8">
                           <SuccessEmptyState 
                             title="No orders found" 
-                            description="All orders are processed or none match your search." 
+                            description="All orders are processed or search parameters returned empty." 
                           />
                         </td>
                       </tr>
                     ) : (
                       displayedOrders.slice(ordersPage * 5, (ordersPage + 1) * 5).map(o => (
-                        <tr key={o.orderId} className="hover:bg-gray-50/50 dark:hover:bg-white/1 transition-colors h-16">
-                          <td className="px-6 py-3 font-mono font-bold text-[#16A34A]">#{o.customOrderId || o.orderId}</td>
-                          <td className="px-6 py-3 font-medium text-gray-900 dark:text-white">{o.customerName || 'N/A'}</td>
-                          <td className="px-6 py-3 text-gray-600 dark:text-gray-400">{o.sellerStoreName || '—'}</td>
-                          <td className="px-6 py-3 text-gray-550 dark:text-gray-400 font-medium">{nice(o.paymentMethod || 'COD')}</td>
-                          <td className="px-6 py-3 font-bold text-gray-900 dark:text-white">{money(o.grandTotal)}</td>
-                          <td className="px-6 py-3">
+                        <tr key={o.orderId} className="hover:bg-slate-50/40 dark:hover:bg-white/1 transition-colors h-14">
+                          <td className="px-6 py-2 font-mono font-bold text-[#16A34A]">#{o.customOrderId || o.orderId}</td>
+                          <td className="px-6 py-2 font-medium text-slate-800 dark:text-slate-200">{o.customerName || 'N/A'}</td>
+                          <td className="px-6 py-2 text-slate-500 dark:text-slate-400 truncate max-w-[120px]">{o.sellerStoreName || '—'}</td>
+                          <td className="px-6 py-2 text-slate-500 dark:text-slate-400 font-medium">{nice(o.paymentMethod || 'COD')}</td>
+                          <td className="px-6 py-2 font-bold text-slate-800 dark:text-slate-200">{money(o.grandTotal)}</td>
+                          <td className="px-6 py-2">
                             <StatusBadge value={o.status} />
                           </td>
-                          <td className="px-6 py-3 text-gray-500 dark:text-gray-400">{dateLabel(o.createdAt)}</td>
-                          <td className="px-6 py-3 text-right">
+                          <td className="px-6 py-2 text-slate-500 dark:text-slate-400">{dateLabel(o.createdAt)}</td>
+                          <td className="px-6 py-2 text-right">
                             <Link 
                               to={`/admin/orders?orderId=${o.orderId}`}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#E5E7EB] dark:border-white/10 bg-white dark:bg-white/5 hover:bg-gray-50 dark:hover:bg-white/10 text-xs font-semibold text-gray-700 dark:text-gray-300 transition-colors"
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-[#E2E8F0] dark:border-white/10 bg-white dark:bg-white/5 hover:bg-slate-50 dark:hover:bg-white/10 text-xs font-semibold text-slate-700 dark:text-slate-300 transition-colors"
                             >
                               <span>Manage</span>
-                              <ArrowRight size={12} />
+                              <ArrowRight size={10} />
                             </Link>
                           </td>
                         </tr>
@@ -1317,22 +1484,22 @@ export default function AdminDashboard() {
                 </table>
               </div>
 
-              {/* Table pagination */}
+              {/* Orders pagination */}
               {displayedOrders.length > 5 && (
-                <div className="px-6 py-4 border-t border-gray-150 dark:border-white/5 flex items-center justify-between text-xs font-semibold text-gray-500 dark:text-gray-400 select-none">
+                <div className="px-6 py-3 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-xs font-semibold text-slate-400 select-none bg-slate-50/30 dark:bg-white/1">
                   <span>Showing {ordersPage * 5 + 1} - {Math.min((ordersPage + 1) * 5, displayedOrders.length)} of {displayedOrders.length}</span>
                   <div className="flex gap-2">
                     <button 
                       onClick={() => setOrdersPage(p => Math.max(0, p - 1))}
                       disabled={ordersPage === 0}
-                      className="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 text-gray-750 dark:text-gray-300 disabled:opacity-40 hover:bg-gray-50 dark:hover:bg-white/10 transition-colors cursor-pointer"
+                      className="px-2.5 py-1 rounded-lg border border-[#E2E8F0] dark:border-white/10 bg-white dark:bg-white/5 text-slate-600 dark:text-slate-300 disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-white/10 transition-colors cursor-pointer"
                     >
                       Prev
                     </button>
                     <button 
                       onClick={() => setOrdersPage(p => Math.min(Math.ceil(displayedOrders.length / 5) - 1, p + 1))}
                       disabled={(ordersPage + 1) * 5 >= displayedOrders.length}
-                      className="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 text-gray-750 dark:text-gray-300 disabled:opacity-40 hover:bg-gray-50 dark:hover:bg-white/10 transition-colors cursor-pointer"
+                      className="px-2.5 py-1 rounded-lg border border-[#E2E8F0] dark:border-white/10 bg-white dark:bg-white/5 text-slate-600 dark:text-slate-300 disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-white/10 transition-colors cursor-pointer"
                     >
                       Next
                     </button>
@@ -1341,21 +1508,21 @@ export default function AdminDashboard() {
               )}
             </div>
 
-            {/* Payments Table Card */}
-            <div className="bg-white dark:bg-[#0d1117] rounded-xl border border-[#E5E7EB] dark:border-white/5 shadow-sm overflow-hidden">
-              <div className="px-6 py-5 border-b border-gray-150 dark:border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            {/* TABULAR REPORTS: Recent Payments Ledger */}
+            <div className="bg-white dark:bg-[#0d1117] rounded-2xl border border-[#E2E8F0] dark:border-white/5 shadow-[0_2px_8px_rgba(0,0,0,0.05)] overflow-hidden">
+              <div className="px-6 py-4 border-b border-slate-100 dark:border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <h3 className="text-lg font-bold text-[#111827] dark:text-white tracking-tight">Recent Payments Ledger</h3>
-                  <p className="text-xs text-[#6B7280] dark:text-gray-400 mt-1">Transactional gateway records.</p>
+                  <h3 className="text-base font-bold text-[#0F172A] dark:text-white tracking-tight">Recent Payments Ledger</h3>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400">Transactional gateway records ledger.</p>
                 </div>
                 
                 <div className="relative w-full sm:max-w-xs">
-                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                   <input
                     value={paymentsSearch}
                     onChange={e => setPaymentsSearch(e.target.value)}
                     placeholder="Search transactions..."
-                    className="w-full pl-9 pr-4 py-2 text-xs font-semibold rounded-lg border border-gray-250/70 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 bg-gray-50/50 dark:bg-white/5 text-[#111827] dark:text-white transition-colors"
+                    className="w-full pl-8 pr-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 dark:border-white/10 focus:outline-none focus:ring-1 focus:ring-emerald-500 bg-[#F8FAFC] dark:bg-white/5 text-[#0F172A] dark:text-white transition-colors"
                   />
                 </div>
               </div>
@@ -1363,37 +1530,37 @@ export default function AdminDashboard() {
               <div className="overflow-x-auto">
                 <table className="w-full text-xs">
                   <thead>
-                    <tr className="border-b border-gray-150 dark:border-white/5 text-left bg-gray-50/50 dark:bg-white/1 select-none">
-                      <th className="px-6 py-4 text-xs font-bold text-[#6B7280] dark:text-gray-450 uppercase tracking-wider">Transaction ID</th>
-                      <th className="px-6 py-4 text-xs font-bold text-[#6B7280] dark:text-gray-455 uppercase tracking-wider">Customer</th>
-                      <th className="px-6 py-4 text-xs font-bold text-[#6B7280] dark:text-gray-455 uppercase tracking-wider">Method</th>
-                      <th className="px-6 py-4 text-xs font-bold text-[#6B7280] dark:text-gray-455 uppercase tracking-wider">Amount</th>
-                      <th className="px-6 py-4 text-xs font-bold text-[#6B7280] dark:text-gray-455 uppercase tracking-wider">Status</th>
-                      <th className="px-6 py-4 text-xs font-bold text-[#6B7280] dark:text-gray-455 uppercase tracking-wider">Time</th>
-                      <th className="px-6 py-4 text-xs font-bold text-[#6B7280] dark:text-gray-455 uppercase tracking-wider text-right">Action</th>
+                    <tr className="border-b border-slate-100 dark:border-white/5 text-left bg-slate-50/50 dark:bg-white/1 select-none">
+                      <th className="px-6 py-3 text-[10px] font-bold text-slate-400 dark:text-slate-550 uppercase tracking-wider">Transaction ID</th>
+                      <th className="px-6 py-3 text-[10px] font-bold text-slate-400 dark:text-slate-555 uppercase tracking-wider">Customer</th>
+                      <th className="px-6 py-3 text-[10px] font-bold text-slate-400 dark:text-slate-555 uppercase tracking-wider">Method</th>
+                      <th className="px-6 py-3 text-[10px] font-bold text-slate-400 dark:text-slate-555 uppercase tracking-wider">Amount</th>
+                      <th className="px-6 py-3 text-[10px] font-bold text-slate-400 dark:text-slate-555 uppercase tracking-wider">Status</th>
+                      <th className="px-6 py-3 text-[10px] font-bold text-slate-400 dark:text-slate-555 uppercase tracking-wider">Time</th>
+                      <th className="px-6 py-3 text-[10px] font-bold text-slate-400 dark:text-slate-555 uppercase tracking-wider text-right">Action</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-100 dark:divide-white/5">
+                  <tbody className="divide-y divide-slate-100 dark:divide-white/5">
                     {displayedPayments.length === 0 ? (
                       <tr>
-                        <td colSpan={7} className="py-10">
+                        <td colSpan={7} className="py-8">
                           <SuccessEmptyState 
                             title="No transactions found" 
-                            description="All payment records are in order or search query returned no hits." 
+                            description="All payment gateway logs are validated and in order." 
                           />
                         </td>
                       </tr>
                     ) : (
                       displayedPayments.slice(paymentsPage * 5, (paymentsPage + 1) * 5).map(p => (
-                        <tr key={p.paymentId} className="hover:bg-gray-50/50 dark:hover:bg-white/1 transition-colors h-16">
-                          <td className="px-6 py-3 font-mono font-semibold text-gray-700 dark:text-gray-300">
+                        <tr key={p.paymentId} className="hover:bg-slate-50/40 dark:hover:bg-white/1 transition-colors h-14">
+                          <td className="px-6 py-2 font-mono font-semibold text-slate-655 dark:text-slate-350">
                             {p.transactionUuid || `#PAY-${p.paymentId}`}
                           </td>
-                          <td className="px-6 py-3 font-medium text-gray-900 dark:text-white">{p.customerName || 'N/A'}</td>
-                          <td className="px-6 py-3 text-gray-650 dark:text-gray-400 font-bold">{p.method || 'eSewa'}</td>
-                          <td className="px-6 py-3 font-bold text-gray-900 dark:text-white">{money(p.amount)}</td>
-                          <td className="px-6 py-3">
-                            <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
+                          <td className="px-6 py-2 font-medium text-slate-800 dark:text-slate-200">{p.customerName || 'N/A'}</td>
+                          <td className="px-6 py-2 text-slate-700 dark:text-slate-400 font-bold">{p.method || 'eSewa'}</td>
+                          <td className="px-6 py-2 font-bold text-slate-800 dark:text-slate-200">{money(p.amount)}</td>
+                          <td className="px-6 py-2">
+                            <span className={`inline-flex px-2 py-0.5 rounded-full text-[9px] font-bold uppercase border ${
                               p.state === 'COMPLETED' || p.state === 'SUCCESS' 
                                 ? 'text-emerald-700 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/20 dark:border-emerald-500/30' 
                                 : 'text-amber-700 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/20 dark:border-amber-500/30'
@@ -1401,14 +1568,14 @@ export default function AdminDashboard() {
                               {p.state}
                             </span>
                           </td>
-                          <td className="px-6 py-3 text-gray-500 dark:text-gray-400">{dateLabel(p.initiatedAt)}</td>
-                          <td className="px-6 py-3 text-right">
+                          <td className="px-6 py-2 text-slate-550 dark:text-gray-400">{dateLabel(p.initiatedAt)}</td>
+                          <td className="px-6 py-2 text-right">
                             <Link 
                               to="/admin/payments"
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#E5E7EB] dark:border-white/10 bg-white dark:bg-white/5 hover:bg-gray-50 dark:hover:bg-white/10 text-xs font-semibold text-gray-700 dark:text-gray-300 transition-colors"
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-[#E2E8F0] dark:border-white/10 bg-white dark:bg-white/5 hover:bg-slate-50 dark:hover:bg-white/10 text-xs font-semibold text-slate-700 dark:text-slate-300 transition-colors"
                             >
                               <span>Audit</span>
-                              <ArrowRight size={12} />
+                              <ArrowRight size={10} />
                             </Link>
                           </td>
                         </tr>
@@ -1418,22 +1585,22 @@ export default function AdminDashboard() {
                 </table>
               </div>
 
-              {/* Table pagination */}
+              {/* Payments pagination */}
               {displayedPayments.length > 5 && (
-                <div className="px-6 py-4 border-t border-gray-150 dark:border-white/5 flex items-center justify-between text-xs font-semibold text-gray-500 dark:text-gray-400 select-none">
+                <div className="px-6 py-3 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-xs font-semibold text-slate-400 select-none bg-slate-50/30 dark:bg-white/1">
                   <span>Showing {paymentsPage * 5 + 1} - {Math.min((paymentsPage + 1) * 5, displayedPayments.length)} of {displayedPayments.length}</span>
                   <div className="flex gap-2">
                     <button 
                       onClick={() => setPaymentsPage(p => Math.max(0, p - 1))}
                       disabled={paymentsPage === 0}
-                      className="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 text-gray-750 dark:text-gray-300 disabled:opacity-40 hover:bg-gray-50 dark:hover:bg-white/10 transition-colors cursor-pointer"
+                      className="px-2.5 py-1 rounded-lg border border-[#E2E8F0] dark:border-white/10 bg-white dark:bg-white/5 text-slate-600 dark:text-slate-300 disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-white/10 transition-colors cursor-pointer"
                     >
                       Prev
                     </button>
                     <button 
                       onClick={() => setPaymentsPage(p => Math.min(Math.ceil(displayedPayments.length / 5) - 1, p + 1))}
                       disabled={(paymentsPage + 1) * 5 >= displayedPayments.length}
-                      className="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 text-gray-750 dark:text-gray-300 disabled:opacity-40 hover:bg-gray-50 dark:hover:bg-white/10 transition-colors cursor-pointer"
+                      className="px-2.5 py-1 rounded-lg border border-[#E2E8F0] dark:border-white/10 bg-white dark:bg-white/5 text-slate-600 dark:text-slate-300 disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-white/10 transition-colors cursor-pointer"
                     >
                       Next
                     </button>
@@ -1442,52 +1609,138 @@ export default function AdminDashboard() {
               )}
             </div>
 
-          </div>
+          </main>
 
-          {/* RIGHT COLUMN: Live Activity Feed (Sticky Sidebar, Width 300px/w-80) */}
-          <aside className="lg:col-span-3 w-full lg:w-80 space-y-6 lg:sticky lg:top-6">
+          {/* RIGHT SIDEBAR PANEL: Collapses below 1280px (xl:col-span-3) */}
+          <aside className="col-span-1 lg:col-span-12 xl:col-span-3 space-y-6 lg:sticky lg:top-6">
             
-            <div className="bg-white dark:bg-[#0d1117] rounded-xl border border-[#E5E7EB] dark:border-white/5 p-6 shadow-sm space-y-5">
-              
-              <div className="border-b border-gray-100 dark:border-white/5 pb-3">
-                <h3 className="text-lg font-bold text-gray-900 dark:text-white tracking-tight">Live Activities</h3>
-                <p className="text-xs text-[#6B7280] dark:text-gray-400 mt-0.5">Real-time marketplace feed.</p>
+            {/* Sidebar Component 1: Compact Alerts & Notifications Priority Queue */}
+            <div className="bg-white dark:bg-[#0d1117] rounded-2xl border border-[#E2E8F0] dark:border-white/5 p-5 shadow-[0_2px_8px_rgba(0,0,0,0.05)]">
+              <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/5 pb-3 mb-4">
+                <div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 block font-medium">System Alerts</span>
+                  <h3 className="text-base font-bold text-[#0F172A] dark:text-white tracking-tight">Priority Queue</h3>
+                </div>
+                <div className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase border ${
+                  executiveInsights.alerts.length > 0 
+                    ? 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/20 dark:text-rose-400' 
+                    : 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/20 dark:text-emerald-400'
+                }`}>
+                  {executiveInsights.alerts.length} Active
+                </div>
               </div>
 
-              <div className="space-y-4">
-                {activityFeed.map((act) => {
-                  const ActIcon = act.icon;
-                  return (
-                    <div 
-                      key={act.id} 
-                      className="flex items-start gap-3 rounded-lg border border-gray-100 dark:border-white/5 p-3.5 hover:bg-gray-50/50 dark:hover:bg-white/1 transition-all"
-                    >
-                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center border shrink-0 ${act.tone}`}>
-                        <ActIcon size={14} />
-                      </div>
-                      
-                      <div className="min-w-0 flex-1">
-                        <p className="text-xs font-semibold text-gray-800 dark:text-gray-200 leading-snug break-words">
-                          {act.description}
-                        </p>
-                        <div className="flex items-center justify-between gap-2 mt-2">
-                          <span className="text-[10px] text-gray-400 dark:text-gray-500 font-medium">
-                            {act.time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              <div className="space-y-3">
+                {executiveInsights.alerts.length > 0 ? (
+                  executiveInsights.alerts.map((alert) => {
+                    let alertStyles = 'bg-blue-50/60 text-blue-800 border-blue-105 dark:bg-blue-950/20 dark:text-blue-300 dark:border-blue-900/30';
+                    let badgeStyles = 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400';
+                    
+                    if (alert.priority === 'Critical') {
+                      alertStyles = 'bg-red-50/60 text-red-800 border-red-105 dark:bg-red-950/20 dark:text-red-300 dark:border-red-900/30';
+                      badgeStyles = 'bg-red-100 text-red-750 dark:bg-red-900/30 dark:text-red-400';
+                    } else if (alert.priority === 'High') {
+                      alertStyles = 'bg-amber-50/60 text-amber-800 border-amber-105 dark:bg-amber-950/20 dark:text-amber-300 dark:border-amber-900/30';
+                      badgeStyles = 'bg-amber-100 text-amber-705 dark:bg-amber-900/30 dark:text-amber-400';
+                    }
+                    
+                    return (
+                      <div key={alert.title} className={`rounded-xl border p-3.5 space-y-1.5 ${alertStyles}`}>
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-xs font-bold truncate pr-2">{alert.title}</p>
+                          <span className={`rounded-full px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider shrink-0 ${badgeStyles}`}>
+                            {alert.priority}
                           </span>
-                          <Link 
-                            to={act.link}
-                            className="inline-flex items-center gap-0.5 text-[10px] font-bold text-[#16A34A] hover:underline"
-                          >
-                            <span>View</span>
-                            <ChevronRight size={10} />
-                          </Link>
                         </div>
+                        <p className="text-[10px] opacity-90 leading-normal">{alert.detail}</p>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })
+                ) : (
+                  <div className="rounded-xl border border-dashed border-emerald-200 bg-emerald-50/40 p-4 text-center">
+                    <p className="text-xs font-semibold text-emerald-800 dark:text-emerald-400">All systems green</p>
+                    <p className="text-[9px] text-slate-550 dark:text-gray-400 mt-0.5">No alerts currently pending.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Sidebar Component 2: Quick Actions Panel */}
+            <div className="bg-white dark:bg-[#0d1117] rounded-2xl border border-[#E2E8F0] dark:border-white/5 p-5 shadow-[0_2px_8px_rgba(0,0,0,0.05)]">
+              <div className="border-b border-slate-100 dark:border-white/5 pb-3 mb-4">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 block font-medium">Quick Center</span>
+                <h3 className="text-base font-bold text-[#0F172A] dark:text-white tracking-tight">Quick Actions</h3>
               </div>
 
+              <div className="grid grid-cols-2 gap-3">
+                
+                {/* 1. Add Product */}
+                <Link 
+                  to="/admin/products"
+                  className="bg-[#F8FAFC] dark:bg-white/1 border border-slate-100 dark:border-white/5 hover:border-[#E2E8F0] dark:hover:border-white/10 rounded-xl p-3 flex flex-col items-center justify-center text-center gap-2 hover:bg-slate-50/80 transition-all cursor-pointer group"
+                >
+                  <div className="p-2 bg-[#F8FAFC] dark:bg-white/5 border border-slate-150/70 dark:border-white/10 text-slate-655 dark:text-slate-400 rounded-lg group-hover:scale-105 transition-transform">
+                    <Plus size={16} />
+                  </div>
+                  <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300">Add Product</span>
+                </Link>
+
+                {/* 2. Approve Sellers */}
+                <Link 
+                  to="/admin/sellers"
+                  className="bg-[#F8FAFC] dark:bg-white/1 border border-slate-100 dark:border-white/5 hover:border-[#E2E8F0] dark:hover:border-white/10 rounded-xl p-3 flex flex-col items-center justify-center text-center gap-2 hover:bg-slate-50/80 transition-all cursor-pointer group"
+                >
+                  <div className="p-2 bg-emerald-50 dark:bg-emerald-950/20 text-[#16A34A] rounded-lg group-hover:scale-105 transition-transform">
+                    <Store size={16} />
+                  </div>
+                  <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300">Approve Sellers</span>
+                </Link>
+
+                {/* 3. Manage Refunds */}
+                <Link 
+                  to="/admin/refunds"
+                  className="bg-[#F8FAFC] dark:bg-white/1 border border-slate-100 dark:border-white/5 hover:border-[#E2E8F0] dark:hover:border-white/10 rounded-xl p-3 flex flex-col items-center justify-center text-center gap-2 hover:bg-slate-50/80 transition-all cursor-pointer group"
+                >
+                  <div className="p-2 bg-emerald-50 dark:bg-emerald-950/20 text-[#16A34A] rounded-lg group-hover:scale-105 transition-transform">
+                    <RefreshCw size={16} />
+                  </div>
+                  <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300">Manage Refunds</span>
+                </Link>
+
+                {/* 4. Inventory Alerts */}
+                <Link 
+                  to="/admin/products"
+                  className="bg-[#F8FAFC] dark:bg-white/1 border border-slate-100 dark:border-white/5 hover:border-[#E2E8F0] dark:hover:border-white/10 rounded-xl p-3 flex flex-col items-center justify-center text-center gap-2 hover:bg-slate-50/80 transition-all cursor-pointer group"
+                >
+                  <div className="p-2 bg-emerald-50 dark:bg-emerald-950/20 text-[#16A34A] rounded-lg group-hover:scale-105 transition-transform">
+                    <AlertTriangle size={16} />
+                  </div>
+                  <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300">Stock Alerts</span>
+                </Link>
+
+                {/* 5. Export Reports */}
+                <Link 
+                  to="/admin/reports"
+                  className="bg-[#F8FAFC] dark:bg-white/1 border border-slate-100 dark:border-white/5 hover:border-[#E2E8F0] dark:hover:border-white/10 rounded-xl p-3 flex flex-col items-center justify-center text-center gap-2 hover:bg-slate-50/80 transition-all cursor-pointer group"
+                >
+                  <div className="p-2 bg-[#F8FAFC] dark:bg-white/5 border border-slate-150/70 dark:border-white/10 text-slate-655 dark:text-slate-400 rounded-lg group-hover:scale-105 transition-transform">
+                    <Download size={16} />
+                  </div>
+                  <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300">Export Reports</span>
+                </Link>
+
+                {/* 6. View Analytics */}
+                <Link 
+                  to="/admin/reports"
+                  className="bg-[#F8FAFC] dark:bg-white/1 border border-slate-100 dark:border-white/5 hover:border-[#E2E8F0] dark:hover:border-white/10 rounded-xl p-3 flex flex-col items-center justify-center text-center gap-2 hover:bg-slate-50/80 transition-all cursor-pointer group"
+                >
+                  <div className="p-2 bg-blue-50 dark:bg-blue-950/20 text-blue-650 rounded-lg group-hover:scale-105 transition-transform">
+                    <TrendingUp size={16} />
+                  </div>
+                  <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300">View Analytics</span>
+                </Link>
+
+              </div>
             </div>
 
           </aside>

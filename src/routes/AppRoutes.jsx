@@ -12,7 +12,6 @@ import GoogleAuthCallback from '../modules/auth/GoogleAuthCallback';
 import SellerRegistration from '../components/SellerRegistration/SellerRegistration';
 import CourierLogin from '../features/courier/CourierLogin';
 import CourierDashboard from '../features/courier/CourierDashboard';
-import PromoLandingPage from '../modules/promo/PromoLandingPage';
 import PromoCenter from '../modules/promo/PromoCenter';
 import CampaignCenter from '../modules/promo/CampaignCenter';
 import PromoLayout from '../modules/promo/PromoLayout';
@@ -37,6 +36,7 @@ import AdminInbox from '../modules/admin/components/AdminInbox';
 import AdminSettings from '../modules/admin/components/AdminSettings';
 import { CustomerProvider } from '../modules/customer/contexts/CustomerContext';
 import StatusPage from '../shared/components/StatusPage';
+import { RequireCustomerAuth, RequireCourierAuth } from '../shared/components/RouteGuards';
 
 export default function AppRoutes() {
   return (
@@ -58,34 +58,174 @@ export default function AppRoutes() {
             <Route path="campaign" element={<CampaignCenter />} />
           </Route>
         </Route>
-        <Route path="/customer/*" element={<CustomerLayout />} />
+        <Route
+          path="/customer/*"
+          element={(
+            <RequireCustomerAuth allowedRoles={['CUSTOMER']} redirectTo="/" forbiddenTo="/403">
+              <CustomerLayout />
+            </RequireCustomerAuth>
+          )}
+        />
         <Route path="/seller/register" element={<SellerRegistration />} />
-        <Route path="/seller/*" element={<SellerLayout />} />
+        <Route
+          path="/seller/*"
+          element={(
+            <RequireCustomerAuth redirectTo="/seller/register">
+              <SellerLayout />
+            </RequireCustomerAuth>
+          )}
+        />
         <Route path="/seller-profile/:id" element={<SellerPublicProfile />} />
         <Route path="/payment/success" element={<PaymentSuccess />} />
         <Route path="/payment/failure" element={<PaymentFailure />} />
         <Route path="/courier/login" element={<CourierLogin />} />
-        <Route path="/courier/dashboard" element={<CourierDashboard />} />
+        <Route
+          path="/courier/dashboard"
+          element={(
+            <RequireCourierAuth>
+              <CourierDashboard />
+            </RequireCourierAuth>
+          )}
+        />
         {/* Google OAuth 2.0 callback — must be outside PublicLayout (no navbar/footer) */}
         <Route path="/auth/google/callback" element={<GoogleAuthCallback />} />
         <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
-        <Route path="/admin/dashboard" element={<AdminDashboard />} />
-        <Route path="/admin/users" element={<AdminUsers />} />
-        <Route path="/admin/sellers" element={<AdminSellers />} />
-        <Route path="/admin/products" element={<AdminProducts />} />
-        <Route path="/admin/orders" element={<AdminOrders />} />
-        <Route path="/admin/payments" element={<AdminPayments />} />
-        <Route path="/admin/reviews" element={<AdminReviews />} />
-        <Route path="/admin/banners" element={<AdminBanners />} />
-        <Route path="/admin/campaigns" element={<AdminCampaigns />} />
-        <Route path="/admin/campaigns/:campaignId" element={<AdminCampaignDetail />} />
-        <Route path="/admin/commissions" element={<AdminCommissions />} />
-        <Route path="/admin/promos" element={<AdminPromos />} />
-        <Route path="/admin/reports" element={<AdminReports />} />
-        <Route path="/admin/disputes" element={<AdminDisputes />} />
-        <Route path="/admin/audit-logs" element={<AdminAuditLogs />} />
-        <Route path="/admin/inbox" element={<AdminInbox />} />
-        <Route path="/admin/settings" element={<AdminSettings />} />
+        <Route
+          path="/admin/dashboard"
+          element={(
+            <RequireCustomerAuth allowedRoles={['ADMIN']} redirectTo="/" forbiddenTo="/403">
+              <AdminDashboard />
+            </RequireCustomerAuth>
+          )}
+        />
+        <Route
+          path="/admin/users"
+          element={(
+            <RequireCustomerAuth allowedRoles={['ADMIN']} redirectTo="/" forbiddenTo="/403">
+              <AdminUsers />
+            </RequireCustomerAuth>
+          )}
+        />
+        <Route
+          path="/admin/sellers"
+          element={(
+            <RequireCustomerAuth allowedRoles={['ADMIN']} redirectTo="/" forbiddenTo="/403">
+              <AdminSellers />
+            </RequireCustomerAuth>
+          )}
+        />
+        <Route
+          path="/admin/products"
+          element={(
+            <RequireCustomerAuth allowedRoles={['ADMIN']} redirectTo="/" forbiddenTo="/403">
+              <AdminProducts />
+            </RequireCustomerAuth>
+          )}
+        />
+        <Route
+          path="/admin/orders"
+          element={(
+            <RequireCustomerAuth allowedRoles={['ADMIN']} redirectTo="/" forbiddenTo="/403">
+              <AdminOrders />
+            </RequireCustomerAuth>
+          )}
+        />
+        <Route
+          path="/admin/payments"
+          element={(
+            <RequireCustomerAuth allowedRoles={['ADMIN']} redirectTo="/" forbiddenTo="/403">
+              <AdminPayments />
+            </RequireCustomerAuth>
+          )}
+        />
+        <Route
+          path="/admin/reviews"
+          element={(
+            <RequireCustomerAuth allowedRoles={['ADMIN']} redirectTo="/" forbiddenTo="/403">
+              <AdminReviews />
+            </RequireCustomerAuth>
+          )}
+        />
+        <Route
+          path="/admin/banners"
+          element={(
+            <RequireCustomerAuth allowedRoles={['ADMIN']} redirectTo="/" forbiddenTo="/403">
+              <AdminBanners />
+            </RequireCustomerAuth>
+          )}
+        />
+        <Route
+          path="/admin/campaigns"
+          element={(
+            <RequireCustomerAuth allowedRoles={['ADMIN']} redirectTo="/" forbiddenTo="/403">
+              <AdminCampaigns />
+            </RequireCustomerAuth>
+          )}
+        />
+        <Route
+          path="/admin/campaigns/:campaignId"
+          element={(
+            <RequireCustomerAuth allowedRoles={['ADMIN']} redirectTo="/" forbiddenTo="/403">
+              <AdminCampaignDetail />
+            </RequireCustomerAuth>
+          )}
+        />
+        <Route
+          path="/admin/commissions"
+          element={(
+            <RequireCustomerAuth allowedRoles={['ADMIN']} redirectTo="/" forbiddenTo="/403">
+              <AdminCommissions />
+            </RequireCustomerAuth>
+          )}
+        />
+        <Route
+          path="/admin/promos"
+          element={(
+            <RequireCustomerAuth allowedRoles={['ADMIN']} redirectTo="/" forbiddenTo="/403">
+              <AdminPromos />
+            </RequireCustomerAuth>
+          )}
+        />
+        <Route
+          path="/admin/reports"
+          element={(
+            <RequireCustomerAuth allowedRoles={['ADMIN']} redirectTo="/" forbiddenTo="/403">
+              <AdminReports />
+            </RequireCustomerAuth>
+          )}
+        />
+        <Route
+          path="/admin/disputes"
+          element={(
+            <RequireCustomerAuth allowedRoles={['ADMIN']} redirectTo="/" forbiddenTo="/403">
+              <AdminDisputes />
+            </RequireCustomerAuth>
+          )}
+        />
+        <Route
+          path="/admin/audit-logs"
+          element={(
+            <RequireCustomerAuth allowedRoles={['ADMIN']} redirectTo="/" forbiddenTo="/403">
+              <AdminAuditLogs />
+            </RequireCustomerAuth>
+          )}
+        />
+        <Route
+          path="/admin/inbox"
+          element={(
+            <RequireCustomerAuth allowedRoles={['ADMIN']} redirectTo="/" forbiddenTo="/403">
+              <AdminInbox />
+            </RequireCustomerAuth>
+          )}
+        />
+        <Route
+          path="/admin/settings"
+          element={(
+            <RequireCustomerAuth allowedRoles={['ADMIN']} redirectTo="/" forbiddenTo="/403">
+              <AdminSettings />
+            </RequireCustomerAuth>
+          )}
+        />
         <Route path="/401" element={<StatusPage code="401" />} />
         <Route path="/403" element={<StatusPage code="403" />} />
         <Route path="/404" element={<StatusPage code="404" />} />

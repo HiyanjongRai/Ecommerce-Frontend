@@ -203,7 +203,7 @@ export function Theme({
                   onClick={() => handleThemeChange(themeOption)}
                   className={cn(
                     "flex cursor-pointer items-center justify-between gap-2 px-3 py-2",
-                    isSelected && "bg-emerald-100 dark:bg-emerald-900 text-emerald-900 dark:text-emerald-100"
+                    isSelected && "bg-green-100 dark:bg-green-900 text-green-900 dark:text-green-100"
                   )}
                 >
                   <div className="flex items-center gap-2">
@@ -286,7 +286,7 @@ export function Theme({
                       ? "h-20 w-20"
                       : "h-24 w-24",
                   isSelected
-                    ? "border-emerald-500"
+                    ? "border-green-500"
                     : "border-gray-200 dark:border-gray-800"
                 )}
               >

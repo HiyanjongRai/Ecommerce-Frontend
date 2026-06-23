@@ -276,7 +276,7 @@ export default function Navbar() {
           </div>
           <button 
             onClick={() => setIsAnnouncementVisible(false)}
-            className="text-white/70 hover:text-white p-1 transition-colors outline-none focus:ring-1 focus:ring-emerald-500/20 rounded-xs flex items-center justify-center"
+            className="text-white/70 hover:text-white p-1 transition-colors outline-none focus:ring-1 focus:ring-green-500/20 rounded-xs flex items-center justify-center"
             aria-label="Dismiss Announcement"
           >
             <X className="w-4 h-4" />
@@ -289,15 +289,17 @@ export default function Navbar() {
         <div className="max-w-[1440px] mx-auto flex items-center justify-between gap-4">
           
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-1.5 flex-shrink-0 group outline-none focus:ring-2 focus:ring-emerald-500/20 rounded-xs">
-            <span className="font-inter font-bold text-2xl text-slate-900 tracking-tight transition-colors group-hover:text-[#16A34A]">
-              Jhapcham<span className="text-[#16A34A] font-bold">.</span>
-            </span>
+          <Link to="/" className="flex items-center flex-shrink-0 group outline-none focus:ring-2 focus:ring-green-500/20 rounded-xs">
+            <img 
+              src="/Assets/Logo/logo.png" 
+              alt="Jhapcham Logo" 
+              className="h-9 w-auto object-contain transition-transform group-hover:scale-105" 
+            />
           </Link>
 
           {/* Search Pill */}
           <form ref={searchRef} onSubmit={handleSearch} className="flex-1 max-w-[700px] relative hidden md:block">
-            <div className="flex items-center border border-[#E5E7EB] rounded-full bg-white h-[52px] shadow-[0_4px_12px_rgba(0,0,0,0.05)] focus-within:border-[#16A34A] focus-within:ring-2 focus-within:ring-emerald-500/20 overflow-hidden transition-all">
+            <div className="flex items-center border border-[#E5E7EB] rounded-full bg-white h-[52px] shadow-[0_4px_12px_rgba(0,0,0,0.05)] focus-within:border-[#16A34A] focus-within:ring-2 focus-within:ring-green-500/20 overflow-hidden transition-all">
               <div className="flex items-center bg-gray-50 border-r border-gray-200 px-4 h-full">
                 <select 
                   value={selectedCategory} 
@@ -354,7 +356,7 @@ export default function Navbar() {
                           key={product.id || product.productId}
                           to={productUrl}
                           onClick={() => setIsSearchSuggestionsOpen(false)}
-                          className="flex items-center gap-3 px-4 py-2.5 hover:bg-emerald-50/45 transition-colors group text-left"
+                          className="flex items-center gap-3 px-4 py-2.5 hover:bg-green-50/45 transition-colors group text-left"
                         >
                           <div className="w-9 h-9 rounded bg-white border border-gray-100 flex-shrink-0 flex items-center justify-center overflow-hidden">
                             {resolvedImg ? (
@@ -364,7 +366,7 @@ export default function Navbar() {
                             )}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="font-bold text-xs text-slate-800 truncate group-hover:text-emerald-700 transition-colors">
+                            <p className="font-bold text-xs text-slate-800 truncate group-hover:text-green-700 transition-colors">
                               {product.name}
                             </p>
                             {product.brand && (
@@ -372,7 +374,7 @@ export default function Navbar() {
                             )}
                           </div>
                           <div className="text-right flex-shrink-0">
-                            <p className="text-xs font-extrabold text-emerald-600 font-mono">Rs. {Number(finalPrice).toLocaleString()}</p>
+                            <p className="text-xs font-extrabold text-green-600 font-mono">Rs. {Number(finalPrice).toLocaleString()}</p>
                             {finalPrice < originalPrice && (
                               <p className="text-[9px] text-gray-400 line-through font-mono">Rs. {Number(originalPrice).toLocaleString()}</p>
                             )}
@@ -459,7 +461,7 @@ export default function Navbar() {
                                 <div className="flex-1 min-w-0">
                                   <h5 className="font-bold truncate text-slate-800">{itemName}</h5>
                                   <p className="text-gray-400 text-[10px]">Qty: {item.quantity}</p>
-                                  <p className="font-semibold text-emerald-600">Rs. {(itemPrice * item.quantity).toLocaleString()}</p>
+                                  <p className="font-semibold text-green-600">Rs. {(itemPrice * item.quantity).toLocaleString()}</p>
                                 </div>
                                 <button 
                                   onClick={(e) => handleRemoveCartItem(e, item.cartItemId)}
@@ -474,14 +476,14 @@ export default function Navbar() {
                         <div className="border-t border-gray-200 pt-3 mt-3">
                           <div className="flex justify-between items-center text-xs font-bold mb-3">
                             <span>Subtotal:</span>
-                            <span className="text-base text-emerald-600 font-extrabold">
+                            <span className="text-base text-green-600 font-extrabold">
                               Rs. {cartItems.reduce((acc, item) => acc + ((item.price || item.product?.price || item.product?.minPrice || 0) * item.quantity), 0).toLocaleString()}
                             </span>
                           </div>
                           <Link 
                             to="/customer/cart" 
                             onClick={() => setIsCartOpen(false)}
-                            className="block w-full py-2.5 bg-[#16A34A] text-white text-center text-xs font-bold rounded-full hover:bg-emerald-700 transition-colors focus:ring-2 focus:ring-emerald-500/20"
+                            className="block w-full py-2.5 bg-[#16A34A] text-white text-center text-xs font-bold rounded-full hover:bg-green-700 transition-colors focus:ring-2 focus:ring-green-500/20"
                           >
                             Checkout Bag
                           </Link>
@@ -514,7 +516,7 @@ export default function Navbar() {
             {/* Shop Sale Button (Redesigned CTA) */}
             <Link 
               to="/product-list?onSale=true" 
-              className="bg-[#16A34A] hover:bg-emerald-700 text-white text-xs font-semibold h-11 px-6 rounded-full tracking-wide transition-all duration-200 flex items-center justify-center shadow-xs hover:shadow-md hidden sm:inline-flex outline-none"
+              className="bg-[#16A34A] hover:bg-green-700 text-white text-xs font-semibold h-11 px-6 rounded-full tracking-wide transition-all duration-200 flex items-center justify-center shadow-xs hover:shadow-md hidden sm:inline-flex outline-none"
             >
               Today's Deals
             </Link>
@@ -522,7 +524,7 @@ export default function Navbar() {
             {/* Mobile Toggle */}
             <button 
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} 
-              className="md:hidden text-slate-800 hover:text-[#16A34A] p-1.5 outline-none rounded-full focus:ring-2 focus:ring-emerald-500/20 flex items-center justify-center"
+              className="md:hidden text-slate-800 hover:text-[#16A34A] p-1.5 outline-none rounded-full focus:ring-2 focus:ring-green-500/20 flex items-center justify-center"
               aria-label="Toggle Menu"
             >
               {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -609,7 +611,7 @@ export default function Navbar() {
                       </div>
                       <div className="max-h-60 overflow-y-auto space-y-2.5 pr-1 scrollbar-thin">
                         {activePromos.map((promo) => (
-                          <div key={promo.id} className="p-2.5 bg-emerald-50/50 border border-emerald-100 rounded-xl text-[11px] flex flex-col gap-1">
+                          <div key={promo.id} className="p-2.5 bg-green-50/50 border border-green-100 rounded-xl text-[11px] flex flex-col gap-1">
                             <div className="flex justify-between items-center">
                               <span className="font-mono font-bold text-[#16A34A] uppercase tracking-wider">{promo.code}</span>
                               <span className="font-black text-slate-800">
@@ -629,7 +631,7 @@ export default function Navbar() {
                         <Link 
                           to="/promo" 
                           onClick={() => setActiveMegaTab('Promo Codes')}
-                          className="block w-full py-2 bg-[#16A34A] text-white text-center text-xs font-bold rounded-lg hover:bg-emerald-700 transition-colors"
+                          className="block w-full py-2 bg-[#16A34A] text-white text-center text-xs font-bold rounded-lg hover:bg-green-700 transition-colors"
                         >
                           Go to Promo Center
                         </Link>
@@ -658,7 +660,7 @@ export default function Navbar() {
               </div>
               <button 
                 onClick={() => setIsWishlistOpen(false)}
-                className="p-1.5 text-gray-400 hover:text-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500/20 rounded-xs"
+                className="p-1.5 text-gray-400 hover:text-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500/20 rounded-xs"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -688,7 +690,7 @@ export default function Navbar() {
                         <div className="flex gap-2 mt-2">
                           <button
                             onClick={(e) => handleAddWishlistToCart(e, prodId)}
-                            className="bg-[#16A34A] text-white px-3 py-1.5 rounded-lg font-bold text-[10px] hover:bg-emerald-700 transition-colors focus:outline-none"
+                            className="bg-[#16A34A] text-white px-3 py-1.5 rounded-lg font-bold text-[10px] hover:bg-green-700 transition-colors focus:outline-none"
                           >
                             Add to Bag
                           </button>
@@ -711,7 +713,7 @@ export default function Navbar() {
                 <Link
                   to="/product-list"
                   onClick={() => setIsWishlistOpen(false)}
-                  className="inline-block bg-[#16A34A] hover:bg-emerald-700 text-white text-[10px] font-black uppercase tracking-wider px-5 py-2.5 rounded-lg transition-colors"
+                  className="inline-block bg-[#16A34A] hover:bg-green-700 text-white text-[10px] font-black uppercase tracking-wider px-5 py-2.5 rounded-lg transition-colors"
                 >
                   Browse Products →
                 </Link>

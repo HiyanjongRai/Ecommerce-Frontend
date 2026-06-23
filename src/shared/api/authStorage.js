@@ -11,7 +11,13 @@ export function setAccessToken(token) {
 }
 
 export function getAccessToken() {
-  return localStorage.getItem(ACCESS_TOKEN_KEY);
+  const token = localStorage.getItem(ACCESS_TOKEN_KEY);
+  if (!token) return null;
+  if (isJwtExpired(token)) {
+    clearAuthStorage();
+    return null;
+  }
+  return token;
 }
 
 export function clearAuthStorage() {
@@ -49,4 +55,3 @@ export function isJwtExpired(token) {
   const nowSeconds = Math.floor(Date.now() / 1000);
   return nowSeconds >= exp;
 }
-

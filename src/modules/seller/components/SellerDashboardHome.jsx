@@ -202,6 +202,10 @@ const SellerDashboardHome = () => {
     return allOrders.filter(o => ['RETURNED', 'REFUNDED', 'RETURN_REQUESTED'].includes(String(o.status).toUpperCase())).length;
   }, [allOrders]);
 
+  const firstPendingOrder = useMemo(() => {
+    return allOrders.find(o => ['PENDING', 'PROCESSING', 'UNPAID', 'COD_PENDING', 'INITIATED'].includes(String(o.status).toUpperCase()));
+  }, [allOrders]);
+
   const lowStockCount = useMemo(() => {
     return allProducts.filter(p => {
       const stock = p.hasVariants
@@ -405,6 +409,7 @@ const SellerDashboardHome = () => {
       <QuickActionGrid 
         colors={colors} 
         isDark={isDark} 
+        pendingOrder={firstPendingOrder}
       />
     </div>
   );

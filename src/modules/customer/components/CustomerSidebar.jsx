@@ -79,9 +79,9 @@ export default function CustomerSidebar({ darkMode, toggleDarkMode, isCollapsed,
     }`}>
       
       {/* ── Profile Header ── */}
-      <div className={`relative p-5 border-b border-gray-100 overflow-hidden bg-gradient-to-b from-emerald-50/60 to-white ${isCollapsed ? 'flex justify-center' : ''}`}>
+      <div className={`relative p-5 border-b border-gray-100 overflow-hidden bg-gradient-to-b from-green-50/60 to-white ${isCollapsed ? 'flex justify-center' : ''}`}>
         {!isCollapsed && (
-          <svg className="absolute bottom-0 left-0 w-[150%] opacity-40 text-emerald-100/70 pointer-events-none" viewBox="0 0 1440 320" fill="currentColor" style={{ transform: 'translateX(-10%)' }}>
+          <svg className="absolute bottom-0 left-0 w-[150%] opacity-40 text-green-100/70 pointer-events-none" viewBox="0 0 1440 320" fill="currentColor" style={{ transform: 'translateX(-10%)' }}>
             <path fillOpacity="1" d="M0,160L48,170.7C96,181,192,203,288,186.7C384,171,480,117,576,106.7C672,96,768,128,864,154.7C960,181,1056,203,1152,192C1248,181,1344,139,1392,117.3L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
           </svg>
         )}
@@ -89,11 +89,11 @@ export default function CustomerSidebar({ darkMode, toggleDarkMode, isCollapsed,
         <div className="relative flex items-center gap-3.5 z-10">
           {/* Avatar */}
           <div className="relative flex-shrink-0">
-            <div className="w-11 h-11 rounded-full bg-[#10B981] flex items-center justify-center text-white text-lg font-black shadow-[0_4px_12px_rgba(16,185,129,0.25)] border-2 border-white">
+            <div className="w-11 h-11 rounded-full bg-[#16A34A] flex items-center justify-center text-white text-lg font-black shadow-[0_4px_12px_rgba(16,185,129,0.25)] border-2 border-white">
               {user?.firstName?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'R'}
             </div>
             {/* Verified Badge */}
-            <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-[#10B981] border-2 border-white rounded-full flex items-center justify-center shadow-sm">
+            <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-[#16A34A] border-2 border-white rounded-full flex items-center justify-center shadow-sm">
               <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" strokeWidth="3.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
             </div>
           </div>
@@ -106,8 +106,8 @@ export default function CustomerSidebar({ darkMode, toggleDarkMode, isCollapsed,
               <p className="text-[10px] font-semibold text-gray-500 truncate mb-1.5">
                 {user?.email || 'raihiyan8@gmail.com'}
               </p>
-              <div className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-[#e6f7ec] border border-[#bbf7d0] text-[#10B981] text-[8px] font-black uppercase tracking-wider">
-                <Crown size={8} className="text-[#10B981]" />
+              <div className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-[#e6f7ec] border border-[#bbf7d0] text-[#16A34A] text-[8px] font-black uppercase tracking-wider">
+                <Crown size={8} className="text-[#16A34A]" />
                 Gold Member
               </div>
             </div>
@@ -135,11 +135,11 @@ export default function CustomerSidebar({ darkMode, toggleDarkMode, isCollapsed,
                       title={item.label}
                       className={`group relative flex items-center justify-center w-11 h-11 rounded-xl transition-all duration-200 ${
                         isActive 
-                          ? 'bg-[#f0fdf4] text-[#10B981] shadow-xs' 
-                          : 'text-gray-500 hover:bg-emerald-50/45 hover:text-emerald-700'
+                          ? 'bg-[#f0fdf4] text-[#16A34A] shadow-xs' 
+                          : 'text-gray-500 hover:bg-green-50/45 hover:text-green-700'
                       }`}
                     >
-                      <Icon size={18} className={`transition-all duration-200 group-hover:scale-105 ${isActive ? 'text-[#10B981]' : 'text-gray-400 group-hover:text-[#10B981]'}`} />
+                      <Icon size={18} className={`transition-all duration-200 group-hover:scale-105 ${isActive ? 'text-[#16A34A]' : 'text-gray-400 group-hover:text-[#16A34A]'}`} />
                       
                       {/* Floating Badge */}
                       {badgeCount > 0 && (
@@ -148,7 +148,7 @@ export default function CustomerSidebar({ darkMode, toggleDarkMode, isCollapsed,
                         </span>
                       )}
                       {item.pointBadge && (
-                        <span className="absolute -bottom-0.5 right-0.5 w-2 h-2 bg-[#10B981] rounded-full border border-white" />
+                        <span className="absolute -bottom-0.5 right-0.5 w-2 h-2 bg-[#16A34A] rounded-full border border-white" />
                       )}
                     </Link>
                   );
@@ -183,12 +183,12 @@ export default function CustomerSidebar({ darkMode, toggleDarkMode, isCollapsed,
                         to={item.to}
                         className={`group relative flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all duration-200 ${
                           isActive 
-                            ? 'bg-[#f0fdf4] text-[#10B981] shadow-xs' 
-                            : 'text-gray-600 hover:bg-emerald-50/45 hover:text-emerald-700'
+                            ? 'bg-[#f0fdf4] text-[#16A34A] shadow-xs' 
+                            : 'text-gray-600 hover:bg-green-50/45 hover:text-green-700'
                         }`}
                       >
                         <div className="flex items-center gap-3">
-                          <Icon size={16} className={`transition-all duration-200 group-hover:scale-105 ${isActive ? 'text-[#10B981]' : 'text-gray-400 group-hover:text-emerald-600'}`} />
+                          <Icon size={16} className={`transition-all duration-200 group-hover:scale-105 ${isActive ? 'text-[#16A34A]' : 'text-gray-400 group-hover:text-green-600'}`} />
                           <span>{item.label}</span>
                         </div>
 
@@ -199,7 +199,7 @@ export default function CustomerSidebar({ darkMode, toggleDarkMode, isCollapsed,
                             </span>
                           )}
                           {item.pointBadge && (
-                            <span className="px-1.5 py-0.5 rounded bg-[#e6f7ec] text-[#10B981] font-black text-[8px] uppercase tracking-wide">
+                            <span className="px-1.5 py-0.5 rounded bg-[#e6f7ec] text-[#16A34A] font-black text-[8px] uppercase tracking-wide">
                               {item.pointBadge}
                             </span>
                           )}
@@ -207,8 +207,8 @@ export default function CustomerSidebar({ darkMode, toggleDarkMode, isCollapsed,
                             size={10} 
                             className={`transition-all duration-200 ${
                               isActive 
-                                ? 'text-[#10B981] opacity-100' 
-                                : 'text-emerald-600 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0'
+                                ? 'text-[#16A34A] opacity-100' 
+                                : 'text-green-600 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0'
                             }`} 
                           />
                         </div>
@@ -241,7 +241,7 @@ export default function CustomerSidebar({ darkMode, toggleDarkMode, isCollapsed,
               onClick={() => darkMode && toggleDarkMode()} 
               title="Light Mode"
               className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg transition-colors cursor-pointer border-0 ${
-                !darkMode ? 'bg-[#f0fdf4] text-[#10B981] shadow-xs' : 'text-gray-400 hover:text-emerald-700 hover:bg-emerald-50/40'
+                !darkMode ? 'bg-[#f0fdf4] text-[#16A34A] shadow-xs' : 'text-gray-400 hover:text-green-700 hover:bg-green-50/40'
               }`}
             >
               <Sun size={12} />
@@ -251,7 +251,7 @@ export default function CustomerSidebar({ darkMode, toggleDarkMode, isCollapsed,
               onClick={() => !darkMode && toggleDarkMode()}
               title="Dark Mode"
               className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg transition-colors cursor-pointer border-0 ${
-                darkMode ? 'bg-[#f0fdf4] text-[#10B981] shadow-xs' : 'text-gray-400 hover:text-emerald-700 hover:bg-emerald-50/40'
+                darkMode ? 'bg-[#f0fdf4] text-[#16A34A] shadow-xs' : 'text-gray-400 hover:text-green-700 hover:bg-green-50/40'
               }`}
             >
               <Moon size={12} />

@@ -54,6 +54,7 @@ const PAYMENT_LABEL = {
 };
 
 const CANCELLABLE = ['DRAFT', 'PENDING', 'CONFIRMED', 'PROCESSING'];
+const APP_ORIGIN = window.location.origin;
 
 /* ── 5-step tracker ─────────────────────────────────── */
 const TRACK_STEPS = [
@@ -220,7 +221,7 @@ export default function CustomerOrderDetails({ order, onBack, busyId, setBusyId,
       }
       const uuid = `ORDS-${order.orderId}-${Date.now()}`;
       const sig  = (await getEsewaSignature({ amount: amt, transactionUuid: uuid, orderIds: [order.orderId] })).data;
-      setEsewaData({ amount: amt, tax_amount: '0.00', total_amount: amt, transaction_uuid: uuid, product_code: sig.productCode, product_service_charge: '0.00', product_delivery_charge: '0.00', success_url: 'http://localhost:3000/payment/success', failure_url: 'http://localhost:3000/payment/failure', signed_field_names: 'total_amount,transaction_uuid,product_code', signature: sig.signature, paymentUrl: sig.paymentUrl });
+      setEsewaData({ amount: amt, tax_amount: '0.00', total_amount: amt, transaction_uuid: uuid, product_code: sig.productCode, product_service_charge: '0.00', product_delivery_charge: '0.00', success_url: `${APP_ORIGIN}/payment/success`, failure_url: `${APP_ORIGIN}/payment/failure`, signed_field_names: 'total_amount,transaction_uuid,product_code', signature: sig.signature, paymentUrl: sig.paymentUrl });
     } catch (e) { alert(e.response?.data?.message || 'Payment failed.'); }
     finally { setBusyId(null); }
   };
@@ -381,6 +382,11 @@ export default function CustomerOrderDetails({ order, onBack, busyId, setBusyId,
                         {/* Write Review Button */}
                         <Link 
                           to="/customer/reviews"
+                          state={{ 
+                            productId: item.productId,
+                            productName: item.name,
+                            imagePath: item.imagePath
+                          }}
                           className="py-1.5 rounded-lg border border-gray-200 text-slate-700 bg-white hover:bg-gray-50 font-bold text-[10px] uppercase tracking-wider flex items-center justify-center gap-1 transition-colors cursor-pointer text-center"
                         >
                           Write Review

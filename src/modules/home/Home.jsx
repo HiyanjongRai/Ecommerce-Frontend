@@ -3,8 +3,9 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import Footer from '../../shared/components/Footer/Footer';
 import ProductCard from '../product/components/ProductCard';
 import Navbar from '../../shared/components/Navbar/Navbar';
-import { getProducts } from '../../shared/api/customerApi';
+import { getProducts, addToCart, addToWishlist, removeFromWishlist } from '../../shared/api/customerApi';
 import { getProductLink } from '../../shared/utils/slugHelper';
+import { useCustomer } from '../customer/contexts/CustomerContext';
 import { 
   getHomepageAggregated,
   getHomepageTrendingProducts,
@@ -33,7 +34,12 @@ import {
   ArrowRight, 
   Mail,
   User,
-  Store
+  Store,
+  TrendingUp,
+  Clock,
+  Star,
+  Heart,
+  ShoppingBag
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 
@@ -89,7 +95,7 @@ const MiniProductRow = ({ product }) => {
         )}
       </div>
       <div className="flex-1 min-w-0">
-        <h4 className="font-bold text-[11px] text-slate-800 group-hover:text-emerald-600 transition-colors leading-tight line-clamp-1 mb-0.5">
+        <h4 className="font-bold text-[11px] text-slate-800 group-hover:text-green-600 transition-colors leading-tight line-clamp-1 mb-0.5">
           {product.name}
         </h4>
         
@@ -118,6 +124,203 @@ const MiniProductSkeleton = () => (
     </div>
   </div>
 );
+
+const HomepageColumnSkeleton = () => (
+  <div className="flex items-center gap-4 animate-pulse py-2 px-2.5">
+    <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gray-150 rounded-2xl flex-shrink-0" />
+    <div className="flex-1 space-y-1.5 pr-1">
+      <div className="h-3.5 bg-gray-200 rounded w-5/6" />
+      <div className="h-2.5 bg-gray-150 rounded w-1/2" />
+      <div className="h-4 bg-gray-150 rounded w-1/3" />
+    </div>
+    <div className="w-9 h-9 bg-gray-150 rounded-xl" />
+  </div>
+);
+
+const HomepageColumnItem = ({ product }) => {
+  const { wishlistIds, refreshWishlist, refreshCart, user } = useCustomer();
+  const [wishing, setWishing] = useState(false);
+  const [adding, setAdding] = useState(false);
+
+  if (!product) return null;
+
+  const toMoneyNumber = (val) => {
+    const num = Number(val);
+    return Number.isFinite(num) ? num : 0;
+  };
+
+  const formatTitle = (str) => {
+    if (!str) return '';
+    return str
+      .split(' ')
+      .map(word => {
+        const lower = word.toLowerCase();
+        if (lower === 'pro') return 'Pro';
+        if (lower === 'max') return 'Max';
+        if (lower === 'hd') return 'HD';
+        if (lower === 'tv') return 'TV';
+        if (word !== lower && word !== word.toUpperCase()) return word;
+        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+      })
+      .join(' ');
+  };
+
+  const minPrice = toMoneyNumber(product.minPrice);
+  const maxPrice = toMoneyNumber(product.maxPrice);
+  const original = toMoneyNumber(product.price || product.originalPrice || minPrice);
+  const directSalePrice = toMoneyNumber(product.salePrice || product.finalPrice);
+  const salePercentage = toMoneyNumber(product.salePercentage || product.discountPercentage);
+  const percentageSalePrice = salePercentage > 0 && original > 0
+    ? original - (original * salePercentage) / 100
+    : 0;
+  const fallbackDiscountAmount = toMoneyNumber(product.discountPrice);
+  const inferredSalePrice = fallbackDiscountAmount > 0 && original > fallbackDiscountAmount
+    ? original - fallbackDiscountAmount
+    : 0;
+  const price = directSalePrice || percentageSalePrice || inferredSalePrice || minPrice || original;
+  const isOnSale = price > 0 && original > 0 && price < original;
+  
+  const discount = salePercentage > 0
+    ? salePercentage
+    : original > 0 && price > 0 && price < original
+      ? Math.round((1 - price / original) * 100)
+      : 0;
+
+  const rawImg = product.imagePaths && product.imagePaths.length > 0 
+    ? product.imagePaths[0] 
+    : (product.imagePath || product.thumbnail || product.images?.[0]?.imagePath || null);
+  const apiBaseUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+  const resolvedImageUrl = rawImg
+    ? (rawImg.startsWith('http') ? rawImg : `${apiBaseUrl}${rawImg.startsWith('/') ? '' : '/'}${rawImg}`)
+    : null;
+
+  const rating = product.averageRating || product.rating || 5;
+  const reviewCount = product.totalReviews || product.reviewCount || 0;
+  const isWished = wishlistIds?.has(product.productId || product.id) || false;
+
+  const handleWishlist = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!user) {
+      toast.warning('Please log in to manage your wishlist');
+      return;
+    }
+    setWishing(true);
+    try {
+      if (isWished) {
+        await removeFromWishlist(product.productId || product.id);
+        toast.success('Removed from wishlist');
+      } else {
+        await addToWishlist(product.productId || product.id);
+        toast.success('Added to wishlist');
+      }
+      refreshWishlist();
+    } catch (err) {
+      toast.error('Failed to update wishlist');
+    } finally {
+      setWishing(false);
+    }
+  };
+
+  const handleAddToCart = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setAdding(true);
+    try {
+      await addToCart(product.productId || product.id, 1);
+      toast.success('Added to cart successfully!');
+      refreshCart();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to add to cart');
+    } finally {
+      setAdding(false);
+    }
+  };
+
+  return (
+    <Link 
+      to={getProductLink(product)}
+      className="flex items-center gap-4 group text-left py-2 hover:bg-slate-50/65 px-2.5 rounded-2xl transition-all duration-300 border border-transparent hover:border-slate-100 hover:shadow-xs relative"
+    >
+      {/* Image Container with larger size w-20 h-20 sm:w-24 sm:h-24 */}
+      <div className="w-20 h-20 sm:w-24 sm:h-24 bg-white rounded-2xl flex-shrink-0 flex items-center justify-center p-2 border border-slate-100 shadow-3xs overflow-hidden relative group-hover:border-green-500/20 group-hover:shadow-2xs transition-all duration-300">
+        {resolvedImageUrl ? (
+          <img 
+            src={resolvedImageUrl} 
+            alt={product.name} 
+            className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+          />
+        ) : (
+          <span className="text-xl">📦</span>
+        )}
+
+        {/* Discount Badge */}
+        {isOnSale && discount > 0 && (
+          <span className="absolute top-1 left-1 bg-red-500 text-white text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded shadow-xs z-10 scale-90 sm:scale-100 origin-top-left">
+            -{discount}%
+          </span>
+        )}
+
+        {/* Quick Wishlist heart button */}
+        <button
+          onClick={handleWishlist}
+          disabled={wishing}
+          className={`absolute top-1 right-1 w-6 h-6 rounded-md bg-white/90 backdrop-blur-xs flex items-center justify-center shadow-3xs border border-slate-100 transition-all duration-205 z-10 active:scale-90 ${
+            isWished ? 'text-red-500 hover:text-red-650' : 'text-slate-400 hover:text-red-500 md:opacity-0 group-hover:opacity-100'
+          }`}
+          title={isWished ? "Remove from Wishlist" : "Add to Wishlist"}
+        >
+          <Heart className={`w-3.5 h-3.5 ${isWished ? 'fill-current' : ''}`} />
+        </button>
+      </div>
+
+      {/* Product Information */}
+      <div className="flex-1 min-w-0 pr-1">
+        <h4 className="font-bold text-xs sm:text-[13px] text-slate-800 group-hover:text-green-600 transition-colors leading-snug line-clamp-2 mb-0.5">
+          {formatTitle(product.name)}
+        </h4>
+        
+        {/* Rating Stars (Hidden if review count is 0 / insufficient data) */}
+        {reviewCount > 0 && (
+          <div className="flex items-center gap-1.5 text-amber-500 text-[10px] mb-1">
+            <div className="flex gap-0.5">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <span key={i} className={i < Math.round(rating) ? "text-amber-500" : "text-gray-200"}>★</span>
+              ))}
+            </div>
+            <span className="text-gray-450 font-bold text-[9px]">({reviewCount})</span>
+          </div>
+        )}
+
+        {/* Pricing Layout */}
+        <div className="flex flex-wrap items-baseline gap-1.5 mt-0.5">
+          <span className="font-extrabold text-sm sm:text-base text-green-600">
+            Rs. {price.toLocaleString()}
+          </span>
+          {isOnSale && (
+            <span className="text-gray-400 line-through text-xs font-semibold">
+              Rs. {original.toLocaleString()}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Quick Add to Cart button */}
+      <button 
+        onClick={handleAddToCart}
+        disabled={adding}
+        className={`p-2.5 rounded-xl border transition-all duration-300 ml-auto flex-shrink-0 flex items-center justify-center hover:scale-105 active:scale-95 shadow-3xs z-10 ${
+          adding 
+            ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
+            : 'bg-slate-50 hover:bg-green-500 text-slate-500 hover:text-white border-slate-100 hover:border-green-500'
+        }`}
+        title="Add to Cart"
+      >
+        <ShoppingBag className="w-3.5 h-3.5" />
+      </button>
+    </Link>
+  );
+};
 
 export default function Home() {
   const navigate = useNavigate();
@@ -151,6 +354,64 @@ export default function Home() {
   const [latestCol, setLatestCol] = useState([]);
   const [topRatedCol, setTopRatedCol] = useState([]);
   const [colsLoading, setColsLoading] = useState(true);
+
+  // Target item count for columns (dynamic between 1 and 3 depending on total available catalog)
+  const targetCount = useMemo(() => {
+    const lengths = [
+      (bestSellingCol || []).length,
+      (featuredCol || []).length,
+      (latestCol || []).length,
+      (topRatedCol || []).length,
+      (products || []).length
+    ];
+    const maxVal = Math.max(...lengths, 0);
+    return Math.min(3, maxVal);
+  }, [bestSellingCol, featuredCol, latestCol, topRatedCol, products]);
+
+  // Helper to ensure each showcase column has exactly targetCount items
+  const getBalancedColumnData = useCallback((colData, fallbackList) => {
+    const uniqueItems = [];
+    const seen = new Set();
+    
+    // 1. Add items from current DTO
+    (colData || []).forEach(item => {
+      const id = item.productId || item.id;
+      if (id && !seen.has(id)) {
+        uniqueItems.push(item);
+        seen.add(id);
+      }
+    });
+    
+    // 2. Pad from general products list to match targetCount exactly
+    if (uniqueItems.length < targetCount && fallbackList && fallbackList.length > 0) {
+      for (const item of fallbackList) {
+        const id = item.productId || item.id;
+        if (id && !seen.has(id)) {
+          uniqueItems.push(item);
+          seen.add(id);
+          if (uniqueItems.length >= targetCount) break;
+        }
+      }
+    }
+    
+    return uniqueItems.slice(0, targetCount);
+  }, [targetCount]);
+
+  const processedBestSelling = useMemo(() => {
+    return getBalancedColumnData(bestSellingCol, products);
+  }, [bestSellingCol, products, getBalancedColumnData]);
+
+  const processedFeatured = useMemo(() => {
+    return getBalancedColumnData(featuredCol, products);
+  }, [featuredCol, products, getBalancedColumnData]);
+
+  const processedLatest = useMemo(() => {
+    return getBalancedColumnData(latestCol, products);
+  }, [latestCol, products, getBalancedColumnData]);
+
+  const processedTopRated = useMemo(() => {
+    return getBalancedColumnData(topRatedCol, products);
+  }, [topRatedCol, products, getBalancedColumnData]);
   
   // Single shared Flash Sale countdown — used in both the promo card and the nav bar label
   const [flashTimeLeft, setFlashTimeLeft] = useState(6 * 3600 + 44 * 60 + 12);
@@ -299,8 +560,8 @@ export default function Home() {
       desc: c.description || 'Exclusive seller discounts for a limited time.',
       link: `/promo/campaign?campaign=${c.id}`,
       badge: c.status || 'CAMPAIGN',
-      badgeColor: 'bg-emerald-600 text-white',
-      tagColor: 'bg-emerald-600',
+      badgeColor: 'bg-green-600 text-white',
+      tagColor: 'bg-green-600',
     });
   });
 
@@ -339,8 +600,8 @@ export default function Home() {
       desc: 'First looks at the latest fashion-forward arrivals — tailored outerwear, premium footwear, and statement accessories.',
       link: '/product-list?category=Fashion',
       badge: 'JUST IN',
-      badgeColor: 'bg-emerald-600 text-white',
-      tagColor: 'bg-emerald-600',
+      badgeColor: 'bg-green-600 text-white',
+      tagColor: 'bg-green-600',
     });
   }
   if (promoDeals.length < 3) {
@@ -359,7 +620,7 @@ export default function Home() {
   const displayDeals = promoDeals.slice(0, 3);
 
   return (
-    <div className="min-h-screen bg-white text-slate-900 overflow-x-hidden selection:bg-emerald-50 selection:text-emerald-700">
+    <div className="min-h-screen bg-white text-slate-900 overflow-x-hidden selection:bg-green-50 selection:text-green-700">
       {/* Dynamic Botanical Navbar */}
       <Navbar />
 
@@ -370,12 +631,12 @@ export default function Home() {
           {/* Categories Sidebar */}
           <div className="lg:col-span-1">
             {/* Sidebar heading aligned with product section headings */}
-            <h2 className="font-bold text-sm text-slate-800 tracking-tight mb-2.5 hidden lg:block border-b border-gray-200 pb-1.5">
+            <h2 className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 px-1 hidden lg:block border-b border-slate-100 pb-1.5">
               Categories
             </h2>
             
-            {/* Horizontal Scroll on Mobile / Vertical on Desktop */}
-            <div className="flex lg:flex-col gap-1 overflow-x-auto no-scrollbar pb-2 lg:pb-0 scroll-smooth whitespace-nowrap lg:whitespace-normal">
+            {/* Horizontal Scroll on Mobile / Vertical on Desktop with premium container card */}
+            <div className="flex lg:flex-col gap-1 overflow-x-auto no-scrollbar pb-2 lg:pb-0 scroll-smooth whitespace-nowrap lg:whitespace-normal bg-white lg:border lg:border-slate-100 lg:p-2 lg:rounded-2xl lg:shadow-3xs">
               {sidebarCategories.map((cat) => {
                 const Icon = cat.icon;
                 const active = activeSidebarCat === cat.name;
@@ -386,13 +647,13 @@ export default function Home() {
                       setActiveSidebarCat(cat.name);
                       navigate(`/product-list?category=${encodeURIComponent(cat.name)}`);
                     }}
-                    className={`flex items-center gap-2 px-2.5 py-1.5 text-[11px] font-bold rounded-xs transition-all duration-200 text-left w-full border focus:outline-none focus:ring-2 focus:ring-emerald-500/30 ${
+                    className={`flex items-center gap-2.5 px-3 py-2.5 text-xs font-semibold rounded-xl transition-all duration-200 text-left w-full border focus:outline-none focus:ring-2 focus:ring-green-500/20 ${
                       active 
-                        ? 'border-l-4 border-l-emerald-500 border-transparent bg-emerald-50 text-emerald-600 font-extrabold' 
-                        : 'border-transparent hover:bg-gray-100 text-slate-700'
+                        ? 'border-green-650 bg-green-50/50 text-green-700 font-bold shadow-3xs' 
+                        : 'border-transparent hover:bg-slate-50 text-slate-650 hover:text-slate-900'
                     }`}
                   >
-                    <Icon className={`w-4 h-4 flex-shrink-0 ${active ? 'text-emerald-600' : 'text-gray-400'}`} />
+                    <Icon className={`w-4 h-4 flex-shrink-0 ${active ? 'text-green-600' : 'text-slate-400'}`} />
                     <span>{cat.name}</span>
                   </button>
                 );
@@ -401,77 +662,81 @@ export default function Home() {
           </div>
 
           {/* Right Hero Banner Container */}
-          <div className="lg:col-span-3">
+          <div className="lg:col-span-3 flex flex-col">
             {banners.length > 0 ? (
               // Dynamic slideshow banners
               <div 
-                className="relative bg-slate-900 text-white rounded-xl p-4 sm:p-5 lg:p-6 overflow-hidden shadow-xl min-h-[300px] flex flex-col justify-between transition-all duration-500 bg-cover bg-center"
+                className="relative bg-slate-900 text-white rounded-2xl p-5 lg:p-6 overflow-hidden shadow-md lg:h-full flex-1 h-[380px] flex flex-col justify-between transition-all duration-500 bg-cover bg-center"
                 style={{
-                  backgroundImage: `linear-gradient(rgba(15,23,42,0.65), rgba(15,23,42,0.85)), url(${
+                  backgroundImage: `linear-gradient(rgba(15,23,42,0.3), rgba(15,23,42,0.65)), url(${
                     banners[currentBannerIndex].image.startsWith('http') 
                       ? banners[currentBannerIndex].image 
                       : `${BASE_URL}/banners/${banners[currentBannerIndex].image}`
                   })`
                 }}
               >
-                <div className="relative z-10 max-w-2xl text-left">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400 block mb-1.5">
-                    EST. 2024 / JHAPCHAM SPOTLIGHT
-                  </span>
-                  
-                  <h1 className="text-lg sm:text-xl lg:text-2xl font-black text-white leading-[1.15] mb-2.5 tracking-tight animate-in fade-in duration-300">
-                    {banners[currentBannerIndex].title || 'Premium Products, Delivered Fast'}
-                  </h1>
-                  
-                  <p className="font-inter text-gray-300 text-xs sm:text-sm leading-relaxed max-w-lg mb-4 animate-in fade-in duration-500">
-                    {banners[currentBannerIndex].subtitle || 'Discover verified electronics, fashion, home essentials and more — curated from trusted sellers across Nepal.'}
-                  </p>
- 
-                  <div className="flex flex-wrap gap-2.5 mb-4">
-                    <Link 
-                      to={banners[currentBannerIndex].redirectUrl || "/product-list"} 
-                      className="bg-emerald-500 hover:bg-white text-white hover:text-slate-900 text-xs font-bold px-5 py-2.5 rounded-pill tracking-wide transition-all duration-300 shadow-md focus:ring-2 focus:ring-emerald-500/40 outline-none flex items-center gap-1.5"
-                    >
-                      <span>Shop This Deal</span>
-                      <ArrowRight className="w-3 h-3" />
-                    </Link>
+                {/* Centered container for the glassmorphic text panel */}
+                <div className="flex-1 flex items-center my-3 relative z-10 w-full text-left">
+                  <div className="max-w-md bg-slate-900/60 backdrop-blur-md border border-white/10 rounded-2xl p-5 sm:p-6 shadow-xl text-left animate-in fade-in duration-300">
+                    <span className="text-[9px] font-black uppercase tracking-widest text-green-400 block mb-1">
+                      EST. 2024 / JHAPCHAM SPOTLIGHT
+                    </span>
+                    
+                    <h1 className="text-xl sm:text-2xl font-black text-white leading-tight mb-2 tracking-tight">
+                      {banners[currentBannerIndex].title || 'Premium Products, Delivered Fast'}
+                    </h1>
+                    
+                    <p className="text-gray-200 text-xs font-semibold leading-relaxed mb-4">
+                      {banners[currentBannerIndex].subtitle || 'Discover verified electronics, fashion, home essentials and more.'}
+                    </p>
+   
+                    <div className="flex">
+                      <Link 
+                        to={banners[currentBannerIndex].redirectUrl || "/product-list"} 
+                        className="bg-green-600 hover:bg-green-700 text-white text-[10px] font-black uppercase tracking-wider px-4 py-2.5 rounded-xl transition-all duration-300 shadow-md flex items-center gap-1.5 active:scale-95"
+                      >
+                        <span>Shop This Deal</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </Link>
+                    </div>
                   </div>
                 </div>
  
-                {/* Pagination Dots */}
-                <div className="flex gap-1.5 relative z-10 justify-start mb-4">
-                  {banners.map((_, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => setCurrentBannerIndex(idx)}
-                      className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                        currentBannerIndex === idx ? 'bg-emerald-500 w-5' : 'bg-gray-600 hover:bg-white'
-                      }`}
-                    />
-                  ))}
-                </div>
+                {/* Bottom glassmorphic info bar containing dots and stats */}
+                <div className="flex items-center justify-between w-full relative z-10 mt-auto pt-2 pb-2 px-4 bg-slate-950/45 backdrop-blur-xs border border-white/10 rounded-xl shadow-inner">
+                  {/* Pagination Dots */}
+                  <div className="flex gap-1.5">
+                    {banners.map((_, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => setCurrentBannerIndex(idx)}
+                        className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
+                          currentBannerIndex === idx ? 'bg-green-500 w-5' : 'bg-gray-400 hover:bg-white'
+                        }`}
+                      />
+                    ))}
+                  </div>
  
-                {/* Bottom Row: Stats Row */}
-                <div className="border-t border-gray-700/60 pt-3 relative z-10">
-                  <div className="grid grid-cols-3 gap-2.5 text-left">
+                  {/* Bottom Row: Stats Row */}
+                  <div className="flex gap-4 sm:gap-6 text-left">
                     <div>
-                      <span className="font-bold text-sm sm:text-base text-emerald-400 block">12,000+</span>
-                      <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Products Listed</span>
+                      <span className="font-black text-xs sm:text-sm text-green-400 block leading-tight tracking-tight">12,000+</span>
+                      <span className="text-[8px] font-black uppercase tracking-widest text-gray-300">Products Listed</span>
                     </div>
                     <div>
-                      <span className="font-bold text-sm sm:text-base text-emerald-400 block">99.4%</span>
-                      <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Authenticity Rate</span>
+                      <span className="font-black text-xs sm:text-sm text-green-400 block leading-tight tracking-tight">99.4%</span>
+                      <span className="text-[8px] font-black uppercase tracking-widest text-gray-300">Authentic</span>
                     </div>
                     <div>
-                      <span className="font-bold text-sm sm:text-base text-emerald-400 block">100%</span>
-                      <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Secure Delivery</span>
+                      <span className="font-black text-xs sm:text-sm text-green-400 block leading-tight tracking-tight">100%</span>
+                      <span className="text-[8px] font-black uppercase tracking-widest text-gray-300">Secure</span>
                     </div>
                   </div>
                 </div>
               </div>
             ) : (
               // Fallback curated block — premium editorial hero
-              <div className="relative bg-slate-900 text-white rounded-xl p-4 sm:p-5 lg:p-6 overflow-hidden shadow-xl min-h-[300px] flex flex-col justify-between">
+              <div className="relative bg-slate-900 text-white rounded-2xl p-5 lg:p-6 overflow-hidden shadow-xl lg:h-full flex-1 h-[380px] flex flex-col justify-between">
                 
                 {/* Geometric background */}
                 <div className="absolute inset-0 opacity-10 pointer-events-none select-none">
@@ -482,57 +747,59 @@ export default function Home() {
                     <circle cx="600" cy="250" r="150" fill="none" stroke="currentColor" strokeWidth="1" strokeDasharray="5,5" className="text-white" />
                   </svg>
                 </div>
- 
-                {/* Top Row: Tagline and Headline */}
-                <div className="relative z-10 max-w-2xl text-left">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400 block mb-2">
-                    EST. 2024 / NEPAL'S PREMIUM MARKETPLACE
-                  </span>
-                  
-                  <h1 className="text-lg sm:text-xl lg:text-2xl font-black text-white leading-[1.15] mb-2.5 tracking-tight">
-                    Quality products, <span className="font-normal italic text-emerald-400">verified</span> sellers, delivered fast.
-                  </h1>
-                  
-                  <p className="font-inter text-gray-300 text-xs sm:text-sm leading-relaxed max-w-lg mb-4">
-                    Jhapcham connects you to trusted sellers across Nepal — from premium electronics and fashion to home essentials and lifestyle goods. Every listing is quality-checked and shipped securely.
-                  </p>
- 
-                  {/* CTAs */}
-                  <div className="flex flex-wrap gap-2.5 mb-4">
-                    <Link 
-                      to="/product-list" 
-                      className="bg-emerald-500 hover:bg-white text-white hover:text-slate-900 text-xs font-bold px-5 py-2.5 rounded-pill tracking-wide transition-all duration-300 shadow-md focus:ring-2 focus:ring-emerald-500/40 outline-none flex items-center gap-1.5"
-                    >
-                      <span>Browse Catalog</span>
-                      <ArrowRight className="w-3 h-3" />
-                    </Link>
-                    <Link 
-                      to="/product-list?onSale=true" 
-                      className="border border-gray-600 hover:border-white text-white text-xs font-bold px-5 py-2.5 rounded-pill tracking-wide transition-all duration-300 focus:ring-2 focus:ring-gray-650/40 outline-none"
-                    >
-                      View Flash Sale
-                    </Link>
-                  </div>
-                </div>
- 
-                {/* Bottom Row: Stats Row */}
-                <div className="border-t border-gray-800 pt-3 mt-4 relative z-10">
-                  <div className="grid grid-cols-3 gap-2.5 text-left">
-                    <div>
-                      <span className="font-bold text-sm sm:text-base text-emerald-400 block">12,000+</span>
-                      <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Products Listed</span>
-                    </div>
-                    <div>
-                      <span className="font-bold text-sm sm:text-base text-emerald-400 block">99.4%</span>
-                      <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Authenticity Rate</span>
-                    </div>
-                    <div>
-                      <span className="font-bold text-sm sm:text-base text-emerald-400 block">100%</span>
-                      <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Secure Delivery</span>
+  
+                {/* Centered container for the glassmorphic text panel */}
+                <div className="flex-1 flex items-center my-3 relative z-10 w-full text-left">
+                  <div className="max-w-md bg-slate-900/60 backdrop-blur-md border border-white/10 rounded-2xl p-5 sm:p-6 shadow-xl text-left animate-in fade-in duration-300">
+                    <span className="text-[9px] font-black uppercase tracking-widest text-green-400 block mb-1">
+                      EST. 2024 / NEPAL'S PREMIUM MARKETPLACE
+                    </span>
+                    
+                    <h1 className="text-xl sm:text-2xl font-black text-white leading-tight mb-2 tracking-tight">
+                      Quality products, <span className="font-normal italic text-green-400">verified</span> sellers, delivered fast.
+                    </h1>
+                    
+                    <p className="text-gray-200 text-xs font-semibold leading-relaxed mb-4">
+                      Jhapcham connects you to trusted sellers across Nepal — from premium electronics and fashion to home essentials.
+                    </p>
+    
+                    {/* CTAs */}
+                    <div className="flex flex-wrap gap-2.5">
+                      <Link 
+                        to="/product-list" 
+                        className="bg-green-600 hover:bg-green-700 text-white text-[10px] font-black uppercase tracking-wider px-4 py-2.5 rounded-xl transition-all duration-300 shadow-md flex items-center gap-1.5 active:scale-95"
+                      >
+                        <span>Browse Catalog</span>
+                        <ArrowRight className="w-3 h-3" />
+                      </Link>
+                      <Link 
+                        to="/product-list?onSale=true" 
+                        className="border border-white/20 bg-white/5 hover:bg-white/10 text-white text-[10px] font-black uppercase tracking-wider px-4 py-2.5 rounded-xl transition-all duration-300 active:scale-95"
+                      >
+                        View Flash Sale
+                      </Link>
                     </div>
                   </div>
                 </div>
- 
+  
+                {/* Bottom glassmorphic info bar for fallback */}
+                <div className="flex items-center justify-end w-full relative z-10 mt-auto pt-2 pb-2 px-4 bg-slate-950/45 backdrop-blur-xs border border-white/10 rounded-xl shadow-inner">
+                  {/* Bottom Row: Stats Row */}
+                  <div className="flex gap-4 sm:gap-6 text-left">
+                    <div>
+                      <span className="font-black text-xs sm:text-sm text-green-400 block leading-tight tracking-tight">12,000+</span>
+                      <span className="text-[8px] font-black uppercase tracking-widest text-gray-300">Products Listed</span>
+                    </div>
+                    <div>
+                      <span className="font-black text-xs sm:text-sm text-green-400 block leading-tight tracking-tight">99.4%</span>
+                      <span className="text-[8px] font-black uppercase tracking-widest text-gray-300">Authenticity Rate</span>
+                    </div>
+                    <div>
+                      <span className="font-black text-xs sm:text-sm text-green-400 block leading-tight tracking-tight">100%</span>
+                      <span className="text-[8px] font-black uppercase tracking-widest text-gray-300">Secure Delivery</span>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
           </div>
@@ -545,16 +812,16 @@ export default function Home() {
           {displayDeals.map((deal, index) => (
             <div 
               key={index} 
-              className="bg-white border border-gray-200 rounded-xl p-5 flex flex-col justify-between text-left group hover:border-emerald-500 hover:shadow-md transition-all duration-300"
+              className="bg-white border border-[#E5E7EB] rounded-2xl p-5 flex flex-col justify-between text-left group hover:border-green-500 hover:shadow-lg transition-all duration-300"
             >
               <div>
                 <div className="flex justify-between items-start mb-2.5">
-                  <span className={`text-[10px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-xs ${deal.tag === 'FLASH SALE' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-50 text-emerald-700'}`}>
+                  <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md ${deal.tag === 'FLASH SALE' ? 'bg-amber-100 text-amber-800' : 'bg-green-50 text-green-700'}`}>
                     {deal.tag}
                   </span>
                   
                   {deal.showTimer && (
-                    <span className="font-mono text-xs font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-xs border border-emerald-100">
+                    <span className="font-mono text-[10px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-md border border-green-100">
                       {formatCountdown(flashTimeLeft)}
                     </span>
                   )}
@@ -562,7 +829,7 @@ export default function Home() {
                 <h3 className="font-bold text-sm text-slate-800 mb-1 leading-tight">
                   {deal.title}
                 </h3>
-                <p className="text-xs text-gray-500 leading-relaxed line-clamp-3">
+                <p className="text-[11px] sm:text-xs text-gray-500 font-medium leading-relaxed line-clamp-3">
                   {deal.desc}
                 </p>
               </div>
@@ -570,12 +837,12 @@ export default function Home() {
               <div className="flex justify-between items-center mt-4 pt-2.5 border-t border-gray-100">
                 <Link 
                   to={deal.link} 
-                  className="text-xs font-bold text-emerald-600 hover:text-emerald-700 flex items-center gap-1 transition-colors"
+                  className="text-[11px] font-black uppercase tracking-wider text-green-600 hover:text-green-700 flex items-center gap-1 transition-colors"
                 >
                   <span>Explore Offer</span>
                   <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
                 </Link>
-                <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-xs bg-gray-100 text-gray-700`}>
+                <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md bg-gray-100 text-gray-500 border border-gray-200/50`}>
                   {deal.badge}
                 </span>
               </div>
@@ -584,63 +851,14 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Trust Bar */}
-      <section className="bg-white text-slate-800 py-5 border-y border-gray-200">
-        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
-            
-            <div className="flex flex-col items-center gap-1.5 p-1">
-              <div className="p-2 rounded-full bg-emerald-50 text-emerald-600 shadow-sm">
-                <Truck className="w-4 h-4" />
-              </div>
-              <h4 className="font-bold text-sm text-slate-800">Fast Shipping</h4>
-              <p className="text-xs text-gray-400">Secure bubble-wrapped packaging</p>
-            </div>
-  
-            <div className="flex flex-col items-center gap-1.5 p-1">
-              <div className="p-2 rounded-full bg-emerald-50 text-emerald-600 shadow-sm">
-                <ShieldCheck className="w-4 h-4" />
-              </div>
-              <h4 className="font-bold text-sm text-slate-800">Authenticity Guarantee</h4>
-              <p className="text-xs text-gray-400">100% genuine products with warranty</p>
-            </div>
-  
-            <div className="flex flex-col items-center gap-1.5 p-1">
-              <div className="p-2 rounded-full bg-emerald-50 text-emerald-600 shadow-sm">
-                <RotateCcw className="w-4 h-4" />
-              </div>
-              <h4 className="font-bold text-sm text-slate-800">Easy Returns</h4>
-              <p className="text-xs text-gray-400">Hassle-free 7-day return policy</p>
-            </div>
-  
-            <div className="flex flex-col items-center gap-1.5 p-1">
-              <div className="p-2 rounded-full bg-emerald-50 text-emerald-600 shadow-sm">
-                <Lock className="w-4 h-4" />
-              </div>
-              <h4 className="font-bold text-sm text-slate-800">Secure Checkout</h4>
-              <p className="text-xs text-gray-400">100% secure online transactions</p>
-            </div>
-  
-            <div className="flex flex-col items-center gap-1.5 p-1 col-span-2 md:col-span-1">
-              <div className="p-2 rounded-full bg-emerald-50 text-emerald-600 shadow-sm">
-                <Headphones className="w-4 h-4" />
-              </div>
-              <h4 className="font-bold text-sm text-slate-800">24/7 Support</h4>
-              <p className="text-xs text-gray-400">Always-on priority live agent care</p>
-            </div>
- 
-          </div>
-        </div>
-      </section>
-
       {/* ─── Product Showcase ──────────────────────────────────────────────── */}
       <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-10 text-left">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-5 border-b border-gray-200 pb-2.5">
           <div>
-            <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600 block mb-0.5">
+            <span className="text-[9px] font-black uppercase tracking-widest text-green-600 block mb-0.5">
               CURATED FOR YOU
             </span>
-            <h2 className="font-bold text-lg text-slate-800 tracking-tight">
+            <h2 className="font-bold text-xl text-slate-800 tracking-tight">
               Shop the Collection
             </h2>
           </div>
@@ -653,10 +871,10 @@ export default function Home() {
                 <button
                   key={tab}
                   onClick={() => handleTabChange(tab)}
-                  className={`text-xs font-bold px-4 py-2 rounded-pill transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 ${
+                  className={`text-[11px] font-black uppercase tracking-wider px-4 py-2.5 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500/30 ${
                     active 
-                      ? 'bg-emerald-500 text-white shadow-sm' 
-                      : 'bg-white border border-gray-200 hover:border-emerald-500 text-slate-700 hover:text-emerald-600'
+                      ? 'bg-green-500 text-white shadow-sm' 
+                      : 'bg-white border border-gray-200 hover:border-green-500 text-slate-700 hover:text-green-600'
                   }`}
                 >
                   {tab}
@@ -694,29 +912,106 @@ export default function Home() {
           </div>
         )}
       </section>
+ 
+      {/* ─── 4-Column Showcase (Top Selling, Trending, Recently Added, Top Rated) ─── */}
+      {(processedBestSelling.length > 0 || processedFeatured.length > 0 || processedLatest.length > 0 || processedTopRated.length > 0) && (
+        <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pb-12 text-left">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-10">
+            
+            {/* Column 1: Top Selling */}
+            {processedBestSelling.length > 0 && (
+              <div>
+                <h3 className="font-extrabold text-[13px] uppercase tracking-wider text-slate-800 pb-3 border-b border-slate-100 mb-5 relative flex items-center gap-2.5 after:absolute after:bottom-0 after:left-0 after:w-12 after:h-[2px] after:bg-green-500 animate-in fade-in duration-300">
+                  <TrendingUp className="w-4 h-4 text-green-600 animate-pulse" />
+                  <span>Top Selling</span>
+                </h3>
+                <div className="space-y-4">
+                  {colsLoading ? (
+                    [...Array(3)].map((_, idx) => <HomepageColumnSkeleton key={idx} />)
+                  ) : (
+                    processedBestSelling.map((p) => <HomepageColumnItem key={p.productId || p.id} product={p} />)
+                  )}
+                </div>
+              </div>
+            )}
+ 
+            {/* Column 2: Trending Products */}
+            {processedFeatured.length > 0 && (
+              <div>
+                <h3 className="font-extrabold text-[13px] uppercase tracking-wider text-slate-800 pb-3 border-b border-slate-100 mb-5 relative flex items-center gap-2.5 after:absolute after:bottom-0 after:left-0 after:w-12 after:h-[2px] after:bg-green-500 animate-in fade-in duration-300">
+                  <Sparkles className="w-4 h-4 text-green-600" />
+                  <span>Trending Products</span>
+                </h3>
+                <div className="space-y-4">
+                  {colsLoading ? (
+                    [...Array(3)].map((_, idx) => <HomepageColumnSkeleton key={idx} />)
+                  ) : (
+                    processedFeatured.map((p) => <HomepageColumnItem key={p.productId || p.id} product={p} />)
+                  )}
+                </div>
+              </div>
+            )}
+ 
+            {/* Column 3: Recently Added */}
+            {processedLatest.length > 0 && (
+              <div>
+                <h3 className="font-extrabold text-[13px] uppercase tracking-wider text-slate-800 pb-3 border-b border-slate-100 mb-5 relative flex items-center gap-2.5 after:absolute after:bottom-0 after:left-0 after:w-12 after:h-[2px] after:bg-green-500 animate-in fade-in duration-300">
+                  <Clock className="w-4 h-4 text-green-600" />
+                  <span>Recently added</span>
+                </h3>
+                <div className="space-y-4">
+                  {colsLoading ? (
+                    [...Array(3)].map((_, idx) => <HomepageColumnSkeleton key={idx} />)
+                  ) : (
+                    processedLatest.map((p) => <HomepageColumnItem key={p.productId || p.id} product={p} />)
+                  )}
+                </div>
+              </div>
+            )}
+ 
+            {/* Column 4: Top Rated */}
+            {processedTopRated.length > 0 && (
+              <div>
+                <h3 className="font-extrabold text-[13px] uppercase tracking-wider text-slate-800 pb-3 border-b border-slate-100 mb-5 relative flex items-center gap-2.5 after:absolute after:bottom-0 after:left-0 after:w-12 after:h-[2px] after:bg-green-500 animate-in fade-in duration-300">
+                  <Star className="w-4 h-4 text-green-600" />
+                  <span>Top Rated</span>
+                </h3>
+                <div className="space-y-4">
+                  {colsLoading ? (
+                    [...Array(3)].map((_, idx) => <HomepageColumnSkeleton key={idx} />)
+                  ) : (
+                    processedTopRated.map((p) => <HomepageColumnItem key={p.productId || p.id} product={p} />)
+                  )}
+                </div>
+              </div>
+            )}
+ 
+          </div>
+        </section>
+      )}
 
       {/* Two Promotional Banner Cards Side-by-Side */}
       <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pb-10 text-left">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           
           {/* Banner 1: Dark Variant */}
-          <div className="relative bg-slate-900 text-white rounded-card p-5 md:p-6 overflow-hidden shadow-lg flex flex-col justify-between min-h-[260px]">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-radial-gradient from-emerald-500/10 to-transparent pointer-events-none" />
+          <div className="relative bg-slate-900 text-white rounded-2xl p-5 md:p-6 overflow-hidden shadow-lg flex flex-col justify-between min-h-[260px]">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-radial-gradient from-green-500/10 to-transparent pointer-events-none" />
             <div className="relative z-10 max-w-sm">
-              <span className="text-[8px] font-black uppercase tracking-widest text-emerald-400 block mb-2">
+              <span className="text-[9px] font-black uppercase tracking-widest text-green-400 block mb-1.5">
                 PREMIUM TECH & GADGETS
               </span>
-              <h3 className="font-bold text-lg leading-tight mb-2">
+              <h3 className="font-bold text-lg text-white leading-tight mb-2">
                 Smart Devices & Wearables
               </h3>
-              <p className="text-[11px] text-gray-300 leading-relaxed mb-4">
+              <p className="text-xs font-semibold text-gray-300 leading-relaxed mb-4">
                 Upgrade to high-performance smartwatches, noise-canceling headphones, and full-spectrum LED lighting for your home or studio.
               </p>
             </div>
             <div className="relative z-10">
               <Link 
                 to="/product-list?category=Electronics" 
-                className="inline-block bg-emerald-500 hover:bg-white text-white hover:text-slate-900 text-[11px] font-bold px-4 py-2 rounded-pill tracking-wide transition-all duration-300 shadow-md focus:ring-2 focus:ring-emerald-500/30 outline-none"
+                className="inline-block bg-green-500 hover:bg-white text-white hover:text-slate-900 text-[10px] font-black uppercase tracking-wider px-4 py-2.5 rounded-xl transition-all duration-300 shadow-md focus:ring-2 focus:ring-green-500/30 outline-none"
               >
                 Shop Electronics
               </Link>
@@ -724,23 +1019,23 @@ export default function Home() {
           </div>
  
           {/* Banner 2: Branded Accent Variant */}
-          <div className="relative bg-emerald-600 text-white rounded-card p-5 md:p-6 overflow-hidden shadow-lg flex flex-col justify-between min-h-[260px]">
+          <div className="relative bg-green-600 text-white rounded-2xl p-5 md:p-6 overflow-hidden shadow-lg flex flex-col justify-between min-h-[260px]">
             <div className="absolute top-0 right-0 w-64 h-64 bg-radial-gradient from-slate-950/20 to-transparent pointer-events-none" />
             <div className="relative z-10 max-w-sm">
-              <span className="text-[8px] font-black uppercase tracking-widest text-emerald-100 block mb-2">
+              <span className="text-[9px] font-black uppercase tracking-widest text-green-100 block mb-1.5">
                 FASHION & LIFESTYLE
               </span>
-              <h3 className="font-bold text-lg leading-tight mb-2">
+              <h3 className="font-bold text-lg text-white leading-tight mb-2">
                 Outerwear & Footwear
               </h3>
-              <p className="text-[11px] text-emerald-50 leading-relaxed mb-4">
+              <p className="text-xs font-semibold text-green-50 leading-relaxed mb-4">
                 Explore hand-crafted leather boots, heavyweight utility jackets, and premium winter parkas — built to last, styled to impress.
               </p>
             </div>
             <div className="relative z-10">
               <Link 
                 to="/product-list?category=Fashion" 
-                className="inline-block bg-slate-900 hover:bg-white text-white hover:text-slate-900 text-[11px] font-bold px-4 py-2 rounded-pill tracking-wide transition-all duration-300 shadow-md focus:ring-2 focus:ring-slate-900/30 outline-none"
+                className="inline-block bg-slate-900 hover:bg-white text-white hover:text-slate-900 text-[10px] font-black uppercase tracking-wider px-4 py-2.5 rounded-xl transition-all duration-300 shadow-md focus:ring-2 focus:ring-slate-900/30 outline-none"
               >
                 Explore Fashion
               </Link>
@@ -749,97 +1044,61 @@ export default function Home() {
  
         </div>
       </section>
+ 
 
-      {/* ─── Dual Portal Entry: Customer & Seller Dashboards ───────────────── */}
-      <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pb-10 text-left">
-        <div className="border-t border-gray-200 pt-8 mb-5 flex flex-col md:flex-row md:items-end justify-between gap-3">
-          <div>
-            <span className="text-[8px] font-black uppercase tracking-widest text-emerald-600 block mb-0.5">
-              JHAPCHAM ECOSYSTEM
-            </span>
-            <h2 className="font-bold text-lg text-slate-800 tracking-tight">
-              One Platform. Two Tailored Experiences.
-            </h2>
-          </div>
-          <p className="text-gray-500 text-[11px] leading-relaxed max-w-md">
-            Whether you're sourcing premium items or scaling your business as a verified merchant, Jhapcham provides professional telemetry and secure pipelines.
-          </p>
-        </div>
- 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Customer Portal Card */}
-          <div className="group relative bg-white border border-gray-200 rounded-card p-5 md:p-6 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 overflow-hidden flex flex-col justify-between min-h-[220px]">
-            {/* Top Border Accent */}
-            <div className="absolute top-0 left-0 right-0 h-1.5 bg-emerald-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
+
+      {/* Trust Bar */}
+      <section className="bg-white text-slate-800 py-5 border-y border-gray-200 mb-8">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
             
-            <div className="space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 shadow-sm group-hover:scale-105 transition-transform">
-                <User className="w-5 h-5" />
+            <div className="flex flex-col items-center gap-1.5 p-1">
+              <div className="p-2 rounded-full bg-green-50 text-green-600 shadow-sm">
+                <Truck className="w-4 h-4" />
               </div>
-              <div>
-                <h3 className="font-bold text-sm text-slate-800 mb-1 flex items-center gap-1.5">
-                  Customer Dashboard
-                  <span className="text-[7.5px] bg-emerald-50 text-emerald-600 border border-emerald-100 px-1.5 py-0.5 rounded-xs font-black uppercase tracking-widest">
-                    Buyer Hub
-                  </span>
-                </h3>
-                <p className="text-gray-500 text-[11px] leading-relaxed">
-                  Access your order history, track live shipments, manage your wishlist library, write product reviews, and initiate secure 7-day refund claims directly.
-                </p>
+              <h4 className="font-bold text-sm text-slate-800">Fast Shipping</h4>
+              <p className="text-xs text-gray-400">Secure bubble-wrapped packaging</p>
+            </div>
+  
+            <div className="flex flex-col items-center gap-1.5 p-1">
+              <div className="p-2 rounded-full bg-green-50 text-green-600 shadow-sm">
+                <ShieldCheck className="w-4 h-4" />
               </div>
+              <h4 className="font-bold text-sm text-slate-800">Authenticity Guarantee</h4>
+              <p className="text-xs text-gray-400">100% genuine products with warranty</p>
+            </div>
+  
+            <div className="flex flex-col items-center gap-1.5 p-1">
+              <div className="p-2 rounded-full bg-green-50 text-green-600 shadow-sm">
+                <RotateCcw className="w-4 h-4" />
+              </div>
+              <h4 className="font-bold text-sm text-slate-800">Easy Returns</h4>
+              <p className="text-xs text-gray-400">Hassle-free 7-day return policy</p>
+            </div>
+  
+            <div className="flex flex-col items-center gap-1.5 p-1">
+              <div className="p-2 rounded-full bg-green-50 text-green-600 shadow-sm">
+                <Lock className="w-4 h-4" />
+              </div>
+              <h4 className="font-bold text-sm text-slate-800">Secure Checkout</h4>
+              <p className="text-xs text-gray-400">100% secure online transactions</p>
+            </div>
+  
+            <div className="flex flex-col items-center gap-1.5 p-1 col-span-2 md:col-span-1">
+              <div className="p-2 rounded-full bg-green-50 text-green-600 shadow-sm">
+                <Headphones className="w-4 h-4" />
+              </div>
+              <h4 className="font-bold text-sm text-slate-800">24/7 Support</h4>
+              <p className="text-xs text-gray-400">Always-on priority live agent care</p>
             </div>
  
-            <div className="mt-5 pt-3 border-t border-gray-150 flex items-center justify-between">
-              <Link 
-                to="/customer/dashboard" 
-                className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 hover:text-slate-900 transition-colors"
-              >
-                <span>Access Customer Hub</span>
-                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-              </Link>
-              <span className="text-[9px] font-bold text-gray-400">Manage Orders & Claims</span>
-            </div>
-          </div>
- 
-          {/* Seller Portal Card */}
-          <div className="group relative bg-white border border-gray-200 rounded-card p-5 md:p-6 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 overflow-hidden flex flex-col justify-between min-h-[220px]">
-            {/* Top Border Accent */}
-            <div className="absolute top-0 left-0 right-0 h-1.5 bg-slate-900 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
-            
-            <div className="space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center text-slate-800 shadow-sm group-hover:scale-105 transition-transform">
-                <Store className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="font-bold text-sm text-slate-800 mb-1 flex items-center gap-1.5">
-                  Merchant Console
-                  <span className="text-[7.5px] bg-gray-100 text-gray-500 border border-gray-250 px-1.5 py-0.5 rounded-xs font-black uppercase tracking-widest">
-                    Seller Panel
-                  </span>
-                </h3>
-                <p className="text-gray-500 text-[11px] leading-relaxed">
-                  Launch your storefront, list products, track orders, audit payouts, upload payment events, and resolve claims with our dedicated seller dashboard telemetry.
-                </p>
-              </div>
-            </div>
- 
-            <div className="mt-5 pt-3 border-t border-gray-150 flex items-center justify-between">
-              <Link 
-                to="/seller/dashboard" 
-                className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-900 hover:text-emerald-600 transition-colors"
-              >
-                <span>Launch Seller Console</span>
-                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-              </Link>
-              <span className="text-[9px] font-bold text-gray-400">Manage Products & Sales</span>
-            </div>
           </div>
         </div>
       </section>
-
+ 
       {/* ─── Newsletter CTA ──────────────────────────────────────────────── */}
       <section className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pb-10">
-        <div className="bg-slate-900 text-white rounded-card p-5 sm:p-7 lg:p-9 text-center relative overflow-hidden shadow-xl border border-gray-800">
+        <div className="bg-slate-900 text-white rounded-2xl p-5 sm:p-7 lg:p-9 text-center relative overflow-hidden shadow-xl border border-gray-800">
           
           <div className="absolute inset-0 opacity-5 pointer-events-none select-none">
             <svg className="w-full h-full" viewBox="0 0 1200 400" xmlns="http://www.w3.org/2000/svg">
@@ -849,23 +1108,23 @@ export default function Home() {
           </div>
  
           <div className="max-w-2xl mx-auto relative z-10">
-            <span className="text-emerald-400 text-[8.5px] font-black uppercase tracking-widest block mb-2">
+            <span className="text-[9px] font-black uppercase tracking-widest text-green-400 block mb-2">
               JHAPCHAM INSIDER — WEEKLY DIGEST
             </span>
-            <h2 className="text-xl sm:text-2xl lg:text-3xl text-white mb-2 leading-tight tracking-tight">
+            <h2 className="font-bold text-2xl sm:text-3xl text-white mb-2 leading-tight tracking-tight">
               Get exclusive deals & new arrivals first.
             </h2>
-            <p className="text-[11px] sm:text-xs text-gray-400 max-w-md mx-auto mb-6 leading-relaxed">
+            <p className="text-xs text-gray-400 font-medium max-w-md mx-auto mb-6 leading-relaxed">
               Subscribe for weekly curated picks, flash sale alerts, and member-only discount codes — straight to your inbox, zero spam.
             </p>
  
             {/* Form */}
             {subscribed ? (
-              <div className="max-w-md mx-auto bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 py-2.5 px-4 rounded-card text-[11px] font-bold flex items-center justify-center gap-1.5">
+              <div className="max-w-md mx-auto bg-green-500/10 border border-green-500/20 text-green-400 py-2.5 px-4 rounded-xl text-[11px] font-bold flex items-center justify-center gap-1.5">
                 <span>✓ You're on the list. Welcome to Jhapcham Insider.</span>
               </div>
             ) : (
-              <form onSubmit={handleSubscribe} className="max-w-md mx-auto flex flex-col sm:flex-row items-stretch border border-gray-700 rounded-card sm:rounded-pill overflow-hidden bg-slate-950 gap-1 sm:gap-0 p-1 sm:p-0">
+              <form onSubmit={handleSubscribe} className="max-w-md mx-auto flex flex-col sm:flex-row items-stretch border border-gray-700 rounded-xl overflow-hidden bg-slate-950 gap-1 sm:gap-0 p-1 sm:p-0">
                 <div className="flex items-center px-3 text-gray-500 pl-4">
                   <Mail className="w-3.5 h-3.5" />
                 </div>
@@ -879,7 +1138,7 @@ export default function Home() {
                 />
                 <button 
                   type="submit" 
-                  className="bg-emerald-500 hover:bg-white text-white hover:text-slate-900 text-[11px] font-bold px-4.5 py-2 rounded-card sm:rounded-pill transition-colors duration-250 outline-none flex items-center justify-center gap-1"
+                  className="bg-green-500 hover:bg-white text-white hover:text-slate-900 text-[11px] font-black uppercase tracking-wider px-6 py-2 rounded-xl transition-colors duration-200 outline-none flex items-center justify-center gap-1"
                 >
                   <span>Subscribe</span>
                 </button>
@@ -887,17 +1146,17 @@ export default function Home() {
             )}
  
             {/* Newsletter Stats */}
-            <div className="grid grid-cols-3 gap-3 border-t border-gray-800 pt-5 mt-6 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+            <div className="grid grid-cols-3 gap-3 border-t border-gray-800 pt-5 mt-6 text-[9px] font-black uppercase tracking-widest text-gray-400">
               <div>
-                <span className="block text-emerald-400 text-xs font-bold mb-0.5">Every Week</span>
+                <span className="block text-green-400 text-sm font-black mb-0.5">Every Week</span>
                 <span>Curated deal alerts</span>
               </div>
               <div>
-                <span className="block text-emerald-400 text-xs font-bold mb-0.5">15,000+</span>
+                <span className="block text-green-400 text-sm font-black mb-0.5">15,000+</span>
                 <span>Active members</span>
               </div>
               <div>
-                <span className="block text-emerald-400 text-xs font-bold mb-0.5">Zero Spam</span>
+                <span className="block text-green-400 text-sm font-black mb-0.5">Zero Spam</span>
                 <span>Unsubscribe anytime</span>
               </div>
             </div>

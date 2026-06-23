@@ -160,10 +160,14 @@ export const getMyReviews = (userId) =>
   apiClient.get(`/reviews/user/${userId}`);
 
 export const submitReview = (data) =>
-  apiClient.post('/reviews', data);
+  apiClient.post('/reviews', data, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  });
 
 export const updateReview = (reviewId, data) =>
-  apiClient.put(`/reviews/${reviewId}`, data);
+  apiClient.put(`/reviews/${reviewId}`, data, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  });
 
 export const deleteReview = (reviewId) =>
   apiClient.delete(`/reviews/${reviewId}`);

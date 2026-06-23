@@ -31,8 +31,8 @@ export default function ConfirmationDialog({
                   ? 'bg-red-500/10 border border-red-500/20 text-red-400'
                   : 'bg-red-50 border border-red-100 text-red-600'
                 : isDark
-                  ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
-                  : 'bg-emerald-50 border border-emerald-100 text-emerald-600'
+                  ? 'bg-green-500/10 border border-green-500/20 text-green-400'
+                  : 'bg-green-50 border border-green-100 text-green-600'
             }`}>
               <AlertTriangle className="w-5.5 h-5.5" />
             </div>
@@ -80,7 +80,7 @@ export default function ConfirmationDialog({
             onClick={loading ? undefined : onConfirm}
             disabled={loading}
             className={`flex-1 py-3 rounded-2xl text-[10px] font-black uppercase tracking-wider text-white transition-all shadow-lg ${
-              danger ? 'bg-red-600 hover:bg-red-700 disabled:opacity-60' : 'bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60'
+              danger ? 'bg-red-600 hover:bg-red-700 disabled:opacity-60' : 'bg-green-600 hover:bg-green-700 disabled:opacity-60'
             }`}
           >
             {loading ? 'Please wait...' : confirmLabel}

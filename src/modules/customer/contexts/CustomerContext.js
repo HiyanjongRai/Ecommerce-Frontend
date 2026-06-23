@@ -79,7 +79,7 @@ export const CustomerProvider = ({ children }) => {
   }, [loadUser]);
 
   useEffect(() => {
-    if (user) { loadCart(); loadNotifs(); loadWishlist(); }
+    if (user?.id) { loadCart(); loadNotifs(); loadWishlist(); }
   }, [user, loadCart, loadNotifs, loadWishlist]);
 
   const refreshCart = () => loadCart();

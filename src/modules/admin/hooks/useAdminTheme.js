@@ -35,7 +35,7 @@ export const useAdminTheme = () => {
     // Backgrounds
     bg: {
       primary: darkMode ? 'bg-[#0d1117]' : 'bg-white',
-      secondary: darkMode ? 'bg-[#080b14]' : 'bg-[#F8FAF7]',
+      secondary: darkMode ? 'bg-[#080b14]' : 'bg-[#F8FAFC]',
       tertiary: darkMode ? 'bg-white/5' : 'bg-gray-150',
       accent: 'bg-emerald-500',
       success: darkMode ? 'bg-emerald-950/30' : 'bg-emerald-50/40',
@@ -56,7 +56,7 @@ export const useAdminTheme = () => {
     },
     // Borders
     border: {
-      primary: darkMode ? 'border-white/8' : 'border-gray-200/80',
+      primary: darkMode ? 'border-white/8' : 'border-[#E2E8F0]',
       secondary: darkMode ? 'border-white/5' : 'border-gray-100/80',
       accent: darkMode ? 'border-emerald-500/30' : 'border-emerald-200',
       danger: darkMode ? 'border-red-500/30' : 'border-red-200',

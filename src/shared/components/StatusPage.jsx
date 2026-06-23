@@ -1,5 +1,4 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
 
 const copy = {
   401: {
@@ -35,7 +34,6 @@ const copy = {
 };
 
 export default function StatusPage({ code = '404', onRetry }) {
-  const navigate = useNavigate();
   const details = copy[code] || copy[404];
 
   const handleAction = () => {
@@ -44,7 +42,7 @@ export default function StatusPage({ code = '404', onRetry }) {
       return;
     }
     if (details.actionHref) {
-      navigate(details.actionHref);
+      window.location.href = details.actionHref;
       return;
     }
     window.location.reload();
@@ -59,16 +57,16 @@ export default function StatusPage({ code = '404', onRetry }) {
         <div className="mt-8 flex flex-wrap gap-3">
           <button
             onClick={handleAction}
-            className="inline-flex items-center justify-center rounded-full bg-emerald-400 px-5 py-3 text-sm font-semibold text-slate-950 hover:bg-emerald-300 transition-colors"
+            className="inline-flex items-center justify-center rounded-full bg-green-400 px-5 py-3 text-sm font-semibold text-slate-950 hover:bg-green-300 transition-colors"
           >
             {details.action}
           </button>
-          <Link
-            to="/"
+          <a
+            href="/"
             className="inline-flex items-center justify-center rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-white hover:bg-white/10 transition-colors"
           >
             Home
-          </Link>
+          </a>
         </div>
       </div>
     </div>

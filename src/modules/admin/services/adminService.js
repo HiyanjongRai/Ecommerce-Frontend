@@ -1,4 +1,10 @@
 import apiClient from '../../../shared/api/apiConfig';
+import {
+  v2AdminApproveReturn,
+  v2AdminForceFullRefund,
+  v2AdminForcePartialRefund,
+  v2AdminRejectClaim,
+} from '../../../shared/api/refundV2Api';
 
 export const getAdminAnalytics = () =>
   apiClient.get('/admin/analytics');
@@ -160,7 +166,11 @@ export const getCustomerReportByReference = (publicReferenceId) =>
 
 // ── ADMIN REFUNDS ──────────────────────────────────────────────────
 /** List all refunds, optionally filtered by status. */
-export const getAdminRefunds = (status = '') => apiClient.get('/admin/refunds');
+export const getAdminRefunds = (status = '') => {
+  const params = {};
+  if (status) params.status = status;
+  return apiClient.get('/admin/refunds', { params });
+};
 
 /** Full detail of a refund — admin view. */
 export const getAdminRefundDetail = (refundId) => apiClient.get(`/admin/refunds/${refundId}`);
@@ -240,7 +250,9 @@ export const deleteAdminPromo = (promoId) =>
 
 // ── ADMIN DISPUTES ────────────────────────────────────────────────────────────
 export const getAdminDisputes = (status = '') => {
-  return apiClient.get('/admin/refunds/disputes');
+  const params = {};
+  if (status) params.status = status;
+  return apiClient.get('/admin/refunds/disputes', { params });
 };
 
 export const getDisputeByReference = (publicReferenceId) =>
@@ -264,5 +276,4 @@ export const broadcastAdminMessage = (content) =>
 
 export const getAdminOrderDetail = (orderId) =>
   apiClient.get(`/orders/${orderId}`);
-
 

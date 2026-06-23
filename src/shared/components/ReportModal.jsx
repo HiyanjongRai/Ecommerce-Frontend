@@ -137,7 +137,7 @@ export default function ReportModal({ isOpen, onClose, type, targetId, targetNam
           {feedback && (
             <div className={`flex items-center gap-2 rounded-lg border p-3 text-xs font-bold ${
               feedback.startsWith('Report submitted')
-                ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                ? 'border-green-200 bg-green-50 text-green-700'
                 : 'border-red-200 bg-red-50 text-red-700'
             }`}>
               {feedback.startsWith('Report submitted') ? <CheckCircle2 size={15} /> : <AlertTriangle size={15} />}

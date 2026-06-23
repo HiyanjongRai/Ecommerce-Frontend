@@ -2,14 +2,22 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, DollarSign, BarChart3, ShoppingBag } from 'lucide-react';
 
-const QuickActionGrid = ({ colors, isDark }) => {
+const QuickActionGrid = ({ colors, isDark, pendingOrder }) => {
   const navigate = useNavigate();
+
+  const fulfillTitle = pendingOrder 
+    ? `Fulfill order #${pendingOrder.customOrderId || pendingOrder.orderId || pendingOrder.id} →`
+    : 'View All Orders →';
+
+  const fulfillRoute = pendingOrder 
+    ? `/seller/orders?orderId=${pendingOrder.orderId || pendingOrder.id}`
+    : '/seller/orders';
 
   const actions = [
     {
-      title: 'Fulfill order #628-0001 →',
+      title: fulfillTitle,
       icon: ShoppingBag,
-      route: '/seller/orders?orderId=JHC-28260628-0001',
+      route: fulfillRoute,
       color: '#16A34A'
     },
     {

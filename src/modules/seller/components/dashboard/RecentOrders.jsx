@@ -50,24 +50,7 @@ const RecentOrders = ({
     return () => document.removeEventListener('click', handleOutsideClick);
   }, []);
 
-  // Seed with mock order data if it doesn't already exist
-  const mockOrder = {
-    id: 'JHC-28260628-0001',
-    displayId: 'JHC-28260628-0001',
-    product: 'iPhone 15 Pro Max',
-    status: 'Delivered',
-    paymentStatus: 'Paid',
-    customer: 'Ram Pasal',
-    amount: 139999,
-    date: 'Jun 28, 2026',
-    image: 'https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?q=80&w=200'
-  };
-
-  const displayOrders = [...recentOrdersList];
-  if (!displayOrders.find(o => String(o.id) === 'JHC-28260628-0001' || String(o.displayId) === 'JHC-28260628-0001')) {
-    displayOrders.unshift(mockOrder);
-  }
-  const finalOrdersList = displayOrders.slice(0, 5);
+  const finalOrdersList = recentOrdersList.slice(0, 5);
 
   return (
     <div 

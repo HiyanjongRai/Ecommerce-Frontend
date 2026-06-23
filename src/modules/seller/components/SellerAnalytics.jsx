@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import {
   getSellerDashboardStats, getSellerIncome, getSellerOrders,
-  getSellerInventory, getSellerCommissions
+  getSellerInventory, getSellerCommissions, getSellerProfile
 } from '../services/sellerService';
 import { useSellerTheme } from '../hooks/useSellerTheme';
 import {
@@ -41,10 +41,13 @@ const SellerAnalytics = () => {
   useEffect(() => {
     const fetchAnalyticsData = async () => {
       try {
+        const profileRes = await getSellerProfile().catch(() => ({ data: {} }));
+        const userId = profileRes.data?.userId;
+
         const [statsRes, incomeRes, ordersRes, inventoryRes, commissionsRes] = await Promise.all([
           getSellerDashboardStats().catch(() => ({ data: {} })),
           getSellerIncome().catch(() => ({ data: {} })),
-          getSellerOrders().catch(() => ({ data: [] })),
+          userId ? getSellerOrders(userId).catch(() => ({ data: [] })) : Promise.resolve({ data: [] }),
           getSellerInventory().catch(() => ({ data: [] })),
           getSellerCommissions().catch(() => ({ data: [] }))
         ]);
