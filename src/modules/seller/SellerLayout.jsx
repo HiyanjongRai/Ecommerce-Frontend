@@ -677,15 +677,15 @@ const SellerLayout = () => {
 
         /* 5. Button Standardization */
         button, .button, a.button {
-          border-radius: 12px !important;
-          font-weight: 700 !important;
-          font-size: 12px !important;
-          padding: 8px 16px !important;
-          transition: all 0.2s ease !important;
-          display: inline-flex !important;
-          align-items: center !important;
-          justify-content: center !important;
-          gap: 6px !important;
+          border-radius: 12px;
+          font-weight: 700;
+          font-size: 12px;
+          padding: 8px 16px;
+          transition: all 0.2s ease;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
         }
         button[class*="bg-[#16A34A]"], button[class*="bg-green-600"], .bg-emerald-600, .bg-[#16A34A] {
           background-color: #16A34A !important;

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+﻿import React, { useEffect, useState, useMemo } from 'react';
 import { getSellerPromos, createSellerPromo, getSellerProfile } from '../services/sellerService';
 import { normalizeList, formatMoney, SectionHeader } from './SellerSectionUtils';
 import { useSellerTheme } from '../hooks/useSellerTheme';
@@ -24,6 +24,8 @@ const SellerPromos = () => {
   const [minOrderValue, setMinOrderValue] = useState('');
   const [usageLimit, setUsageLimit] = useState('');
   const [perUserUsageLimit, setPerUserUsageLimit] = useState('1');
+  const [homepageFeatured, setHomepageFeatured] = useState(false);
+  const [homepageOrder, setHomepageOrder] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -69,12 +71,15 @@ const SellerPromos = () => {
         startDate: startDate ? new Date(startDate).toISOString() : new Date().toISOString(),
         endDate: endDate ? new Date(endDate).toISOString() : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
         isActive: true,
+        homepageFeatured,
+        homepageOrder: homepageOrder === '' ? null : Number(homepageOrder),
       };
       await createSellerPromo(payload);
       setMessage('Promo code created successfully!');
       setFormOpen(false);
       setCode(''); setDiscountType('PERCENTAGE'); setDiscountValue('');
       setMinOrderValue(''); setUsageLimit(''); setPerUserUsageLimit('1');
+      setHomepageFeatured(false); setHomepageOrder('');
       setStartDate(''); setEndDate('');
       loadData();
     } catch (err) {
@@ -115,7 +120,7 @@ const SellerPromos = () => {
   return (
     <div className={`space-y-4 max-w-[1400px] animate-in fade-in-50 duration-200 font-sans ${themeClasses.bg.primary}`}>
 
-      {/* ── Page Header Banner ── */}
+      {/* â”€â”€ Page Header Banner â”€â”€ */}
       <SectionHeader
         title="Promo Codes Desk"
         subtitle="Generate shop-wide coupons, specify minimum order thresholds, and review usage ledger details."
@@ -142,7 +147,7 @@ const SellerPromos = () => {
         }
       />
 
-      {/* ── Alerts Banners ── */}
+      {/* â”€â”€ Alerts Banners â”€â”€ */}
       {errorMsg && (
         <div className={`p-4 border rounded-xl text-xs font-black flex items-center gap-3 tracking-wide uppercase animate-in fade-in duration-205 ${
           isDark ? 'bg-red-500/10 border-red-500/20 text-red-400' : 'bg-red-50 border-red-200 text-red-750'
@@ -160,7 +165,7 @@ const SellerPromos = () => {
         </div>
       )}
 
-      {/* ── Telemetry Stats Grid ── */}
+      {/* â”€â”€ Telemetry Stats Grid â”€â”€ */}
       <div className="grid grid-cols-3 gap-4">
         {[
           { label: 'Active Promo Codes', value: metrics.active, icon: Ticket, color: isDark ? 'text-emerald-450 bg-[#16A34A]/100/10' : 'text-[#152F17] bg-[#16A34A]/10' },
@@ -184,7 +189,7 @@ const SellerPromos = () => {
         })}
       </div>
 
-      {/* ── Promos Ledger Table ── */}
+      {/* â”€â”€ Promos Ledger Table â”€â”€ */}
       <div className={`border rounded-2xl shadow-[0_2px_10px_rgba(0,0,0,0.01)] transition-colors overflow-hidden ${
         isDark ? 'bg-[#0b0c10] border-white/10' : 'bg-white border-gray-200'
       }`}>
@@ -237,9 +242,9 @@ const SellerPromos = () => {
                       <td className={`px-5 py-4 font-black text-xs ${isDark ? 'text-white' : 'text-gray-900'}`}>{discountStr}</td>
                       <td className={`px-5 py-4 font-bold ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{formatMoney(item.minOrderValue)}</td>
                       <td className={`px-5 py-4 font-bold ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{item.usageLimit || 'Unlimited'}</td>
-                      <td className={`px-5 py-4 font-black text-xs ${isDark ? 'text-white' : 'text-gray-900'}`}>{item.usedCount || 0}×</td>
+                      <td className={`px-5 py-4 font-black text-xs ${isDark ? 'text-white' : 'text-gray-900'}`}>{item.usedCount || 0}Ã—</td>
                       <td className={`px-5 py-4 text-[10px] font-semibold ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
-                        {new Date(item.startDate).toLocaleDateString()} – {new Date(item.endDate).toLocaleDateString()}
+                        {new Date(item.startDate).toLocaleDateString()} â€“ {new Date(item.endDate).toLocaleDateString()}
                       </td>
                       <td className="px-5 py-4">
                         <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider border ${
@@ -259,7 +264,7 @@ const SellerPromos = () => {
         )}
       </div>
 
-      {/* ── Coupon Creation Modal Overlay ── */}
+      {/* â”€â”€ Coupon Creation Modal Overlay â”€â”€ */}
       {formOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[9999] flex items-center justify-center p-4 animate-in fade-in duration-200">
           <div className={`relative rounded-2xl border w-full max-w-md flex flex-col max-h-[88vh] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 ${
@@ -363,6 +368,28 @@ const SellerPromos = () => {
               </div>
 
               <div className="grid grid-cols-2 gap-4">
+                <label className={`flex items-center gap-2 rounded-xl border px-4 py-3 text-xs font-semibold ${isDark ? 'border-white/10 bg-white/5 text-gray-200' : 'border-gray-200 bg-white text-gray-700'}`}>
+                  <input
+                    type="checkbox"
+                    checked={homepageFeatured}
+                    onChange={(e) => setHomepageFeatured(e.target.checked)}
+                  />
+                  Feature on homepage
+                </label>
+                <div>
+                  <label className={`block text-[10px] font-black uppercase tracking-widest mb-1.5 ${isDark ? 'text-gray-500' : 'text-gray-450'}`}>Homepage Order</label>
+                  <input
+                    type="number"
+                    min="0"
+                    placeholder="Lower first"
+                    value={homepageOrder}
+                    onChange={(e) => setHomepageOrder(e.target.value)}
+                    className={inputCls}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className={`block text-[10px] font-black uppercase tracking-widest mb-1.5 ${isDark ? 'text-gray-500' : 'text-gray-450'}`}>Validity Start Date</label>
                   <input
@@ -431,3 +458,6 @@ const SellerPromos = () => {
 };
 
 export default SellerPromos;
+
+
+

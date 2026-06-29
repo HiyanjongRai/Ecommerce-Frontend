@@ -47,6 +47,24 @@ const nice  = v => String(v || 'N/A').replaceAll('_', ' ');
 const docUrl = path => path ? (path.startsWith('http') ? path : `${BASE_URL}/uploads/${path}`) : null;
 const dateLabel  = v => v ? new Date(v).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Not Provided';
 
+const Badge = ({ value, themeClasses }) => {
+  const statusMap = {
+    ACTIVE: themeClasses.status.success,
+    APPROVED: themeClasses.status.success,
+    VERIFIED: themeClasses.status.success,
+    PENDING: themeClasses.status.warning,
+    BLOCKED: themeClasses.status.danger,
+    SUSPENDED: themeClasses.status.danger,
+    REJECTED: themeClasses.status.danger,
+  };
+
+  return (
+    <span className={`inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wide border ${statusMap[value] || themeClasses.status.pending}`}>
+      {nice(value)}
+    </span>
+  );
+};
+
 export default function AdminSellers() {
   const { darkMode, themeClasses } = useAdminTheme();
   

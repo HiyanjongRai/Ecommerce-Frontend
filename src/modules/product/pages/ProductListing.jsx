@@ -14,10 +14,10 @@ export default function ProductListing() {
   const [priceMin, setPriceMin] = useState('');
   const [priceMax, setPriceMax] = useState('');
   const [minRating, setMinRating] = useState(0);
-  const [sortBy, setSortBy] = useState('relevance');
+  const [sortBy, setSortBy] = useState('popularity');
   const [page, setPage] = useState(1);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
-  const pageSize = 24;
+  const pageSize = 12;
 
   const q = searchParams.get('q');
   const isOnSaleFilter = searchParams.get('onSale') === 'true';
@@ -75,6 +75,15 @@ export default function ProductListing() {
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const pageItems = filtered.slice((page-1)*pageSize, page*pageSize);
+  // Debug: log a sample product to inspect variant fields when troubleshooting
+  useEffect(() => {
+    if (pageItems.length > 0) {
+      // Log the first item for inspection in browser devtools
+      // Remove this after debugging
+      // eslint-disable-next-line no-console
+      console.log('DEBUG: sample product for pageItems', pageItems[0]);
+    }
+  }, [pageItems]);
   
   // Auto-reset page when filter states update
   useEffect(() => {
@@ -116,217 +125,264 @@ export default function ProductListing() {
 
   const filterSidebarContent = (isMobile = false) => (
     <>
-      <div className="flex items-center justify-between mb-4 pb-2.5 border-b border-gray-100">
-        <h2 className="font-bold text-sm uppercase tracking-wider text-slate-800">Filters</h2>
-        <button onClick={clearFilters} className="text-[10px] font-bold text-[#16A34A] hover:text-[#15803D] transition-colors uppercase tracking-widest">Clear All</button>
+      <div className="flex items-center justify-between mb-5 pb-3 border-b border-gray-200">
+        <h2 className="font-semibold text-base text-slate-900">Categories</h2>
       </div>
 
       <div className="mb-6">
-        <h3 className="font-bold text-[11px] uppercase tracking-wider text-slate-400 mb-3">Categories</h3>
-        <div className="max-h-48 overflow-y-auto pr-2 space-y-2 scrollbar-thin">
+        <div className="space-y-2.5">
+          <label className="flex items-center gap-3 text-sm text-slate-700 cursor-pointer group">
+            <input 
+              type="radio" 
+              name="category"
+              checked={selectedCategories.size === 0} 
+              onChange={clearFilters} 
+              className="w-4 h-4 text-emerald-600 border-gray-300 focus:ring-emerald-500" 
+            />
+            <span className="group-hover:text-slate-900 font-medium">All Categories</span>
+            <span className="ml-auto text-xs text-gray-400">(324)</span>
+          </label>
           {categories.map(cat => (
-            <label key={cat} className="flex items-center gap-2 text-xs font-semibold text-slate-700 hover:text-slate-900 cursor-pointer select-none">
+            <label key={cat} className="flex items-center gap-3 text-sm text-slate-700 cursor-pointer group">
               <input 
                 type="checkbox" 
                 checked={selectedCategories.has(cat)} 
                 onChange={() => toggleSet(setSelectedCategories, selectedCategories, cat)} 
-                className="w-4 h-4 text-[#16A34A] accent-[#16A34A] rounded border-gray-300 focus:ring-[#16A34A]/25" 
+                className="w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500" 
               />
-              <span className="truncate">{cat}</span>
+              <span className="group-hover:text-slate-900 font-medium truncate">{cat}</span>
             </label>
           ))}
-          {categories.length === 0 && <div className="text-xs text-gray-400">No categories</div>}
         </div>
       </div>
 
-      <div className="mb-6">
-        <h3 className="font-bold text-[11px] uppercase tracking-wider text-slate-400 mb-3">Brand</h3>
-        <div className="max-h-48 overflow-y-auto pr-2 space-y-2 scrollbar-thin">
+      <div className="mb-6 pt-4 border-t border-gray-200">
+        <h3 className="font-semibold text-base text-slate-900 mb-4">Brands</h3>
+        <div className="max-h-48 overflow-y-auto space-y-2.5">
           {brands.map(b => (
-            <label key={b} className="flex items-center gap-2 text-xs font-semibold text-slate-700 hover:text-slate-900 cursor-pointer select-none">
+            <label key={b} className="flex items-center gap-3 text-sm text-slate-700 cursor-pointer group">
               <input 
                 type="checkbox" 
                 checked={selectedBrands.has(b)} 
                 onChange={() => toggleSet(setSelectedBrands, selectedBrands, b)} 
-                className="w-4 h-4 text-[#16A34A] accent-[#16A34A] rounded border-gray-300 focus:ring-[#16A34A]/25" 
+                className="w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500" 
               />
-              <span className="truncate">{b}</span>
+              <span className="group-hover:text-slate-900 font-medium truncate">{b}</span>
             </label>
           ))}
-          {brands.length === 0 && <div className="text-xs text-gray-400">No brands</div>}
+        </div>
+        {brands.length > 5 && <button className="text-emerald-600 text-sm font-medium mt-3 hover:text-emerald-700">Show More</button>}
+      </div>
+
+      <div className="mb-6 pt-4 border-t border-gray-200">
+        <h3 className="font-semibold text-base text-slate-900 mb-4">Price Range</h3>
+        <div className="flex gap-3 items-center">
+          <input 
+            type="number"
+            placeholder="$0" 
+            value={priceMin} 
+            onChange={e=>setPriceMin(e.target.value)} 
+            className="w-1/2 px-3 py-2 border border-gray-300 rounded-md text-sm focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none" 
+          />
+          <span className="text-gray-400">—</span>
+          <input 
+            type="number"
+            placeholder="$1000" 
+            value={priceMax} 
+            onChange={e=>setPriceMax(e.target.value)} 
+            className="w-1/2 px-3 py-2 border border-gray-300 rounded-md text-sm focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none" 
+          />
+        </div>
+        <div className="mt-4">
+          <input type="range" min="0" max="1000" className="w-full accent-emerald-600" />
         </div>
       </div>
 
-      <div className="mb-6">
-        <h3 className="font-bold text-[11px] uppercase tracking-wider text-slate-400 mb-3">Price Range</h3>
-        <div className="flex gap-2.5 items-center">
-          <div className="relative w-1/2">
-            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 font-bold">Rs.</span>
-            <input 
-              placeholder="Min" 
-              value={priceMin} 
-              onChange={e=>setPriceMin(e.target.value)} 
-              className="w-full pl-7 pr-2.5 py-2 border border-gray-200 rounded-xl text-xs font-semibold focus:border-[#16A34A] focus:ring-1 focus:ring-green-500/15 outline-none transition-all" 
-            />
-          </div>
-          <span className="text-gray-300 text-xs">—</span>
-          <div className="relative w-1/2">
-            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 font-bold">Rs.</span>
-            <input 
-              placeholder="Max" 
-              value={priceMax} 
-              onChange={e=>setPriceMax(e.target.value)} 
-              className="w-full pl-7 pr-2.5 py-2 border border-gray-200 rounded-xl text-xs font-semibold focus:border-[#16A34A] focus:ring-1 focus:ring-green-500/15 outline-none transition-all" 
-            />
-          </div>
+      <div className="mb-6 pt-4 border-t border-gray-200">
+        <h3 className="font-semibold text-base text-slate-900 mb-4">Customer Rating</h3>
+        <div className="space-y-2.5">
+          {[5, 4, 3, 2, 1].map(rating => (
+            <label key={rating} className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer group">
+              <input 
+                type="radio" 
+                name="rating"
+                checked={minRating === rating} 
+                onChange={() => setMinRating(rating)} 
+                className="w-4 h-4 text-emerald-600 border-gray-300 focus:ring-emerald-500" 
+              />
+              <span className="flex items-center gap-1 group-hover:text-slate-900">
+                {[...Array(rating)].map((_, i) => <span key={i} className="text-amber-400">★</span>)}
+                {[...Array(5 - rating)].map((_, i) => <span key={i} className="text-gray-300">★</span>)}
+              </span>
+              <span className="text-gray-400 text-xs">& up</span>
+            </label>
+          ))}
         </div>
-      </div>
-
-      <div className="mb-4">
-        <h3 className="font-bold text-[11px] uppercase tracking-wider text-slate-400 mb-3">Minimum Rating</h3>
-        <select 
-          value={minRating} 
-          onChange={e=>setMinRating(Number(e.target.value))} 
-          className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs font-bold text-slate-700 bg-white focus:border-[#16A34A] focus:ring-1 focus:ring-green-500/15 outline-none transition-all cursor-pointer"
-        >
-          <option value={0}>Any Rating</option>
-          <option value={1}>1 ★ & up</option>
-          <option value={2}>2 ★ & up</option>
-          <option value={3}>3 ★ & up</option>
-          <option value={4}>4 ★ & up</option>
-        </select>
       </div>
     </>
   );
 
   return (
-    <div className="min-h-screen bg-[#F8FAF7] font-sans text-[#0f1720]">
-      <main className="max-w-[1400px] mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
-        
-        {/* Desktop Filter Sidebar (Hidden on mobile) */}
-        <aside className="hidden lg:block lg:col-span-3 bg-white border border-gray-200 rounded-[20px] p-5 shadow-[0_8px_24px_rgba(0,0,0,0.04)] h-fit">
-          {filterSidebarContent()}
-        </aside>
+    <div className="min-h-screen bg-gray-50">
+      {/* Breadcrumb */}
+      <div className="bg-white border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+          <nav className="flex text-sm text-gray-500">
+            <a href="/" className="hover:text-gray-700">Home</a>
+            <span className="mx-2">›</span>
+            <span className="text-gray-900">Shop</span>
+          </nav>
+        </div>
+      </div>
 
-        {/* Mobile Filter Slide-Over Drawer */}
-        {showMobileFilters && (
-          <div className="fixed inset-0 z-[9999] lg:hidden bg-black/50 backdrop-blur-md flex justify-end">
-            <div className="w-80 max-w-[90%] bg-white h-full p-6 shadow-2xl flex flex-col justify-between overflow-y-auto animate-in slide-in-from-right duration-200 rounded-l-[20px]">
-              <div>
-                <div className="flex items-center justify-between pb-3 border-b mb-4">
-                  <h2 className="font-bold text-base text-slate-800 uppercase tracking-wider">Filters</h2>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex gap-8">
+        
+          {/* Desktop Filter Sidebar */}
+          <aside className="hidden lg:block w-64 flex-shrink-0">
+            <div className="bg-white border border-gray-200 rounded-lg p-5 sticky top-4">
+              {filterSidebarContent()}
+            </div>
+          </aside>
+
+          {/* Mobile Filter Overlay */}
+          {showMobileFilters && (
+            <div className="fixed inset-0 z-50 lg:hidden">
+              <div className="absolute inset-0 bg-black/50" onClick={() => setShowMobileFilters(false)} />
+              <div className="absolute right-0 top-0 bottom-0 w-80 max-w-full bg-white shadow-xl overflow-y-auto">
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-lg font-semibold">Filters</h2>
+                    <button onClick={() => setShowMobileFilters(false)} className="text-gray-400 hover:text-gray-600">
+                      <span className="text-2xl">×</span>
+                    </button>
+                  </div>
+                  {filterSidebarContent(true)}
                   <button 
                     onClick={() => setShowMobileFilters(false)}
-                    className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center font-bold text-gray-500 hover:bg-gray-100 transition-all hover:scale-105 active:scale-95"
+                    className="w-full mt-6 py-3 bg-emerald-600 text-white rounded-md font-medium hover:bg-emerald-700"
                   >
-                    ✕
+                    View Results
                   </button>
                 </div>
-                {filterSidebarContent(true)}
-              </div>
-              
-              <div className="pt-4 border-t mt-4 flex gap-2">
-                <button 
-                  onClick={() => { clearFilters(); setShowMobileFilters(false); }}
-                  className="w-1/2 py-2.5 border border-gray-250 rounded-xl text-xs font-bold uppercase tracking-wider text-gray-650 hover:bg-gray-50 transition-all active:scale-[0.97]"
-                >
-                  Clear All
-                </button>
-                <button 
-                  onClick={() => setShowMobileFilters(false)}
-                  className="w-1/2 py-2.5 bg-[#16A34A] hover:bg-[#15803D] text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow-md hover:shadow-lg transition-all active:scale-[0.97]"
-                >
-                  Apply ({filtered.length})
-                </button>
               </div>
             </div>
-          </div>
-        )}
-
-        <section className="lg:col-span-9 animate-in fade-in slide-in-from-bottom-3 duration-300">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 border-b pb-4 border-gray-100">
-            <div>
-              <h1 className="text-xl md:text-2xl font-black text-slate-800 tracking-tight leading-none mb-1">
-                {isOnSaleFilter 
-                  ? 'Flash Sale' 
-                  : q 
-                    ? `Search Results for "${q}"` 
-                    : 'Browse Products'}
-              </h1>
-              <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Showing {filtered.length} result{filtered.length !== 1 ? 's' : ''}</p>
-            </div>
-
-            <div className="flex items-center gap-2.5 self-end sm:self-auto">
-              
-              {/* Mobile Filter Trigger Button */}
-              <button 
-                onClick={() => setShowMobileFilters(true)}
-                className="lg:hidden flex items-center gap-1.5 px-3 py-2 border border-gray-205 rounded-xl bg-white text-xs font-bold text-slate-700 shadow-2xs hover:bg-gray-50 transition-colors active:scale-[0.98]"
-              >
-                <span>Filters</span>
-                {activeFiltersCount > 0 && (
-                  <span className="bg-green-500 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center">
-                    {activeFiltersCount}
-                  </span>
-                )}
-              </button>
-
-              <select 
-                value={sortBy} 
-                onChange={e=>setSortBy(e.target.value)} 
-                className="px-3.5 py-2 border border-gray-200 rounded-xl text-xs font-bold text-slate-700 bg-white outline-none focus:border-[#16A34A] focus:ring-1 focus:ring-green-500/15 cursor-pointer transition-all"
-              >
-                <option value="relevance">Best Match</option>
-                <option value="price_asc">Price: Low to High</option>
-                <option value="price_desc">Price: High to Low</option>
-                <option value="newest">Newest</option>
-              </select>
-              
-              <div className="text-xs font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap bg-white px-3.5 py-2 border border-gray-200 rounded-xl">
-                Page {page} / {totalPages}
-              </div>
-            </div>
-          </div>
-
-          {loading ? (
-            <div className="flex items-center justify-center py-20">
-              <svg className="animate-spin w-10 h-10 text-[#16A34A]" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
-              </svg>
-            </div>
-          ) : pageItems.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 bg-white border border-gray-200 rounded-[20px] shadow-[0_8px_24px_rgba(0,0,0,0.04)] text-center px-4">
-              <div className="text-5xl mb-4">🔍</div>
-              <h3 className="text-base font-bold text-slate-800 mb-1">No products found</h3>
-              <p className="text-xs text-gray-500 max-w-sm mb-6 font-medium">
-                {q 
-                  ? `We couldn't find anything matching "${q}". Try checking your spelling or using different keywords.`
-                  : "We couldn't find any products matching your selected filters. Try clearing some filters."}
-              </p>
-              <button 
-                onClick={resetAll} 
-                className="px-6 py-2.5 bg-[#16A34A] hover:bg-[#15803D] text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-all shadow-md active:scale-95"
-              >
-                Clear Search & Filters
-              </button>
-            </div>
-          ) : (
-            <>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                {pageItems.map(p => (
-                  <ProductCard key={p.id || p.productId} product={p} />
-                ))}
-              </div>
-
-              <div className="mt-10 flex items-center justify-center gap-2.5 text-xs font-bold uppercase tracking-wider text-slate-700">
-                <button disabled={page<=1} onClick={()=>setPage(page-1)} className="px-4 py-2 border border-gray-200 rounded-xl bg-white hover:bg-gray-50 disabled:opacity-40 transition-all hover:scale-[1.02] active:scale-[0.98]">Prev</button>
-                <span className="px-5 py-2 bg-white border border-gray-200 rounded-xl select-none">Page {page} of {totalPages}</span>
-                <button disabled={page>=totalPages} onClick={()=>setPage(page+1)} className="px-4 py-2 border border-gray-200 rounded-xl bg-white hover:bg-gray-50 disabled:opacity-40 transition-all hover:scale-[1.02] active:scale-[0.98]">Next</button>
-              </div>
-            </>
           )}
-        </section>
+
+          {/* Main Content */}
+          <div className="flex-1">
+            {/* Header */}
+            <div className="mb-6">
+              <div className="flex items-center justify-between mb-4">
+                <h1 className="text-2xl font-semibold text-gray-900">
+                  {q ? `Search Results for "${q}"` : 'All Products'}
+                </h1>
+                <button 
+                  onClick={() => setShowMobileFilters(true)}
+                  className="lg:hidden px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+                >
+                  Filters
+                </button>
+              </div>
+
+              <div className="flex items-center justify-between text-sm">
+                <p className="text-gray-500">
+                  Showing <span className="font-medium">{(page-1)*pageSize + 1}–{Math.min(page*pageSize, filtered.length)}</span> of <span className="font-medium">{filtered.length}</span> results
+                </p>
+                
+                <div className="flex items-center gap-4">
+                  <label className="text-gray-700 font-medium">Sort by:</label>
+                  <select 
+                    value={sortBy} 
+                    onChange={e=>setSortBy(e.target.value)} 
+                    className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  >
+                    <option value="popularity">Popularity</option>
+                    <option value="newest">Newest</option>
+                    <option value="price_asc">Price: Low to High</option>
+                    <option value="price_desc">Price: High to Low</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* Product Grid */}
+            {loading ? (
+              <div className="flex items-center justify-center py-32">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
+              </div>
+            ) : pageItems.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-32 bg-white rounded-lg text-center">
+                <div className="text-6xl mb-4">🔍</div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">No products found</h3>
+                <p className="text-gray-500 max-w-md mb-6">
+                  Try adjusting your filters or search terms
+                </p>
+                <button 
+                  onClick={resetAll} 
+                  className="px-6 py-3 bg-emerald-600 text-white rounded-md font-medium hover:bg-emerald-700"
+                >
+                  Clear All Filters
+                </button>
+              </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  {pageItems.map(p => (
+                    <ProductCard key={p.id || p.productId} product={p} />
+                  ))}
+                </div>
+
+                {/* Pagination */}
+                <div className="mt-8 flex items-center justify-center gap-2">
+                  <button 
+                    disabled={page<=1} 
+                    onClick={()=>setPage(page-1)} 
+                    className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Previous
+                  </button>
+                  
+                  <div className="flex gap-1">
+                    {[...Array(Math.min(totalPages, 5))].map((_, i) => {
+                      const pageNum = i + 1;
+                      return (
+                        <button
+                          key={pageNum}
+                          onClick={() => setPage(pageNum)}
+                          className={`px-4 py-2 text-sm font-medium rounded-md ${
+                            page === pageNum
+                              ? 'bg-emerald-600 text-white'
+                              : 'text-gray-700 hover:bg-gray-50 border border-gray-300'
+                          }`}
+                        >
+                          {pageNum}
+                        </button>
+                      );
+                    })}
+                    {totalPages > 5 && <span className="px-2 py-2">...</span>}
+                    {totalPages > 5 && (
+                      <button
+                        onClick={() => setPage(totalPages)}
+                        className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 border border-gray-300 rounded-md"
+                      >
+                        {totalPages}
+                      </button>
+                    )}
+                  </div>
+                  
+                  <button 
+                    disabled={page>=totalPages} 
+                    onClick={()=>setPage(page+1)} 
+                    className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Next
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
       </main>
     </div>
   );

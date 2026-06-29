@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Facebook, 
@@ -36,12 +36,12 @@ export default function Footer({ isVerdant = false }) {
                 : 'bg-neutral-900 hover:bg-neutral-800 text-white'
             }`}
           >
-            Contact Support →
+            Contact Support ΓåÆ
           </Link>
         </div>
       </div>
 
-      {/* FOOTER MAIN CONTENT — 4 columns with generous vertical spacing */}
+      {/* FOOTER MAIN CONTENT ΓÇö 4 columns with generous vertical spacing */}
       <div className="max-w-[1440px] mx-auto px-6 py-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-16">
         
         {/* COLUMN 1: ABOUT */}
@@ -64,7 +64,7 @@ export default function Footer({ isVerdant = false }) {
           <p className="leading-relaxed text-gray-400">
             {isVerdant 
               ? 'A curated botanical and outdoor marketplace pairing resilient greenhouse flora with premium utility essentials for the modern botanist.'
-              : "Nepal's trusted marketplace for electronics, fashion, and lifestyle products. Every listing is verified — shop with confidence, delivered to your door."
+              : "Nepal's trusted marketplace for electronics, fashion, and lifestyle products. Every listing is verified ΓÇö shop with confidence, delivered to your door."
             }
           </p>
           <Link to="/about" className={`font-bold transition-colors inline-block mt-1 text-left ${accentColor}`}>
@@ -119,7 +119,7 @@ export default function Footer({ isVerdant = false }) {
               <Clock className={`w-4 h-4 mt-0.5 flex-shrink-0 ${accentColor}`} />
               <div>
                 <p className="font-semibold text-gray-300">Working Hours:</p>
-                <p>Mon – Sun / 9:00 AM – 8:00 PM</p>
+                <p>Mon ΓÇô Sun / 9:00 AM ΓÇô 8:00 PM</p>
               </div>
             </li>
           </ul>
@@ -152,7 +152,7 @@ export default function Footer({ isVerdant = false }) {
           </ul>
         </div>
 
-        {/* COLUMN 4: POPULAR TAGS — electronics/lifestyle relevant */}
+        {/* COLUMN 4: POPULAR TAGS ΓÇö electronics/lifestyle relevant */}
         <div className="flex flex-col gap-5">
           <h4 className="text-white font-extrabold uppercase tracking-wider text-sm pb-2 border-b border-gray-800">
             Popular Tags
@@ -182,7 +182,7 @@ export default function Footer({ isVerdant = false }) {
       <div className="border-t border-gray-800 py-7 px-6 bg-neutral-950">
         <div className="max-w-[1440px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-gray-500 text-[11px]">
-            © {new Date().getFullYear()} {isVerdant ? 'Verdant Marketplace' : 'Jhapcham eCommerce'}. All Rights Reserved.
+            ┬⌐ {new Date().getFullYear()} {isVerdant ? 'Verdant Marketplace' : 'Jhapcham eCommerce'}. All Rights Reserved.
           </p>
           <div className="flex items-center gap-3 flex-wrap justify-center">
             <div className="bg-white px-2.5 py-1 rounded shadow-sm transition-transform hover:-translate-y-0.5 cursor-pointer">

@@ -30,6 +30,7 @@ import {
   FileText, 
   Key, 
   ChevronRight,
+  ChevronDown,
   LogIn,
   UserPlus,
   Sparkles,
@@ -112,19 +113,29 @@ export function UserDropdown({
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
         <button 
-          className="flex items-center justify-center relative focus:outline-none group rounded-full transition-all focus:ring-2 focus:ring-green-500/20"
+          className="flex items-center gap-2 text-slate-700 hover:text-green-600 transition-colors focus:outline-none text-left"
           title={isLoggedIn ? `Account: ${displayName}` : "Sign In"}
         >
-          <div className="size-9 rounded-full border border-slate-200 hover:border-green-500 flex items-center justify-center overflow-hidden bg-white shadow-xs transition-all duration-200 group-hover:scale-105">
-            {avatarUrl ? (
-              <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
-            ) : (
-              <User className="size-4.5 text-slate-650 group-hover:text-green-600 transition-colors" />
+          <div className="relative">
+            <div className="size-9 rounded-full border border-slate-200 hover:border-green-500 flex items-center justify-center overflow-hidden bg-white shadow-xs transition-all duration-200 group-hover:scale-105">
+              {avatarUrl ? (
+                <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
+              ) : (
+                <User className="size-4.5 text-slate-650 group-hover:text-green-600 transition-colors" />
+              )}
+            </div>
+            {isLoggedIn && (
+              <span className="absolute bottom-0 right-0 size-2.5 rounded-full bg-green-500 border-2 border-white dark:border-gray-900 shadow-xs" />
             )}
           </div>
-          {isLoggedIn && (
-            <span className="absolute bottom-0 right-0 size-2.5 rounded-full bg-green-500 border-2 border-white dark:border-gray-900 shadow-xs" />
-          )}
+          <div className="text-left hidden lg:block leading-none">
+            <p className="text-[10px] text-gray-400 font-medium select-none">
+              {isLoggedIn ? `Hello, ${displayName.split(' ')[0]}` : "Hello, Sign In"}
+            </p>
+            <p className="text-xs font-bold mt-0.5 text-slate-805 flex items-center gap-0.5 select-none">
+              Account <ChevronDown className="w-3 h-3 text-gray-500" />
+            </p>
+          </div>
         </button>
       </DropdownMenuTrigger>
 

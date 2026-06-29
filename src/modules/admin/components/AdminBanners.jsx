@@ -41,6 +41,7 @@ const blankForm = () => ({
   subtitle: '',
   linkUrl: '',
   position: 1,
+  promoPosition: '',
   active: true,
   imageUrl: '',
   bannerType: 'DISCOUNT_PRODUCT',
@@ -111,14 +112,21 @@ export default function AdminBanners() {
   const handleSave = async () => {
     if (!form.title.trim()) { showToast('❌ Title is required'); return; }
     setWorking('save');
+    const payload = {
+      ...form,
+      buttonLink: form.linkUrl,
+      displayOrder: form.position,
+      priority: form.position,
+      promoPosition: form.promoPosition || null,
+    };
     try {
       if (editingBanner) {
         const bId = editingBanner.id || editingBanner.bannerId;
-        await updateAdminBanner(bId, form);
-        setBanners(prev => prev.map(b => (b.id || b.bannerId) === bId ? { ...b, ...form } : b));
+        await updateAdminBanner(bId, payload);
+        setBanners(prev => prev.map(b => (b.id || b.bannerId) === bId ? { ...b, ...payload } : b));
         showToast('✅ Banner updated');
       } else {
-        const res = await createAdminBanner(form);
+        const res = await createAdminBanner(payload);
         setBanners(prev => [...prev, res.data]);
         showToast('✅ Banner created');
       }
@@ -289,9 +297,9 @@ export default function AdminBanners() {
                     <div className="absolute top-2 left-2">
                       <StatusBadge active={banner.active} themeClasses={themeClasses} />
                     </div>
-                    {banner.position && (
+                    {banner.displayOrder != null && (
                       <div className="absolute top-2 right-2 bg-black/60 text-white text-[10px] font-black px-2 py-0.5 rounded-full">
-                        #{banner.position}
+                        #{banner.displayOrder}
                       </div>
                     )}
                   </div>
@@ -302,10 +310,10 @@ export default function AdminBanners() {
                     {banner.subtitle && (
                       <p className={`text-xs truncate mt-0.5 transition-colors ${themeClasses.text.secondary}`}>{banner.subtitle}</p>
                     )}
-                    {banner.linkUrl && (
+                    {(banner.buttonLink || banner.linkUrl) && (
                       <div className={`flex items-center gap-1 mt-1.5 text-[10px] font-medium transition-colors ${themeClasses.text.accent}`}>
                         <Link2 size={10} />
-                        <span className="truncate">{banner.linkUrl}</span>
+                        <span className="truncate">{banner.buttonLink || banner.linkUrl}</span>
                       </div>
                     )}
 
@@ -332,14 +340,15 @@ export default function AdminBanners() {
                           onClick={() => {
                             setEditingBanner(banner);
                             setForm({
-                              title: banner.title || '',
-                              subtitle: banner.subtitle || '',
-                              linkUrl: banner.linkUrl || '',
-                              position: banner.position || 1,
-                              active: banner.active ?? true,
-                              imageUrl: banner.imageUrl || '',
-                              bannerType: banner.bannerType || 'DISCOUNT_PRODUCT',
-                            });
+                            title: banner.title || '',
+                            subtitle: banner.subtitle || '',
+                            linkUrl: banner.buttonLink || banner.linkUrl || '',
+                            position: banner.displayOrder || banner.priority || 1,
+                            promoPosition: banner.promoPosition || '',
+                            active: banner.active ?? true,
+                            imageUrl: banner.imageUrl || '',
+                            bannerType: banner.bannerType || 'DISCOUNT_PRODUCT',
+                          });
                             setShowFormModal(true);
                           }}
                           className={`p-1.5 rounded-lg border transition-colors ${darkMode ? 'border-gray-600 text-emerald-400 hover:bg-emerald-900/30' : 'border-gray-200 text-emerald-600 hover:bg-emerald-50'}`}
@@ -436,6 +445,22 @@ export default function AdminBanners() {
                   <option value="FESTIVAL">Festival</option>
                   <option value="CUSTOM_PROMOTION">Custom Promotion</option>
                   <option value="CATEGORY">Category</option>
+                </select>
+              </div>
+
+              {/* Promo Position */}
+              <div>
+                <label className={`block text-[11px] font-black uppercase tracking-wider mb-1.5 transition-colors ${themeClasses.text.tertiary}`}>Promo Position</label>
+                <select
+                  value={form.promoPosition}
+                  onChange={e => setForm(f => ({ ...f, promoPosition: e.target.value }))}
+                  className={`w-full px-3 py-2.5 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-colors ${themeClasses.bg.secondary} ${themeClasses.border.primary} ${themeClasses.text.primary}`}
+                >
+                  <option value="">Hero Slide</option>
+                  <option value="TOP_RIGHT">Top Right</option>
+                  <option value="BOTTOM_LEFT">Bottom Left</option>
+                  <option value="BOTTOM_CENTER">Bottom Center</option>
+                  <option value="BOTTOM_RIGHT">Bottom Right</option>
                 </select>
               </div>
 

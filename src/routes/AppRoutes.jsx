@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Homepage from '../modules/home/Home';
 import CustomerLayout from '../modules/customer/CustomerLayout';
@@ -87,7 +87,7 @@ export default function AppRoutes() {
             </RequireCourierAuth>
           )}
         />
-        {/* Google OAuth 2.0 callback — must be outside PublicLayout (no navbar/footer) */}
+        {/* Google OAuth 2.0 callback ΓÇö must be outside PublicLayout (no navbar/footer) */}
         <Route path="/auth/google/callback" element={<GoogleAuthCallback />} />
         <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
         <Route

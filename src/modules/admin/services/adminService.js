@@ -39,6 +39,41 @@ export const getAdminProducts = (page = 0, size = 50) =>
 export const setAdminProductVisibility = (productId, visible) =>
   apiClient.put(`/admin/products/${productId}/visibility`, null, { params: { visible } });
 
+export const updateAdminProductFlags = (productId, payload) =>
+  apiClient.patch(`/admin/products/${productId}/flags`, payload);
+
+export const autoFeatureAdminProducts = (limit = 12, replaceExisting = false) =>
+  apiClient.post('/admin/products/featured/auto-apply', null, {
+    params: { limit, replaceExisting },
+  });
+
+export const getAdminCategories = () =>
+  apiClient.get('/categories');
+
+export const createAdminCategory = (payload) =>
+  apiClient.post('/categories', payload);
+
+export const updateAdminCategory = (id, payload) =>
+  apiClient.put(`/categories/${id}`, payload);
+
+export const deleteAdminCategory = (id) =>
+  apiClient.delete(`/categories/${id}`);
+
+export const getAdminBrands = () =>
+  apiClient.get('/brands');
+
+export const createAdminBrand = (payload) =>
+  apiClient.post('/brands', payload);
+
+export const updateAdminBrand = (id, payload) =>
+  apiClient.put(`/brands/${id}`, payload);
+
+export const toggleAdminBrandFeatured = (id) =>
+  apiClient.patch(`/brands/${id}/toggle-featured`);
+
+export const deleteAdminBrand = (id) =>
+  apiClient.delete(`/brands/${id}`);
+
 export const getAdminBanners = () =>
   apiClient.get('/admin/banners');
 
@@ -276,4 +311,3 @@ export const broadcastAdminMessage = (content) =>
 
 export const getAdminOrderDetail = (orderId) =>
   apiClient.get(`/orders/${orderId}`);
-

@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   LayoutDashboard, Users, Store, Package, ShoppingCart, CreditCard,
-  Star, ImageIcon, Megaphone, Tag, DollarSign, AlertTriangle,
+  Star, ImageIcon, Megaphone, Tag, DollarSign, AlertTriangle, Grid3X3, BadgeCheck,
   RefreshCw, Scale, ShieldCheck, MessageSquare, Settings,
-  Bell, LogOut, Menu, X, ChevronRight, Sun, Moon, Search,
+  Bell, LogOut, Menu, X, ChevronRight, Sun, Moon, Search, Sparkles,
 } from 'lucide-react';
 import { useCustomer } from '../../customer/contexts/CustomerContext';
 import { useAdminTheme } from '../hooks/useAdminTheme';
@@ -29,11 +29,18 @@ const NAV_GROUPS = [
     ],
   },
   {
+    label: 'Homepage',
+    items: [
+      { id: 'homepage-banner',   label: 'Hero & Promo',      icon: Sparkles,      path: '/admin/banners'     },
+      { id: 'homepage-categories', label: 'Category Rail',   icon: Grid3X3,       path: '/admin/categories'  },
+      { id: 'homepage-brands',   label: 'Brand Rail',        icon: BadgeCheck,    path: '/admin/brands'      },
+      { id: 'homepage-promos',   label: 'Promo Codes',       icon: Tag,            path: '/admin/promos'      },
+    ],
+  },
+  {
     label: 'Marketing',
     items: [
-      { id: 'banners',      label: 'Banners',             icon: ImageIcon,       path: '/admin/banners'     },
       { id: 'campaigns',    label: 'Campaigns',           icon: Megaphone,       path: '/admin/campaigns'   },
-      { id: 'promos',       label: 'Promo Codes',         icon: Tag,             path: '/admin/promos'      },
     ],
   },
   {
@@ -86,13 +93,38 @@ function SidebarInner({ mobile, onClose, isDark, themeClasses, location, handleL
       <nav style={{ flex: 1, overflowY: 'auto', padding: '12px 0' }}>
         {NAV_GROUPS.map((group) => (
           <div key={group.label} style={{ marginBottom: 14 }}>
-            <p style={{
-              margin: '0 0 4px', padding: '0 20px',
-              fontSize: 9, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase',
-              color: isDark ? 'rgba(255,255,255,.30)' : '#9ca3af',
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 8,
+              margin: '0 0 4px',
+              padding: '0 20px',
             }}>
-              {group.label}
-            </p>
+              <p style={{
+                margin: 0,
+                fontSize: 9,
+                fontWeight: 800,
+                letterSpacing: '0.12em',
+                textTransform: 'uppercase',
+                color: group.label === 'Homepage'
+                  ? (isDark ? '#6ee7b7' : '#059669')
+                  : (isDark ? 'rgba(255,255,255,.30)' : '#9ca3af'),
+              }}>
+                {group.label}
+              </p>
+              {group.label === 'Homepage' && (
+                <span style={{
+                  fontSize: 8,
+                  fontWeight: 800,
+                  letterSpacing: '0.14em',
+                  textTransform: 'uppercase',
+                  color: isDark ? 'rgba(255,255,255,.42)' : '#6b7280',
+                }}>
+                  storefront
+                </span>
+              )}
+            </div>
             {group.items.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.path || location.pathname.startsWith(item.path + '/');

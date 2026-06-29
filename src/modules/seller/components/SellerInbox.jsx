@@ -197,7 +197,7 @@ const SellerInbox = () => {
                     key={conversation.id}
                     type="button"
                     onClick={() => selectConversation(conversation)}
-                    className={`w-full text-left p-3 border-l-2 transition-colors cursor-pointer bg-transparent border-t-0 border-r-0 border-b-0 ${
+                    className={`w-full block text-left p-3 border-l-2 transition-colors cursor-pointer bg-transparent border-t-0 border-r-0 border-b-0 rounded-none shadow-none hover:translate-y-0 ${
                       active 
                         ? 'bg-[#16A34A]/10 border-[#16A34A]' 
                         : `border-transparent ${isDark ? 'hover:bg-white/5' : 'hover:bg-gray-50'}`

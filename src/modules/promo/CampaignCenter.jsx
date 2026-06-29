@@ -1,67 +1,66 @@
-import React, { useState, useEffect, useLayoutEffect, useCallback } from 'react';
-import { useLocation } from 'react-router-dom';
-import apiClient, { BASE_URL } from '../../shared/api/apiClient';
-import ProductCard from '../product/components/ProductCard';
-import { 
-  Search, 
-  Clock, 
-  ArrowLeft, 
-  Percent, 
-  Calendar, 
-  Sparkles, 
-  Calculator, 
-  ChevronRight, 
-  Info, 
-  ShoppingBag, 
-  Tag, 
-  AlertTriangle 
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { Link } from 'react-router-dom';
+import {
+  Search, Clock, ArrowLeft, Percent, Calendar, Sparkles,
+  ChevronRight, Info, ShoppingBag, Tag, Users, Folder, Bell,
+  ArrowRight, ShieldCheck, CheckCircle, RefreshCw, Filter, SlidersHorizontal,
+  Flame, ChevronDown
 } from 'lucide-react';
+import ProductCard from '../product/components/ProductCard';
+import apiClient, { BASE_URL } from '../../shared/api/apiClient';
 
-// ─── CONSTANTS & CONFIG ──────────────────────────────────────────────────────
-const ACCENT_PALETTE = [
-  '#10B981', // Jhapcham Emerald
-  '#6366F1', // Royal Indigo
-  '#EC4899', // Rose Quartz
-  '#3B82F6', // Cobalt Blue
-  '#F59E0B', // Sunrise Amber
-  '#14B8A6', // Coral Teal
-  '#F97316', // Sunset Orange
-  '#F43F5E', // Vivid Rose
-];
+// ─── Helpers ────────────────────────────────────────────────────────────────
 
-// Helper to pad countdown digits
-const pad = (num) => String(num).padStart(2, '0');
+const pad = (n) => String(n).padStart(2, '0');
 
-// ─── DATA NORMALISATION ──────────────────────────────────────────────────────
+// Dynamic countdown hook
+function useCountdown(dateString) {
+  const calc = useCallback(() => {
+    if (!dateString) return { days: 0, hrs: 0, min: 0, sec: 0, ms: 0 };
+    const diff = new Date(dateString).getTime() - Date.now();
+    if (diff <= 0) return { days: 0, hrs: 0, min: 0, sec: 0, ms: 0 };
+    return {
+      days: Math.floor(diff / 864e5),
+      hrs: Math.floor((diff % 864e5) / 36e5),
+      min: Math.floor((diff % 36e5) / 6e4),
+      sec: Math.floor((diff % 6e4) / 1e3),
+      ms: diff,
+    };
+  }, [dateString]);
+
+  const [t, setT] = useState(calc);
+  useEffect(() => {
+    if (!dateString) return;
+    const id = setInterval(() => setT(calc()), 1000);
+    return () => clearInterval(id);
+  }, [dateString, calc]);
+  return t;
+}
+
+// Convert backend API campaigns to consistent client-side layout
 function normaliseCampaign(raw, idx) {
-  const now = new Date();
-  const start = raw.startTime ? new Date(raw.startTime) : null;
-  const end = raw.endTime ? new Date(raw.endTime) : null;
+  const now = Date.now();
+  const start = raw.startTime || raw.startDate ? new Date(raw.startTime || raw.startDate).getTime() : null;
+  const end   = raw.endTime   || raw.endDate   ? new Date(raw.endTime   || raw.endDate).getTime()   : null;
 
   let status = String(raw.status || 'active').toLowerCase();
   if (start && end) {
     if (now < start) status = 'upcoming';
-    else if (now >= start && now <= end) status = 'active';
-    else status = 'ended';
+    else if (now > end) status = 'ended';
+    else status = 'active';
   }
 
-  // Resolve Cover/Hero Image from backend
-  let heroImage = null;
-  const imgPath = raw.imagePath || raw.heroImage || raw.bannerImage || null;
-  if (imgPath) {
-    if (imgPath.startsWith('http')) {
-      heroImage = imgPath;
-    } else {
-      const fileName = imgPath.startsWith('campaigns/') ? imgPath.substring(10) : imgPath;
-      heroImage = `${BASE_URL}/api/campaigns/image/${fileName}`;
-    }
+  let heroImage = raw.imagePath || raw.heroImage || raw.bannerImage || raw.banner || null;
+  if (heroImage && !heroImage.startsWith('http') && !heroImage.startsWith('/')) {
+    const fileName = heroImage.startsWith('campaigns/') ? heroImage.substring(10) : heroImage;
+    heroImage = `${BASE_URL}/api/campaigns/image/${fileName}`;
   }
 
   return {
     id: raw.id,
-    title: raw.name || raw.title || 'Campaign Deal',
+    title: raw.name || raw.campaignName || raw.title || 'Campaign Deal',
     description: raw.description || '',
-    type: raw.type || 'SEASONAL',
+    type: (raw.type || 'SEASONAL').replace(/_/g, ' '),
     heroImage,
     status,
     startDate: raw.startTime || raw.startDate || null,
@@ -71,12 +70,11 @@ function normaliseCampaign(raw, idx) {
     maxProducts: raw.maxProducts ?? null,
     priority: raw.priority ?? 0,
     totalProducts: raw.totalProducts ?? 0,
-    accentColor: ACCENT_PALETTE[idx % ACCENT_PALETTE.length],
+    isMock: false
   };
 }
 
 function normaliseCampaignProduct(raw) {
-  // Maps CampaignProductResponseDTO to a shape ProductCard expects
   return {
     id: raw.productId || raw.id,
     name: raw.productName || 'Product',
@@ -85,7 +83,7 @@ function normaliseCampaignProduct(raw) {
     finalPrice: Number(raw.salePrice ?? raw.originalPrice ?? 0),
     originalPrice: Number(raw.originalPrice ?? 0),
     onSale: true,
-    salePercentage: raw.originalPrice > 0 && raw.salePrice > 0 
+    salePercentage: raw.originalPrice > 0 && raw.salePrice > 0
       ? Math.round(((Number(raw.originalPrice) - Number(raw.salePrice)) / Number(raw.originalPrice)) * 100)
       : 0,
     imagePath: raw.productImage,
@@ -98,675 +96,655 @@ function normaliseCampaignProduct(raw) {
   };
 }
 
-// ─── CUSTOM COUNTDOWN TIMER HOOK ──────────────────────────────────────────────
-function useCountdown(dateString) {
-  const calculateTimeLeft = useCallback(() => {
-    if (!dateString) return { days: 0, hrs: 0, min: 0, sec: 0, msLeft: 0 };
-    const difference = new Date(dateString).getTime() - Date.now();
-    if (difference <= 0) return { days: 0, hrs: 0, min: 0, sec: 0, msLeft: 0 };
-
-    return {
-      days: Math.floor(difference / (1000 * 60 * 60 * 24)),
-      hrs: Math.floor((difference / (1000 * 60 * 60)) % 24),
-      min: Math.floor((difference / 1000 / 60) % 60),
-      sec: Math.floor((difference / 1000) % 60),
-      msLeft: difference,
-    };
-  }, [dateString]);
-
-  const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
-
-  useEffect(() => {
-    if (!dateString) return;
-    const timer = setInterval(() => {
-      setTimeLeft(calculateTimeLeft());
-    }, 1000);
-    return () => clearInterval(timer);
-  }, [dateString, calculateTimeLeft]);
-
-  return timeLeft;
-}
-
-// ─── COUNTDOWN COMPONENT ──────────────────────────────────────────────────────
-function CountdownBlocks({ dateString, accentColor = '#16A34A', large = false }) {
-  const time = useCountdown(dateString);
-  
-  if (time.msLeft <= 0) {
-    return (
-      <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-        Offer Ended
-      </div>
-    );
-  }
-
-  const blockClass = "flex flex-col items-center justify-center bg-white border border-gray-200 rounded-lg shadow-sm";
-  const sizeClass = large ? "p-3 min-w-[64px]" : "p-1.5 min-w-[44px]";
-  const numClass = large ? "text-xl font-bold text-slate-800 font-mono" : "text-sm font-bold text-slate-800 font-mono";
-  const labelClass = large ? "text-[8px] text-slate-400 uppercase tracking-widest mt-1" : "text-[7px] text-slate-500 uppercase tracking-wider mt-0.5";
-
-  return (
-    <div className="flex gap-1.5 items-center">
-      <div className={`${blockClass} ${sizeClass}`}>
-        <span className={numClass}>{pad(time.days)}</span>
-        <span className={labelClass}>D</span>
-      </div>
-      <span className="text-gray-400 font-bold text-sm">:</span>
-      <div className={`${blockClass} ${sizeClass}`}>
-        <span className={numClass}>{pad(time.hrs)}</span>
-        <span className={labelClass}>H</span>
-      </div>
-      <span className="text-gray-400 font-bold text-sm">:</span>
-      <div className={`${blockClass} ${sizeClass}`}>
-        <span className={numClass}>{pad(time.min)}</span>
-        <span className={labelClass}>M</span>
-      </div>
-      <span className="text-gray-400 font-bold text-sm">:</span>
-      <div className={`${blockClass} ${sizeClass}`}>
-        <span className={time.msLeft <= 0 ? 'text-red-500' : numClass}>{pad(time.sec)}</span>
-        <span className={labelClass}>S</span>
-      </div>
-    </div>
+// ─── Countdown Display ───────────────────────────────────────────────────────
+function Countdown({ dateString, status }) {
+  const t = useCountdown(dateString);
+  if (!dateString) return null;
+  if (t.ms <= 0) return (
+    <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Ended</span>
   );
-}
 
-// ─── LOADER SKELETONS ────────────────────────────────────────────────────────
-function CampaignCardSkeleton() {
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden h-72 animate-pulse flex flex-col justify-between shadow-sm">
-      <div className="h-40 bg-gray-100 relative">
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full animate-[shimmer_1.5s_infinite]" />
-      </div>
-      <div className="p-4 space-y-3 flex-1 flex flex-col justify-between">
-        <div className="space-y-2">
-          <div className="h-4 bg-gray-200 rounded w-2/3" />
-          <div className="h-3 bg-gray-100 rounded w-full" />
-          <div className="h-3 bg-gray-100 rounded w-5/6" />
+    <div className="flex items-center gap-1.5">
+      {[{ v: t.days, u: 'DAYS' }, { v: t.hrs, u: 'HRS' }, { v: t.min, u: 'MINS' }, { v: t.sec, u: 'SECS' }].map(({ v, u }) => (
+        <div key={u} className="flex flex-col items-center">
+          <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-[#EEFCF2] text-[#16A34A] text-base font-bold shadow-xs">
+            {pad(v)}
+          </div>
+          <span className="mt-1 text-[8px] font-bold text-slate-500 uppercase tracking-wide">{u}</span>
         </div>
-        <div className="h-8 bg-gray-200 rounded-lg w-full" />
+      ))}
+    </div>
+  );
+}
+
+// ─── Skeletons ───────────────────────────────────────────────────────────────
+const RowSkeleton = () => (
+  <div className="flex flex-col md:flex-row items-stretch rounded-2xl border border-slate-100 bg-white p-4 gap-6 animate-pulse">
+    <div className="h-40 w-full md:w-[260px] bg-slate-100 rounded-xl" />
+    <div className="flex-1 flex flex-col justify-between py-1 gap-3">
+      <div>
+        <div className="h-6 w-32 bg-slate-100 rounded-lg mb-2" />
+        <div className="h-5 w-3/4 bg-slate-100 rounded-lg mb-1" />
+        <div className="h-3 w-full bg-slate-100 rounded-lg" />
+      </div>
+      <div className="flex gap-4">
+        <div className="h-4 w-20 bg-slate-100 rounded-md" />
+        <div className="h-4 w-20 bg-slate-100 rounded-md" />
+      </div>
+    </div>
+    <div className="md:border-l border-slate-100 md:pl-6 w-full md:w-[200px] flex flex-col justify-between py-1 gap-3">
+      <div className="h-12 bg-slate-100 rounded-lg" />
+      <div className="h-10 bg-slate-100 rounded-lg" />
+    </div>
+  </div>
+);
+
+// ─── Campaign Card Row (Screenshot Style) ──────────────────────────────────
+function CampaignCardRow({ campaign, onOpen }) {
+  const isLive = campaign.status === 'active';
+  const isUpcoming = campaign.status === 'upcoming';
+  const isExpired = campaign.status === 'ended';
+  const countDate = isUpcoming ? campaign.startDate : campaign.endDate;
+
+  const handleActionClick = (e) => {
+    e.stopPropagation();
+    if (!isExpired) {
+      onOpen(campaign);
+    }
+  };
+
+  return (
+    <div
+      onClick={() => !isExpired && onOpen(campaign)}
+      className={`group flex flex-col md:flex-row items-stretch rounded-2xl border border-gray-200/90 bg-white p-4 gap-6 shadow-[0_2px_8px_rgba(0,0,0,0.04)] transition-all duration-300 ${
+        isExpired ? 'opacity-70 cursor-not-allowed' : 'hover:shadow-[0_12px_30px_rgba(0,0,0,0.08)] cursor-pointer'
+      }`}
+    >
+      {/* Left Column: Banner Image */}
+      <div className="relative h-44 w-full md:w-[260px] rounded-xl overflow-hidden bg-slate-50 shrink-0 border border-gray-100">
+        {campaign.heroImage ? (
+          <img
+            src={campaign.heroImage}
+            alt={campaign.title}
+            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-103"
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = '/Assets/Banners/smartwatch_banner.png'; // default fallback banner
+            }}
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-emerald-800 to-emerald-950">
+            <Sparkles className="h-10 w-10 text-emerald-400/30" />
+            <span className="absolute text-xs text-white/50 font-bold uppercase tracking-wider">{campaign.title}</span>
+          </div>
+        )}
+
+        {/* Expired overlay */}
+        {isExpired && (
+          <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+            <span className="bg-black/70 text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full">
+              Expired
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* Middle Column: Details */}
+      <div className="flex-1 flex flex-col justify-between py-1 gap-2 min-w-0">
+        <div>
+          {/* Badge */}
+          {isLive && (
+            <div className="inline-flex items-center gap-1.5 rounded-md bg-[#EEFCF2] px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-[#16A34A] mb-2.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#16A34A] animate-pulse" />
+              Live Now
+            </div>
+          )}
+          {isUpcoming && (
+            <div className="inline-flex items-center gap-1.5 rounded-md bg-[#FFFBEB] border border-[#FCD34D] px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-[#D97706] mb-2.5">
+              Upcoming
+            </div>
+          )}
+          {isExpired && (
+            <div className="inline-flex items-center gap-1.5 rounded-md bg-gray-100 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-gray-500 mb-2.5">
+              Ended
+            </div>
+          )}
+
+          {/* Title */}
+          <h3 className="text-xl font-bold text-gray-900 leading-tight group-hover:text-[#16A34A] transition-colors">
+            {campaign.title}
+          </h3>
+
+          {/* Description */}
+          <p className="text-xs text-gray-500 font-medium leading-relaxed mt-1.5 max-w-2xl">
+            {campaign.description || 'Start the year with amazing deals across all categories. Shop more, save more!'}
+          </p>
+        </div>
+
+        {/* Benefits bar */}
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 mt-4 text-[11px] font-bold text-slate-500">
+          <div className="flex items-center gap-1.5">
+            <Tag className="h-4 w-4 text-slate-400" />
+            <span>Up to {campaign.discountValue}% Off</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Folder className="h-4 w-4 text-slate-400" />
+            <span>All Categories</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Users className="h-4 w-4 text-slate-400" />
+            <span>All Users</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Right Column: Countdown + Button */}
+      <div className="md:border-l border-gray-100 md:pl-6 w-full md:w-[200px] flex flex-col justify-between py-1 gap-4 shrink-0">
+        {countDate && !isExpired ? (
+          <div>
+            <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500 mb-2">
+              <Clock className="h-3.5 w-3.5 text-[#16A34A]" />
+              <span>{isUpcoming ? 'Starts in' : 'Ends in'}</span>
+            </div>
+            <Countdown dateString={countDate} status={campaign.status} />
+          </div>
+        ) : (
+          <div className="text-[11px] font-bold text-slate-400">
+            {isExpired ? 'Campaign has ended' : 'Special promo period'}
+          </div>
+        )}
+
+        <div className="mt-auto">
+          {isLive && (
+            <button
+              onClick={handleActionClick}
+              className="w-full bg-[#043B23] hover:bg-[#032e1b] text-white text-xs font-black py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 tracking-wider transition-all"
+            >
+              Shop Now <ArrowRight className="h-3.5 w-3.5" />
+            </button>
+          )}
+          {isUpcoming && (
+            <button
+              onClick={handleActionClick}
+              className="w-full border border-[#16A34A] hover:bg-[#EEFCF2] text-[#16A34A] text-xs font-black py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 tracking-wider transition-all"
+            >
+              Notify Me <Bell className="h-3.5 w-3.5" />
+            </button>
+          )}
+          {isExpired && (
+            <button
+              disabled
+              className="w-full bg-slate-100 text-slate-400 text-xs font-black py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 cursor-not-allowed"
+            >
+              Expired
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
 }
 
-function ProductSkeleton() {
+// ─── Detail View Component ──────────────────────────────────────────────────
+function DetailView({ campaign, products, loadingProducts, onBack }) {
+  const [orderAmount, setOrderAmount] = useState(1500);
+  const isPercent = campaign.discountType === 'PERCENTAGE';
+  const discLabel = isPercent ? `${campaign.discountValue}% OFF` : `Rs. ${campaign.discountValue.toLocaleString()} OFF`;
+  const savings = isPercent ? Math.round(orderAmount * campaign.discountValue / 100) : Math.min(campaign.discountValue, orderAmount);
+  const finalAmt = Math.max(0, orderAmount - savings);
+
+  const shopSteps = [
+    { num: '01', title: 'Browse Campaign Products', desc: 'Explore items curated exclusively for this event.' },
+    { num: '02', title: 'Campaign Price Applied', desc: 'Sale prices are already pre-applied on eligible items.' },
+    { num: '03', title: 'Add & Save Instantly', desc: 'Add to cart and enjoy the discount automatically at checkout.' },
+  ];
+
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-3 h-64 animate-pulse flex flex-col justify-between shadow-sm">
-      <div className="aspect-square bg-gray-100 rounded-lg w-full mb-3" />
-      <div className="space-y-2">
-        <div className="h-3 bg-gray-200 rounded w-3/4" />
-        <div className="h-2.5 bg-gray-100 rounded w-1/2" />
+    <div className="min-h-screen bg-[#F9FAFB]">
+      {/* Hero */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-[#043B23] to-[#0A2616] py-12">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_30%,rgba(22,163,74,0.15),transparent_50%)] pointer-events-none" />
+        <div className="relative mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+          {/* Back Button */}
+          <button
+            type="button"
+            onClick={onBack}
+            className="mb-8 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 backdrop-blur px-4 py-2 text-xs font-bold uppercase tracking-wider text-white hover:bg-white/10 transition-all"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" /> All Campaigns
+          </button>
+
+          <div className="grid lg:grid-cols-[1fr_300px] gap-8 items-center">
+            <div>
+              <div className="flex flex-wrap items-center gap-2 mb-4">
+                <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-widest text-white ${
+                  campaign.status === 'active' ? 'bg-[#16A34A]' : campaign.status === 'upcoming' ? 'bg-amber-500' : 'bg-slate-500'}`}>
+                  {campaign.status === 'active' ? '🟢 Live' : '⏳ Upcoming'}
+                </span>
+                <span className="rounded-full border border-white/20 bg-white/5 backdrop-blur px-3 py-1 text-[10px] font-black uppercase tracking-widest text-white/95">
+                  {campaign.type}
+                </span>
+              </div>
+
+              <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight leading-tight mb-4">
+                {campaign.title}
+              </h1>
+              {campaign.description && (
+                <p className="text-sm text-emerald-100/80 font-medium leading-relaxed max-w-xl mb-6">
+                  {campaign.description}
+                </p>
+              )}
+
+              <div className="flex flex-wrap items-center gap-6 mt-6">
+                <div className="flex items-center justify-center rounded-2xl bg-white px-6 py-3 text-[#043B23] shadow-xl">
+                  <span className="text-2xl font-black">{discLabel}</span>
+                </div>
+              </div>
+            </div>
+
+            {campaign.heroImage && (
+              <div className="hidden lg:block relative rounded-2xl overflow-hidden shadow-2xl aspect-[4/3] border border-white/10">
+                <img src={campaign.heroImage} alt={campaign.title} className="h-full w-full object-cover" />
+              </div>
+            )}
+          </div>
+        </div>
       </div>
-      <div className="h-7 bg-gray-200 rounded-lg w-full mt-2" />
+
+      {/* Body */}
+      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-10">
+        <div className="grid lg:grid-cols-3 gap-8">
+          {/* Products Column */}
+          <div className="lg:col-span-2 space-y-8">
+            {/* How to Shop */}
+            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs">
+              <div className="flex items-center gap-2 mb-6">
+                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-50 text-[#16A34A]">
+                  <Sparkles className="h-4 w-4" />
+                </div>
+                <h3 className="text-sm font-black text-slate-900">How to Shop This Campaign</h3>
+              </div>
+              <div className="grid sm:grid-cols-3 gap-5">
+                {shopSteps.map((step) => (
+                  <div key={step.num} className="relative">
+                    <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-xl border border-emerald-100 bg-[#EEFCF2] text-xs font-black text-[#16A34A]">
+                      {step.num}
+                    </div>
+                    <h4 className="text-xs font-black text-slate-800 mb-1">{step.title}</h4>
+                    <p className="text-[11px] text-slate-500 font-medium leading-relaxed">{step.desc}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Campaign Products */}
+            <div>
+              <div className="flex items-center gap-2 mb-5">
+                <ShoppingBag className="h-4 w-4 text-[#16A34A]" />
+                <h3 className="text-sm font-black text-slate-900">Campaign Products</h3>
+                {products.length > 0 && (
+                  <span className="ml-auto rounded-full border border-slate-200 bg-white px-2.5 py-0.5 text-[10px] font-black text-slate-600">
+                    {products.length} items
+                  </span>
+                )}
+              </div>
+
+              {loadingProducts ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <div key={i} className="rounded-2xl border border-slate-100 bg-white p-4 h-64 animate-pulse">
+                      <div className="aspect-square bg-slate-100 rounded-xl mb-3" />
+                      <div className="h-3 bg-slate-100 rounded-full w-3/4 mb-2" />
+                      <div className="h-3 bg-slate-100 rounded-full w-1/2" />
+                    </div>
+                  ))}
+                </div>
+              ) : products.length === 0 ? (
+                <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-slate-200 bg-white p-12 text-center">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-50">
+                    <ShoppingBag className="h-7 w-7 text-slate-300" />
+                  </div>
+                  <p className="font-black text-slate-700">No Products Yet</p>
+                  <p className="text-xs text-slate-400 font-medium max-w-xs">
+                    Sellers haven't added products to this campaign yet. Check back soon!
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                  {products.map((p) => (
+                    <ProductCard key={p.id} product={p} isSmall variant="default" />
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Sidebar */}
+          <div className="space-y-5">
+            {/* Info */}
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
+              <div className="flex items-center gap-2 mb-4">
+                <Info className="h-4 w-4 text-slate-400" />
+                <h4 className="text-[11px] font-black uppercase tracking-widest text-slate-500">Campaign Details</h4>
+              </div>
+              <div className="space-y-3">
+                {[
+                  ['Type', campaign.type],
+                  ['Discount', discLabel],
+                  ['Starts', campaign.startDate ? new Date(campaign.startDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'],
+                  ['Ends', campaign.endDate ? new Date(campaign.endDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'],
+                  campaign.maxProducts && ['Max Products', `${campaign.maxProducts} items`],
+                ].filter(Boolean).map(([label, val]) => (
+                  <div key={label} className="flex items-center justify-between py-2 border-b border-slate-50 last:border-0">
+                    <span className="text-[11px] font-bold text-slate-400">{label}</span>
+                    <span className="text-[11px] font-black text-slate-800">{val}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Savings Calculator */}
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
+              <div className="flex items-center gap-2 mb-1">
+                <Percent className="h-4 w-4 text-slate-400" />
+                <h4 className="text-[11px] font-black uppercase tracking-widest text-slate-500">Savings Calculator</h4>
+              </div>
+              <p className="text-[10px] text-slate-400 font-medium mb-4 leading-relaxed">
+                Estimate your savings with this campaign.
+              </p>
+              <div className="space-y-4">
+                <div>
+                  <div className="flex items-baseline justify-between mb-2">
+                    <span className="text-[10px] text-slate-500 font-bold">Order Subtotal</span>
+                    <span className="text-sm font-black text-slate-800">Rs. {orderAmount.toLocaleString()}</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={100}
+                    max={15000}
+                    step={100}
+                    value={orderAmount}
+                    onChange={(e) => setOrderAmount(Number(e.target.value))}
+                    className="w-full cursor-pointer h-1.5 rounded-full outline-none"
+                    style={{ accentColor: '#16A34A' }}
+                  />
+                </div>
+                <div className="border-t border-slate-100 pt-4 space-y-2">
+                  <div className="flex justify-between text-xs">
+                    <span className="text-slate-500 font-bold">Savings</span>
+                    <span className="font-black text-[#16A34A]">– Rs. {savings.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between items-center border-t border-dashed border-slate-200 pt-3">
+                    <span className="text-xs font-black text-slate-700">You Pay</span>
+                    <span className="text-lg font-black text-[#16A34A]">Rs. {finalAmt.toLocaleString()}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
 
-// ─── EMPTY STATE ─────────────────────────────────────────────────────────────
-function EmptyState({ title, message, icon }) {
-  return (
-    <div className="text-center py-16 px-4 bg-gray-50 border border-gray-200 rounded-2xl max-w-md mx-auto shadow-sm">
-      <div className="text-4xl mb-4">{icon || '📦'}</div>
-      <h3 className="text-lg font-bold text-slate-800 mb-2">{title || 'No results found'}</h3>
-      <p className="text-slate-500 text-xs leading-relaxed">{message || 'We could not find anything matching your filters.'}</p>
-    </div>
-  );
-}
-
-// ─── MAIN COMPONENT ──────────────────────────────────────────────────────────
+// ─── Main Campaign Page ──────────────────────────────────────────────────────
 export default function CampaignCenter() {
-  const location = useLocation();
+  const [view, setView] = useState('listing');
+  const [selected, setSelected] = useState(null);
+  const [products, setProducts] = useState([]);
 
-  // Route/Theme Sync
-  useLayoutEffect(() => {
-    const originalBg = document.body.style.backgroundColor;
-    document.body.style.backgroundColor = '#F9FAFB';
-    window.scrollTo(0, 0);
-    return () => { document.body.style.backgroundColor = originalBg; };
-  }, [location.pathname]);
-
-  // States
-  const [view, setView] = useState('listing'); // 'listing' | 'detail'
   const [campaigns, setCampaigns] = useState([]);
-  const [selectedCampaign, setSelectedCampaign] = useState(null);
-  const [campaignProducts, setCampaignProducts] = useState([]);
-  
-  // Filtering & Sorting States
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('All'); // 'All', 'Active', 'Upcoming'
-  const [sortBy, setSortBy] = useState('Newest'); // 'Newest', 'Highest Discount', 'Ending Soon'
-
-  // Loadings & Errors
-  const [loadingCampaigns, setLoadingCampaigns] = useState(true);
+  const [loading, setLoading] = useState(true);
   const [loadingProducts, setLoadingProducts] = useState(false);
   const [error, setError] = useState(null);
 
-  // Estimator State
-  const [orderAmount, setOrderAmount] = useState(1500);
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('All Campaigns');
+  const [sortBy, setSortBy] = useState('Newest');
 
-  // Fetch all public campaigns
-  const fetchCampaigns = useCallback(async () => {
-    setLoadingCampaigns(true);
+  const loadCampaigns = useCallback(async () => {
+    setLoading(true);
     setError(null);
     try {
-      const res = await apiClient.get('/campaigns', { suppressGlobalErrorToast: true });
-      const raw = Array.isArray(res.data) ? res.data : (res.data?.content ?? []);
+      const res = await apiClient.get('/campaigns');
+      const raw = Array.isArray(res.data?.data) ? res.data.data
+        : Array.isArray(res.data) ? res.data
+        : res.data?.content ?? [];
       setCampaigns(raw.map((c, i) => normaliseCampaign(c, i)));
-    } catch (err) {
-      console.error('Failed to load campaigns:', err);
-      setError('Could not load active campaigns. Please check your connection and try again.');
+    } catch (e) {
+      console.error(e);
+      setError('Could not load campaigns. Please check your connection.');
+      setCampaigns([]);
     } finally {
-      setLoadingCampaigns(false);
+      setLoading(false);
     }
   }, []);
 
-  // Fetch products for a specific campaign
-  const fetchCampaignProducts = useCallback(async (campaignId) => {
+  const loadProducts = useCallback(async (campaign) => {
     setLoadingProducts(true);
     try {
-      const res = await apiClient.get(`/campaigns/${campaignId}/products`, { suppressGlobalErrorToast: true });
-      const raw = Array.isArray(res.data) ? res.data : (res.data?.content ?? []);
-      setCampaignProducts(raw.map(normaliseCampaignProduct));
-    } catch (err) {
-      console.error(`Failed to fetch products for campaign ${campaignId}:`, err);
-      setCampaignProducts([]);
+      const res = await apiClient.get(`/campaigns/${campaign.id}/products`);
+      const raw = Array.isArray(res.data?.data) ? res.data.data
+        : Array.isArray(res.data) ? res.data
+        : res.data?.content ?? [];
+      setProducts(raw.map(normaliseCampaignProduct));
+    } catch {
+      setProducts([]);
     } finally {
       setLoadingProducts(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchCampaigns();
-  }, [fetchCampaigns]);
+    loadCampaigns();
+  }, [loadCampaigns]);
 
-  // Trigger product fetch when a campaign is selected
-  const handleOpenCampaign = (campaign) => {
-    setSelectedCampaign(campaign);
+  const handleOpen = (campaign) => {
+    setSelected(campaign);
     setView('detail');
-    fetchCampaignProducts(campaign.id);
+    setProducts([]);
+    loadProducts(campaign);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleBackToList = () => {
-    setSelectedCampaign(null);
-    setCampaignProducts([]);
+  const handleBack = () => {
+    setSelected(null);
+    setProducts([]);
     setView('listing');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Filter & Sort Logic
-  const filteredCampaigns = campaigns.filter(c => {
-    const query = searchQuery.toLowerCase().trim();
-    const matchesSearch = !query || 
-      c.title.toLowerCase().includes(query) || 
-      c.description.toLowerCase().includes(query);
+  const filtered = useMemo(() => {
+    let list = [...campaigns];
+    const q = search.trim().toLowerCase();
 
-    const matchesStatus = statusFilter === 'All' || c.status === statusFilter.toLowerCase();
-    
-    return matchesSearch && matchesStatus;
-  }).sort((a, b) => {
-    if (sortBy === 'Newest') {
-      return new Date(b.startDate || 0) - new Date(a.startDate || 0);
+    if (q) {
+      list = list.filter((c) => c.title.toLowerCase().includes(q) || c.description.toLowerCase().includes(q));
     }
-    if (sortBy === 'Highest Discount') {
-      return b.discountValue - a.discountValue;
+
+    if (statusFilter === 'Upcoming') {
+      list = list.filter((c) => c.status === 'upcoming');
+    } else if (statusFilter === 'Live Now') {
+      list = list.filter((c) => c.status === 'active');
+    } else if (statusFilter === 'Expired') {
+      list = list.filter((c) => c.status === 'ended');
     }
+
+    // Sort order
     if (sortBy === 'Ending Soon') {
-      return new Date(a.endDate || 0) - new Date(b.endDate || 0);
+      list.sort((a, b) => new Date(a.endDate || 0) - new Date(b.endDate || 0));
+    } else if (sortBy === 'Highest Discount') {
+      list.sort((a, b) => b.discountValue - a.discountValue);
+    } else {
+      // Default / Newest / Most Relevant
+      list.sort((a, b) => new Date(b.startDate || 0) - new Date(a.startDate || 0));
     }
-    return 0;
-  });
+    return list;
+  }, [campaigns, search, statusFilter, sortBy]);
 
-  // ─── RENDER DETAIL VIEW ────────────────────────────────────────────────────
-  if (view === 'detail' && selectedCampaign) {
-    const isUpcoming = selectedCampaign.status === 'upcoming';
-    const isPercentage = selectedCampaign.discountType === 'PERCENTAGE';
-    const discountLabel = isPercentage 
-      ? `${selectedCampaign.discountValue}% OFF`
-      : `Rs. ${selectedCampaign.discountValue.toLocaleString()} OFF`;
-
-    // Savings Calculator math
-    const savings = isPercentage
-      ? Math.round(orderAmount * selectedCampaign.discountValue / 100)
-      : Math.min(selectedCampaign.discountValue, orderAmount);
-    const finalPrice = Math.max(0, orderAmount - savings);
-
-    const infoRows = [
-      ['Campaign Type', selectedCampaign.type.replace('_', ' ')],
-      ['Discount Level', discountLabel],
-      ['Start Date', selectedCampaign.startDate ? new Date(selectedCampaign.startDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'],
-      ['End Date', selectedCampaign.endDate ? new Date(selectedCampaign.endDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'],
-      selectedCampaign.maxProducts && ['Product Limit', `${selectedCampaign.maxProducts} products max`],
-    ].filter(Boolean);
-
-    const shopSteps = [
-      { num: '1', title: 'Browse Campaign Products', desc: 'Explore items curated exclusively for this event by our top sellers.' },
-      { num: '2', title: 'Automatic Campaign Price', desc: 'Eligible items have their campaign-exclusive sale price pre-applied!' },
-      { num: '3', title: 'Add & Save Instantly', desc: 'Add campaign items directly to your bag and enjoy checkout savings.' },
-    ];
-
-    return (
-      <div 
-        className="bg-[#F9FAFB] min-h-screen text-slate-700 font-sans pb-16"
-        style={{
-          background: `radial-gradient(circle at top, ${selectedCampaign.accentColor}08 0%, #F9FAFB 100%)`
-        }}
-      >
-        
-        {/* Banner / Header */}
-        <div 
-          className="relative overflow-hidden py-16 px-6 border-b border-gray-200"
-          style={{
-            background: `linear-gradient(135deg, ${selectedCampaign.accentColor}0e 0%, ${selectedCampaign.accentColor}03 50%, #F9FAFB 100%)`
-          }}
-        >
-          {selectedCampaign.heroImage && (
-            <img 
-              src={selectedCampaign.heroImage} 
-              alt="" 
-              className="absolute inset-0 w-full h-full object-cover opacity-5 pointer-events-none" 
-            />
-          )}
-
-          <div className="max-w-[1200px] mx-auto">
-            <button 
-              onClick={handleBackToList}
-              className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-gray-400 hover:text-white mb-8 bg-white/5 border border-white/10 hover:border-[var(--accent-color)] rounded-full px-4 py-2 transition-all duration-200"
-              style={{ '--accent-color': selectedCampaign.accentColor }}
-            >
-              <ArrowLeft className="w-3.5 h-3.5" /> Back to Campaigns
-            </button>
-
-            <div className="grid md:grid-cols-2 gap-8 items-center">
-              <div>
-                <span 
-                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider text-white mb-4"
-                  style={{
-                    background: isUpcoming ? '#F97316' : '#10B981'
-                  }}
-                >
-                  <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-                  {isUpcoming ? '⏳ Upcoming' : '🟢 Live Campaign'}
-                </span>
-
-                <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 leading-tight mb-3">
-                  {selectedCampaign.title}
-                </h1>
-                
-                <p className="text-slate-600 text-sm leading-relaxed mb-6 max-w-xl">
-                  {selectedCampaign.description}
-                </p>
-
-                <div className="flex flex-wrap gap-4 items-center">
-                  <div className="text-4xl font-black text-slate-900 tracking-tight">
-                    {discountLabel}
-                  </div>
-                  {selectedCampaign.endDate && (
-                    <div className="border-l border-gray-200 pl-4 space-y-1">
-                      <div className="text-[10px] uppercase text-gray-500 tracking-wider">
-                        {isUpcoming ? 'Starting In:' : 'Offer Ends In:'}
-                      </div>
-                      <CountdownBlocks dateString={isUpcoming ? selectedCampaign.startDate : selectedCampaign.endDate} accentColor={selectedCampaign.accentColor} />
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Cover Card Preview */}
-              <div className="hidden md:flex justify-end">
-                <div 
-                  className="w-full max-w-sm aspect-[1.8/1] rounded-2xl overflow-hidden border border-gray-200 relative shadow-xl group"
-                  style={{
-                    boxShadow: `0 20px 40px ${selectedCampaign.accentColor}15`
-                  }}
-                >
-                  {selectedCampaign.heroImage ? (
-                    <img 
-                      src={selectedCampaign.heroImage} 
-                      alt={selectedCampaign.title} 
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-[#111] to-[#070707] flex items-center justify-center text-white/25">
-                      <Sparkles className="w-12 h-12" />
-                    </div>
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-4">
-                    <div>
-                      <span className="text-[9px] uppercase tracking-wider font-bold text-gray-400">{selectedCampaign.type}</span>
-                      <h4 className="text-sm font-bold text-white truncate">{selectedCampaign.title}</h4>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Content Body */}
-        <div className="max-w-[1200px] mx-auto px-6 mt-10">
-          <div className="grid lg:grid-cols-3 gap-8">
-            
-            {/* Details & Guide */}
-            <div className="lg:col-span-2 space-y-8">
-              
-              {/* How to Shop */}
-              <div className="bg-white border border-gray-200 rounded-2xl p-6 relative overflow-hidden shadow-sm">
-                <div className="absolute top-0 right-0 p-6 opacity-5 pointer-events-none">
-                  <ShoppingBag className="w-24 h-24 text-slate-300" />
-                </div>
-                <h3 className="text-base font-bold text-slate-800 mb-6 flex items-center gap-2">
-                  <Sparkles className="w-4 h-4" style={{ color: selectedCampaign.accentColor }} /> How to Shop this Campaign
-                </h3>
-                <div className="grid sm:grid-cols-3 gap-6">
-                  {shopSteps.map((step) => (
-                    <div key={step.num} className="space-y-2 relative">
-                      <div 
-                        className="w-8 h-8 rounded-full border flex items-center justify-center text-xs font-bold"
-                        style={{
-                          borderColor: `${selectedCampaign.accentColor}44`,
-                          backgroundColor: `${selectedCampaign.accentColor}15`,
-                          color: selectedCampaign.accentColor
-                        }}
-                      >
-                        {step.num}
-                      </div>
-                      <h4 className="text-xs font-bold text-slate-800">{step.title}</h4>
-                      <p className="text-slate-500 text-[11px] leading-relaxed">{step.desc}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Products Section */}
-              <div>
-                <h3 className="text-base font-bold text-slate-800 mb-6 flex items-center gap-2">
-                  <ShoppingBag className="w-4 h-4" style={{ color: selectedCampaign.accentColor }} /> Eligible Campaign Products
-                </h3>
-
-                {loadingProducts ? (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <ProductSkeleton key={i} />
-                    ))}
-                  </div>
-                ) : campaignProducts.length === 0 ? (
-                  <EmptyState 
-                    title="No Products Found" 
-                    message="Sellers have not registered any approved products for this campaign yet. Check back soon!" 
-                    icon="🏷️"
-                  />
-                ) : (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-                    {campaignProducts.map((p) => (
-                      <ProductCard key={p.id} product={p} isSmall variant="default" />
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Sidebar Columns */}
-            <div className="space-y-6">
-              
-              {/* Campaign details Card */}
-              <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-4 flex items-center gap-1.5">
-                  <Info className="w-3.5 h-3.5" /> Campaign Parameters
-                </h4>
-                <table className="w-full text-xs">
-                  <tbody>
-                    {infoRows.map(([lbl, val]) => (
-                      <tr key={lbl} className="border-b border-gray-100 last:border-0">
-                        <td className="py-3 text-slate-500 font-medium">{lbl}</td>
-                        <td className="py-3 text-right text-slate-800 font-semibold">{val}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Discount Estimator Slider */}
-              <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5 flex items-center gap-1.5">
-                  <Calculator className="w-3.5 h-3.5" /> Campaign Estimator
-                </h4>
-                <p className="text-[10px] text-slate-400 mb-4 leading-relaxed">
-                  Drag the slider to estimate your total savings with this campaign's discount level.
-                </p>
-
-                <div className="space-y-4">
-                  <div>
-                    <div className="flex justify-between items-baseline mb-2">
-                      <span className="text-[10px] text-slate-500">Order Subtotal</span>
-                      <span className="text-sm font-bold text-slate-800">Rs. {orderAmount.toLocaleString()}</span>
-                    </div>
-                    <input 
-                      type="range"
-                      min={100}
-                      max={15000}
-                      step={100}
-                      value={orderAmount}
-                      onChange={(e) => setOrderAmount(Number(e.target.value))}
-                      className="w-full cursor-pointer h-1 bg-gray-200 rounded-lg outline-none"
-                      style={{ accentColor: selectedCampaign.accentColor }}
-                    />
-                    <div className="flex justify-between text-[9px] text-slate-400 mt-1">
-                      <span>Rs. 100</span>
-                      <span>Rs. 15,000</span>
-                    </div>
-                  </div>
-
-                  <div className="border-t border-gray-100 pt-4 space-y-2.5">
-                    <div className="flex justify-between items-center text-xs">
-                      <span className="text-slate-500">Savings ({discountLabel})</span>
-                      <span className="font-bold" style={{ color: selectedCampaign.accentColor }}>- Rs. {savings.toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between items-center text-sm border-t border-dashed border-gray-200 pt-2.5">
-                      <span className="text-slate-800 font-bold">Estimated Price</span>
-                      <span className="text-slate-800 font-extrabold text-base" style={{ color: selectedCampaign.accentColor }}>
-                        Rs. {finalPrice.toLocaleString()}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Terms Warning */}
-              <div className="bg-gray-50 border border-gray-200 rounded-2xl p-5 text-[11px] text-slate-500 space-y-2">
-                <div className="font-bold text-gray-400 flex items-center gap-1">
-                  <AlertTriangle className="w-3.5 h-3.5 text-amber-500/80" /> Campaign Rules
-                </div>
-                <p className="leading-relaxed">
-                  Campaign prices are applied directly to product listing cards. If multiple campaigns affect a single product, the system automatically applies the highest discount value. Campaign pricing is only valid while the campaign is in the "ACTIVE" status.
-                </p>
-              </div>
-
-            </div>
-          </div>
-        </div>
-
-      </div>
-    );
+  if (view === 'detail' && selected) {
+    return <DetailView campaign={selected} products={products} loadingProducts={loadingProducts} onBack={handleBack} />;
   }
 
-  // ─── RENDER LISTING VIEW ───────────────────────────────────────────────────
   return (
-    <div 
-      className="bg-[#F9FAFB] min-h-screen text-slate-800 font-sans pb-16"
-      style={{
-        background: 'radial-gradient(circle at top, rgba(16, 185, 129, 0.05) 0%, #F9FAFB 100%)'
-      }}
-    >
-      
-      {/* Hero Header */}
-      <section className="relative overflow-hidden py-14 px-6 border-b border-gray-200 bg-gradient-to-b from-[#10B981]/5 to-transparent">
-        <div className="max-w-[1200px] mx-auto text-center space-y-4">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#10B981]/10 border border-[#10B981]/25 text-[#10B981] text-[10px] font-bold uppercase tracking-wider">
-            <Sparkles className="w-3.5 h-3.5" /> Jhapcham Campaigns
-          </div>
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-            Marketplace <span className="text-[#10B981]">Campaign Center</span>
-          </h1>
-          <p className="text-slate-500 text-xs sm:text-sm max-w-xl mx-auto leading-relaxed">
-            Discover special seasonal sales, holiday events, and exclusive discount campaigns. Browse campaign-registered products directly from verified store profiles.
-          </p>
-        </div>
-      </section>
+    <div className="min-h-screen bg-[#F9FAFB] pb-10">
+      {/* ── Hero Header (Forest Green) ── */}
+      <div className="relative overflow-hidden bg-[#043B23]">
+        {/* Background Sparkles & Fireworks effect */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_35%,rgba(22,163,74,0.2),transparent_40%)] pointer-events-none" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_65%,rgba(22,163,74,0.1),transparent_50%)] pointer-events-none" />
 
-      {/* Main Grid container */}
-      <div className="max-w-[1200px] mx-auto px-6 mt-10 space-y-8">
-        
-        {/* Controls Layout */}
-        <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-white border border-gray-200 p-4 rounded-2xl shadow-sm">
-          
-          {/* Search bar */}
-          <div className="w-full md:max-w-xs relative">
-            <input 
-              type="text" 
-              placeholder="Search campaigns..." 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-white border border-gray-300 focus:border-[#10B981] rounded-xl py-2 pl-9 pr-4 text-xs text-slate-800 placeholder-gray-400 outline-none transition-colors"
-            />
-            <Search className="w-4 h-4 text-gray-400 absolute left-3 top-2.5" />
-          </div>
+        <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-10 lg:py-12 flex flex-col md:flex-row items-center justify-between gap-6 relative">
+          <div className="max-w-xl">
+            <h1 className="text-4xl font-extrabold text-white tracking-tight">Campaigns</h1>
+            <p className="mt-2 text-sm text-emerald-100/90 font-medium">
+              Explore exciting sale campaigns and grab the best deals on your favorite products.
+            </p>
 
-          {/* Filters Row */}
-          <div className="flex flex-wrap items-center gap-3 w-full md:w-auto justify-end">
-            
-            {/* Status filtering */}
-            <div className="flex items-center gap-1 bg-gray-100 border border-gray-200 p-1 rounded-xl">
-              {['All', 'Active', 'Upcoming'].map((status) => (
-                <button
-                  key={status}
-                  onClick={() => setStatusFilter(status)}
-                  className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-150 ${
-                    statusFilter === status 
-                      ? 'bg-[#10B981] text-white shadow-sm' 
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  {status}
-                </button>
-              ))}
+            {/* Sub-header Badges/Features */}
+            <div className="mt-8 flex flex-col sm:flex-row sm:items-center gap-6 text-white/90">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-emerald-300">
+                  <Percent className="h-4 w-4" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold leading-none">Best Deals</h4>
+                  <p className="text-[10px] text-emerald-200/70 mt-1">Unbeatable offers</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-emerald-300">
+                  <Clock className="h-4 w-4" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold leading-none">Limited Time</h4>
+                  <p className="text-[10px] text-emerald-200/70 mt-1">Hurry up & save more</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-emerald-300">
+                  <ShieldCheck className="h-4 w-4" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold leading-none">Trusted & Safe</h4>
+                  <p className="text-[10px] text-emerald-200/70 mt-1">100% secure shopping</p>
+                </div>
+              </div>
             </div>
+          </div>
 
-            {/* Sorting */}
+          {/* Right side decoration image from public assets */}
+          <div className="relative shrink-0 w-44 md:w-56 aspect-square hidden sm:block pointer-events-none">
+            <img
+              src="/Assets/Banners/campaign_hero_decoration.png"
+              alt="Campaign gift box illustration"
+              className="w-full h-full object-contain"
+              onError={(e) => { e.target.style.display = 'none'; }}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* ── Main Container ── */}
+      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 mt-8">
+        
+        {/* Filter Navigation Bar */}
+        <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 border-b border-gray-200 bg-white p-4 rounded-xl shadow-xs mb-6">
+          <div className="flex flex-wrap items-center gap-2">
+            {[
+              { name: 'All Campaigns', icon: CheckCircle },
+              { name: 'Upcoming', icon: Calendar },
+              { name: 'Live Now', icon: Sparkles },
+              { name: 'Expired', icon: Clock },
+            ].map(({ name, icon: Icon }) => (
+              <button
+                key={name}
+                type="button"
+                onClick={() => setStatusFilter(name)}
+                className={`flex items-center gap-2 border rounded-full px-4 py-2 text-xs font-bold uppercase tracking-wider transition-all ${
+                  statusFilter === name
+                    ? 'border-[#16A34A] text-[#16A34A] bg-[#EEFCF2]'
+                    : 'border-gray-200 text-gray-600 bg-white hover:bg-gray-50'
+                }`}
+              >
+                <Icon className="h-3.5 w-3.5" />
+                {name}
+              </button>
+            ))}
+          </div>
+
+          {/* Sorting Dropdown */}
+          <div className="flex items-center gap-2 border border-gray-200 rounded-xl px-4 py-2 bg-white relative shrink-0">
+            <SlidersHorizontal className="h-4 w-4 text-slate-400" />
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="bg-white border border-gray-300 focus:border-[#10B981] rounded-xl px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-700 outline-none cursor-pointer"
+              className="text-xs font-bold text-gray-700 bg-transparent outline-none cursor-pointer pr-4 appearance-none"
             >
-              <option value="Newest">Newest</option>
+              <option value="Newest">Most Relevant</option>
               <option value="Highest Discount">Highest Discount</option>
               <option value="Ending Soon">Ending Soon</option>
             </select>
-
+            <ChevronDown className="h-3.5 w-3.5 text-slate-400 absolute right-3 pointer-events-none" />
           </div>
         </div>
 
-        {/* Campaign cards grid */}
-        <div>
-          {loadingCampaigns ? (
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <CampaignCardSkeleton key={i} />
-              ))}
+        {/* ── Campaigns Feed ── */}
+        {loading ? (
+          <div className="space-y-6">
+            {Array.from({ length: 3 }).map((_, i) => <RowSkeleton key={i} />)}
+          </div>
+        ) : error ? (
+          <div className="flex flex-col items-center gap-3 rounded-2xl border border-red-100 bg-red-50 p-10 text-center">
+            <p className="text-sm font-bold text-red-600">{error}</p>
+            <button
+              type="button"
+              onClick={loadCampaigns}
+              className="inline-flex items-center gap-2 rounded-xl bg-red-600 px-5 py-2.5 text-xs font-black uppercase tracking-wider text-white hover:bg-red-700 transition"
+            >
+              <RefreshCw className="h-3.5 w-3.5" /> Retry
+            </button>
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-slate-200 bg-white p-12 text-center shadow-xs">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-[#16A34A]">
+              <Sparkles className="h-7 w-7" />
             </div>
-          ) : filteredCampaigns.length === 0 ? (
-            <EmptyState 
-              title="No Campaigns Found" 
-              message="No active or upcoming campaigns were found matching your search and filter options. Check back later!" 
-              icon="🔍"
-            />
-          ) : (
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredCampaigns.map((c) => {
-                const isActive = c.status === 'active';
-                const isUpcoming = c.status === 'upcoming';
-                const isPercentage = c.discountType === 'PERCENTAGE';
-                
-                return (
-                  <div 
-                    key={c.id}
-                    onClick={() => handleOpenCampaign(c)}
-                    className="group bg-white border border-gray-200 hover:border-[var(--accent-color)]/50 rounded-2xl overflow-hidden cursor-pointer flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-lg shadow-sm"
-                    style={{
-                      '--accent-color': c.accentColor
-                    }}
-                  >
-                    {/* Banner Image or Fallback */}
-                    <div className="h-44 w-full relative overflow-hidden bg-gray-100">
-                      {c.heroImage ? (
-                        <img 
-                          src={c.heroImage} 
-                          alt={c.title} 
-                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-white/10 group-hover:text-white/20 transition-colors">
-                          <Sparkles className="w-12 h-12" />
-                        </div>
-                      )}
+            <p className="font-black text-slate-800">No campaigns found</p>
+            <p className="text-xs text-slate-500 font-medium">
+              Try selection of other categories or checking back soon!
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {filtered.map((c) => (
+              <CampaignCardRow key={c.id} campaign={c} onOpen={handleOpen} />
+            ))}
+          </div>
+        )}
 
-                      {/* Header overlay badges */}
-                      <div className="absolute top-3 inset-x-3 flex justify-between items-center z-10">
-                        <span 
-                          className="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider text-white shadow-sm"
-                          style={{
-                            background: isUpcoming ? '#F97316' : isActive ? '#10B981' : '#64748B'
-                          }}
-                        >
-                          {c.status}
-                        </span>
-
-                        <span className="px-2 py-0.5 bg-white/80 border border-gray-200 backdrop-blur-md rounded text-[8px] uppercase tracking-wider font-bold text-slate-700 shadow-sm">
-                          {c.type}
-                        </span>
-                      </div>
-
-                      {/* Discount display */}
-                      <div 
-                        className="absolute bottom-3 right-3 text-white text-xs font-black px-2.5 py-1 rounded-lg shadow-md"
-                        style={{ backgroundColor: c.accentColor }}
-                      >
-                        {isPercentage ? `${c.discountValue}% OFF` : `Rs. ${c.discountValue} OFF`}
-                      </div>
-                    </div>
-
-                    {/* Details content */}
-                    <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
-                      <div>
-                        <h3 className="font-bold text-sm text-slate-800 group-hover:text-[var(--accent-color)] transition-colors leading-tight mb-2">
-                          {c.title}
-                        </h3>
-                        <p className="text-slate-500 text-[11px] leading-relaxed line-clamp-2">
-                          {c.description}
-                        </p>
-                      </div>
-
-                      {/* Timer & CTA footer */}
-                      <div className="border-t border-gray-100 pt-4 flex items-center justify-between gap-2">
-                        {c.endDate && (
-                          <div className="space-y-0.5">
-                            <span className="text-[8px] text-slate-400 uppercase tracking-widest font-semibold block">
-                              {isUpcoming ? 'Starts In' : 'Ends In'}
-                            </span>
-                            <CountdownBlocks dateString={isUpcoming ? c.startDate : c.endDate} accentColor={c.accentColor} />
-                          </div>
-                        )}
-                        <button 
-                          className="px-3.5 py-2 rounded-xl bg-gray-50 hover:bg-[var(--accent-color)] hover:border-transparent text-slate-700 hover:text-white text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 border border-gray-200 transition-all duration-200"
-                        >
-                          Explore <ChevronRight className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+        {/* ── Bottom Badges strip ── */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-12 border-t border-gray-200/60 pt-8">
+          {[
+            { title: 'Best Offers', desc: 'Handpicked deals just for you', icon: Tag },
+            { title: 'Exciting Rewards', desc: 'Shop more, earn more rewards', icon: ShoppingBag },
+            { title: 'Limited Time', desc: 'Hurry up! Offers won\'t last forever', icon: Clock },
+            { title: 'Secure Shopping', desc: '100% safe & trusted experience', icon: ShieldCheck },
+          ].map(({ title, desc, icon: Icon }) => (
+            <div key={title} className="flex gap-3 bg-white p-4 rounded-xl border border-gray-100 shadow-2xs">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-[#16A34A]">
+                <Icon className="h-5 w-5" />
+              </div>
+              <div>
+                <h4 className="text-xs font-bold text-gray-900 leading-tight">{title}</h4>
+                <p className="text-[10px] text-gray-500 leading-snug mt-1 font-medium">{desc}</p>
+              </div>
             </div>
-          )}
+          ))}
         </div>
       </div>
     </div>

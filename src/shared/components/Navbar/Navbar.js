@@ -6,17 +6,14 @@ import {
   ShoppingCart, 
   User, 
   ChevronDown, 
-  Facebook, 
-  Twitter, 
-  Instagram, 
   Menu,
   X,
-  MapPin,
-  Package,
-  RotateCcw,
-  HelpCircle,
-  Globe,
-  Trash2
+  Trash2,
+  Truck,
+  Flame,
+  ShoppingBag,
+  ArrowLeftRight,
+  CheckCircle2,
 } from 'lucide-react';
 import { useCustomer } from '../../../modules/customer/contexts/CustomerContext';
 import LoginModal from '../../../modules/auth/components/LoginModal';
@@ -41,13 +38,11 @@ export default function Navbar() {
   const [isAnnouncementVisible, setIsAnnouncementVisible] = useState(true);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [cartItems, setCartItems] = useState([]);
+  const [cartTotal, setCartTotal] = useState(0);
   const [loadingCart, setLoadingCart] = useState(false);
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
   const [wishlistItems, setWishlistItems] = useState([]);
   const [loadingWishlist, setLoadingWishlist] = useState(false);
-  const [activeMegaTab, setActiveMegaTab] = useState('Shop All');
-  const [activePromos, setActivePromos] = useState([]);
-  const [timeLeft, setTimeLeft] = useState(6 * 3600 + 44 * 60 + 12); // synced with homepage promo card
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('All');
 
@@ -72,7 +67,30 @@ export default function Navbar() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Fetch Cart Items for Verdant Dropdown
+  // Fetch cart count + total for logged-in users
+  useEffect(() => {
+    if (!user?.id) {
+      setCartTotal(0);
+      return;
+    }
+    getCart(user.id)
+      .then((res) => {
+        const items = res.data?.items || res.data || [];
+        const list = Array.isArray(items) ? items : [];
+        setCartItems(list);
+        const total = list.reduce(
+          (acc, item) => acc + ((item.price || item.product?.price || item.product?.minPrice || 0) * (item.quantity || 1)),
+          0
+        );
+        setCartTotal(total);
+      })
+      .catch(() => {
+        setCartItems([]);
+        setCartTotal(0);
+      });
+  }, [user?.id, cartCount]);
+
+  // Fetch Cart Items for dropdown when opened
   useEffect(() => {
     if (isCartOpen && user?.id) {
       setLoadingCart(true);
@@ -104,23 +122,9 @@ export default function Navbar() {
     }
   }, [isWishlistOpen, user?.id, wishlistIds]);
 
-  // Live Flash Sale Countdown Timer
+  // Fetch active promo codes on mount (reserved for future promo dropdown)
   useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => (prev > 0 ? prev - 1 : 24 * 3600));
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  // Fetch active promo codes on mount
-  useEffect(() => {
-    getActivePromos()
-      .then((res) => {
-        setActivePromos(Array.isArray(res.data) ? res.data : []);
-      })
-      .catch((err) => {
-        console.error("Failed to load active promos in navbar", err);
-      });
+    getActivePromos().catch(() => {});
   }, []);
 
   // Fetch dynamic categories
@@ -162,13 +166,6 @@ export default function Navbar() {
 
     return () => clearTimeout(timer);
   }, [searchQuery]);
-
-  const formatCountdown = (seconds) => {
-    const hrs = Math.floor(seconds / 3600);
-    const mins = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-    return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -268,66 +265,81 @@ export default function Navbar() {
      =========================================================================== */
   return (
     <header className="w-full bg-white border-b border-gray-200 sticky top-0 z-50 font-inter">
-      {/* 1. Announcement Bar */}
+      {/* 1. Top Utility Bar */}
       {isAnnouncementVisible && (
-        <div className="h-9 bg-[#0F172A] text-white text-[13px] font-medium px-4 flex justify-between items-center transition-all duration-300">
-          <div className="flex-1 text-center font-inter leading-none">
-            🎁 Free shipping on orders over <strong>Rs. 2,000</strong>. Special packaging for all premium products.
+        <div className="h-9 bg-[#111111] text-white text-[11px] font-medium px-4 flex justify-between items-center gap-4">
+          <div className="flex items-center gap-4 sm:gap-6 overflow-hidden">
+            <span className="flex items-center gap-1.5 whitespace-nowrap">
+              <Truck className="w-3.5 h-3.5 text-green-400 flex-shrink-0" />
+              Free Delivery on orders over <strong className="font-bold">Rs.&nbsp;2,000</strong>
+            </span>
+            <span className="hidden md:flex items-center gap-1.5 whitespace-nowrap text-amber-300">
+              <Flame className="w-3.5 h-3.5 flex-shrink-0" />
+              Flash Sale! Up to <strong className="font-bold">60% OFF</strong>
+            </span>
           </div>
-          <button 
-            onClick={() => setIsAnnouncementVisible(false)}
-            className="text-white/70 hover:text-white p-1 transition-colors outline-none focus:ring-1 focus:ring-green-500/20 rounded-xs flex items-center justify-center"
-            aria-label="Dismiss Announcement"
-          >
-            <X className="w-4 h-4" />
-          </button>
+          <div className="flex items-center gap-3 sm:gap-4 text-[11px] flex-shrink-0">
+            <Link to="/contact" className="hover:text-green-400 transition-colors hidden sm:inline whitespace-nowrap">Help Center</Link>
+            <Link to="/customer/orders" className="hover:text-green-400 transition-colors hidden sm:inline whitespace-nowrap">Order Tracking</Link>
+            <Link to="/contact" className="hover:text-green-400 transition-colors hidden lg:inline whitespace-nowrap">Returns</Link>
+            <span className="text-white/30 hidden lg:inline">|</span>
+            <button type="button" className="hover:text-green-400 transition-colors flex items-center gap-1 whitespace-nowrap">
+              <span className="text-xs">🇳🇵</span> NPR <ChevronDown className="w-3 h-3" />
+            </button>
+            <button type="button" className="hover:text-green-400 transition-colors flex items-center gap-1 whitespace-nowrap">
+              English <ChevronDown className="w-3 h-3" />
+            </button>
+          </div>
         </div>
       )}
 
-      {/* 2. Main Navbar */}
-      <div className="bg-white py-3 px-6 border-b border-gray-100">
-        <div className="max-w-[1440px] mx-auto flex items-center justify-between gap-4">
+      {/* 2. Main Header */}
+      <div className="bg-white py-4 px-4 sm:px-6 border-b border-gray-100">
+        <div className="max-w-[1440px] mx-auto flex items-center justify-between gap-3 lg:gap-6">
           
-          {/* Logo */}
-          <Link to="/" className="flex items-center flex-shrink-0 group outline-none focus:ring-2 focus:ring-green-500/20 rounded-xs">
-            <img 
-              src="/Assets/Logo/logo.png" 
-              alt="Jhapcham Logo" 
-              className="h-9 w-auto object-contain transition-transform group-hover:scale-105" 
-            />
+          {/* Logo — bag icon + wordmark */}
+          <Link to="/" className="flex items-center gap-2 flex-shrink-0 group">
+            <div className="w-9 h-9 bg-[#28a745] rounded-lg flex items-center justify-center group-hover:bg-[#218838] transition-colors">
+              <ShoppingBag className="w-5 h-5 text-white" />
+            </div>
+            <span className="font-extrabold text-xl text-slate-900 tracking-tight hidden sm:block">
+              Jhap<span className="text-green-600">cham</span>
+            </span>
           </Link>
 
-          {/* Search Pill */}
-          <form ref={searchRef} onSubmit={handleSearch} className="flex-1 max-w-[700px] relative hidden md:block">
-            <div className="flex items-center border border-[#E5E7EB] rounded-full bg-white h-[52px] shadow-[0_4px_12px_rgba(0,0,0,0.05)] focus-within:border-[#16A34A] focus-within:ring-2 focus-within:ring-green-500/20 overflow-hidden transition-all">
-              <div className="flex items-center bg-gray-50 border-r border-gray-200 px-4 h-full">
+          {/* Search — input, then category, then Search button */}
+          <form ref={searchRef} onSubmit={handleSearch} className="flex-1 max-w-[680px] relative hidden md:block">
+            <div className="flex items-stretch border border-gray-200 rounded-lg bg-white h-[46px] shadow-sm focus-within:border-green-500 focus-within:ring-2 focus-within:ring-green-500/15 overflow-hidden transition-all">
+              <div className="flex items-center border-r border-gray-200 bg-gray-50 px-3 h-full flex-shrink-0">
                 <select 
                   value={selectedCategory} 
                   onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="bg-transparent text-xs font-bold text-slate-700 outline-none cursor-pointer focus:outline-none pr-1 max-w-[120px] truncate"
+                  className="bg-transparent text-xs font-semibold text-slate-600 outline-none cursor-pointer max-w-[110px] truncate"
                 >
                   <option value="All">All Categories</option>
                   {(categories.length > 0 ? categories : ['Fashion', 'Electronics', 'Home', 'Beauty', 'Health']).map((cat) => {
                     const name = cat.name || (typeof cat === 'string' ? cat : '');
                     if (!name) return null;
                     return (
-                      <option key={name} value={name}>
-                        {name}
-                      </option>
+                      <option key={name} value={name}>{name}</option>
                     );
                   })}
                 </select>
+                <ChevronDown className="w-3.5 h-3.5 text-gray-400 ml-1 flex-shrink-0 pointer-events-none" />
               </div>
               <input 
                 type="text" 
-                placeholder="Search for products, brands, or categories..." 
+                placeholder="Search for products, brands and more..." 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => { if (searchQuery.trim().length >= 2) setIsSearchSuggestionsOpen(true); }}
-                className="w-full px-5 text-sm bg-transparent outline-none text-slate-800 placeholder-gray-400 focus:outline-none"
+                className="flex-1 min-w-0 px-4 text-sm bg-transparent outline-none text-slate-800 placeholder-gray-400"
               />
-              <button type="submit" className="h-full px-5 text-gray-400 hover:text-[#16A34A] transition-colors outline-none flex items-center justify-center border-l border-gray-100">
-                <Search className="w-5 h-5" />
+              <button
+                type="submit"
+                className="h-full px-6 bg-[#28a745] hover:bg-[#218838] text-white text-sm font-bold transition-colors flex items-center gap-2 flex-shrink-0"
+              >
+                Search
               </button>
             </div>
 
@@ -392,44 +404,81 @@ export default function Navbar() {
             )}
           </form>
 
-          {/* Icons Actions Row */}
-          <div className="flex items-center gap-4">
+          {/* User Actions */}
+          <div className="flex items-center gap-1 sm:gap-4 flex-shrink-0">
             
-            <div className="flex items-center gap-4 bg-gray-50 border border-gray-100 px-4 py-1.5 rounded-full">
-              {/* Wishlist */}
+            {/* Account */}
+            <button
+              onClick={() => {
+                if (!isLoggedIn) {
+                  setAuthModalTab('login');
+                  setIsLoginModalOpen(true);
+                } else {
+                  navigate(getDashboardUrl());
+                }
+              }}
+              className="hidden lg:flex items-center gap-2.5 text-left px-2 py-1 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              <User className="w-7 h-7 text-slate-500 flex-shrink-0" strokeWidth={1.5} />
+              <div className="leading-tight">
+                <span className="text-[11px] text-gray-400 block">Hello, {isLoggedIn ? (user?.firstName || 'there') : 'Sign in'}</span>
+                <span className="text-sm font-bold text-slate-800">{isLoggedIn ? 'Account' : 'Account'}</span>
+              </div>
+            </button>
+
+            {/* Wishlist */}
+            <button 
+              onClick={() => {
+                if (!isLoggedIn) setIsLoginModalOpen(true);
+                else setIsWishlistOpen(true);
+              }}
+              className="flex flex-col items-center px-2 py-1 rounded-lg hover:bg-gray-50 text-slate-600 hover:text-green-600 transition-colors relative"
+              title="Wishlist"
+            >
+              <Heart className="w-6 h-6" strokeWidth={1.5} />
+              <span className="text-[10px] font-medium hidden sm:block mt-0.5">Wishlist</span>
+              {wishlistIds?.size > 0 && (
+                <span className="absolute top-0 right-0 bg-green-600 text-white text-[9px] font-bold rounded-full h-4 min-w-4 px-1 flex items-center justify-center">
+                  {wishlistIds.size}
+                </span>
+              )}
+            </button>
+
+            {/* Compare */}
+            <Link
+              to="/product-list"
+              className="hidden sm:flex flex-col items-center px-2 py-1 rounded-lg hover:bg-gray-50 text-slate-600 hover:text-green-600 transition-colors relative"
+              title="Compare"
+            >
+              <ArrowLeftRight className="w-6 h-6" strokeWidth={1.5} />
+              <span className="text-[10px] font-medium mt-0.5">Compare</span>
+            </Link>
+
+            {/* Cart with total */}
+            <div className="relative flex items-center" ref={cartRef}>
               <button 
                 onClick={() => {
                   if (!isLoggedIn) setIsLoginModalOpen(true);
-                  else setIsWishlistOpen(true);
+                  else setIsCartOpen(!isCartOpen);
                 }}
-                className="flex items-center justify-center text-slate-850 hover:text-[#16A34A] transition-colors relative focus:outline-none p-0.5"
-                title="View Wishlist"
+                className="flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-gray-50 text-slate-600 hover:text-green-600 transition-colors relative"
+                title="Cart"
               >
-                <Heart className="w-5 h-5" />
-                {wishlistIds?.size > 0 && (
-                  <span className="absolute -top-1 -right-1.5 bg-[#16A34A] text-white text-[11px] font-bold rounded-full h-[18px] min-w-[18px] px-1 flex items-center justify-center shadow-sm leading-none">
-                    {wishlistIds.size}
-                  </span>
-                )}
-              </button>
-
-              {/* Cart */}
-              <div className="relative flex items-center" ref={cartRef}>
-                <button 
-                  onClick={() => {
-                    if (!isLoggedIn) setIsLoginModalOpen(true);
-                    else setIsCartOpen(!isCartOpen);
-                  }}
-                  className="flex items-center justify-center text-slate-850 hover:text-[#16A34A] transition-colors relative focus:outline-none p-0.5"
-                  title="Cart Bag"
-                >
-                  <ShoppingCart className="w-5 h-5" />
+                <div className="relative">
+                  <ShoppingCart className="w-6 h-6" strokeWidth={1.5} />
                   {cartCount > 0 && (
-                    <span className="absolute -top-1 -right-1.5 bg-[#16A34A] text-white text-[11px] font-bold rounded-full h-[18px] min-w-[18px] px-1 flex items-center justify-center animate-pulse shadow-sm leading-none">
+                    <span className="absolute -top-1.5 -right-1.5 bg-green-600 text-white text-[9px] font-bold rounded-full h-4 min-w-4 px-1 flex items-center justify-center">
                       {cartCount}
                     </span>
                   )}
-                </button>
+                </div>
+                <div className="hidden sm:block text-left leading-tight">
+                  <span className="text-[10px] font-medium text-gray-400 block">Cart</span>
+                  <span className="text-sm font-bold text-slate-800">
+                    {cartTotal > 0 ? `Rs. ${cartTotal.toLocaleString()}` : 'Rs. 0'}
+                  </span>
+                </div>
+              </button>
 
                 {/* Cart Dropdown */}
                 {isCartOpen && (
@@ -498,28 +547,20 @@ export default function Navbar() {
                 )}
               </div>
 
-              {/* Account Dropdown */}
-              <UserDropdown
-                user={user}
-                unreadNotifs={unreadNotifs}
-                wishlistCount={wishlistIds?.size || 0}
-                cartCount={cartCount}
-                onLogout={logoutUser}
-                onRequireLogin={(tab) => {
-                  setAuthModalTab(tab);
-                  setIsLoginModalOpen(true);
-                }}
-              />
-
-            </div>
-
-            {/* Shop Sale Button (Redesigned CTA) */}
-            <Link 
-              to="/product-list?onSale=true" 
-              className="bg-[#16A34A] hover:bg-green-700 text-white text-xs font-semibold h-11 px-6 rounded-full tracking-wide transition-all duration-200 flex items-center justify-center shadow-xs hover:shadow-md hidden sm:inline-flex outline-none"
-            >
-              Today's Deals
-            </Link>
+              {/* Account Dropdown — mobile / logged-in menu */}
+              <div className="hidden md:block">
+                <UserDropdown
+                  user={user}
+                  unreadNotifs={unreadNotifs}
+                  wishlistCount={wishlistIds?.size || 0}
+                  cartCount={cartCount}
+                  onLogout={logoutUser}
+                  onRequireLogin={(tab) => {
+                    setAuthModalTab(tab);
+                    setIsLoginModalOpen(true);
+                  }}
+                />
+              </div>
 
             {/* Mobile Toggle */}
             <button 
@@ -534,114 +575,45 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* 3. Reorganized Category Navigation & Flash Sale Countdown Timer */}
-      <div className="bg-white border-b border-gray-200 py-1.5 px-6">
-        <div className="max-w-[1440px] mx-auto flex items-center justify-between gap-6 overflow-hidden">
-          {/* Category links and timer pill row */}
-          <div className="flex items-center gap-6 overflow-x-auto no-scrollbar scroll-smooth pr-6 py-1 flex-1">
-            {/* Primary Category Links */}
-            {[
-              { name: 'Shop All', path: '/product-list' },
-              { name: 'Flash Sale', path: '/product-list?onSale=true', isFlashSale: true },
-              { name: 'Top Seller', path: '/top-sellers' },
-            ].map((tab) => {
-              const active = activeMegaTab === tab.name;
-              return (
-                <div key={tab.name} className="relative flex items-center">
-                  {tab.isFlashSale ? (
-                    <Link
-                      to={tab.path}
-                      onClick={() => setActiveMegaTab(tab.name)}
-                      className="h-9 px-4 rounded-full bg-[#0F172A] hover:bg-slate-800 text-white transition-all flex items-center gap-1.5 font-bold text-xs select-none shadow-sm hover:scale-[1.02] active:scale-95"
-                    >
-                      <span className="text-amber-400">🔥 {tab.name}</span>
-                      <span className="text-gray-400 font-normal">|</span>
-                      <span className="text-amber-300 font-mono font-semibold tabular-nums tracking-wide">Ends In {formatCountdown(timeLeft)}</span>
-                    </Link>
-                  ) : (
-                    <button 
-                      onClick={() => {
-                        setActiveMegaTab(tab.name);
-                        navigate(tab.path);
-                      }}
-                      className="flex items-center pb-1 relative group focus:outline-none whitespace-nowrap text-xs font-semibold text-slate-700 tracking-tight"
-                    >
-                      <span className={`transition-all duration-200 ${active ? 'text-[#16A34A] font-bold' : 'hover:text-[#16A34A]'}`}>
-                        {tab.name}
-                      </span>
-                      <span className={`absolute bottom-0 left-0 w-full h-0.5 bg-[#16A34A] transform transition-transform duration-200 origin-left ${active ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}`} />
-                    </button>
-                  )}
-                </div>
-              );
-            })}
+      {/* 3. Category Navigation Bar */}
+      <div className="bg-white border-b border-gray-200 py-0 hidden md:block">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 flex items-stretch">
+          <Link
+            to="/product-list"
+            className="flex items-center gap-2.5 bg-[#28a745] hover:bg-[#218838] text-white text-sm font-bold px-5 py-3 transition-colors flex-shrink-0"
+          >
+            <Menu className="w-4 h-4" />
+            All Categories
+          </Link>
 
-            {/* Separator Line */}
-            <div className="h-4 w-[1px] bg-gray-200 self-center hidden sm:block" />
-
-            {/* Secondary Category Links */}
+          <div className="flex items-center gap-1 overflow-x-auto no-scrollbar flex-1 px-4">
             {[
-              { name: 'Campaign Deals', path: '/promo/landing' },
-              { name: 'Promo Codes', path: '/promo', hasDropdown: true },
-            ].map((tab) => {
-              const active = activeMegaTab === tab.name;
-              return (
-                <div key={tab.name} className="relative group/promo">
-                  <button 
-                    onClick={() => {
-                      setActiveMegaTab(tab.name);
-                      navigate(tab.path);
-                    }}
-                    className="flex items-center pb-1 relative group focus:outline-none whitespace-nowrap text-xs font-semibold text-slate-500 hover:text-slate-800 transition-colors"
-                  >
-                    <span className={`transition-all duration-205 ${active ? 'text-[#16A34A] font-bold' : 'hover:text-[#16A34A]'}`}>
-                      {tab.name}
-                    </span>
-                    {tab.name === 'Promo Codes' && (
-                      <span className="text-[9px] bg-amber-500 text-white font-bold px-1 rounded-sm ml-1.5">HOT</span>
-                    )}
-                    <span className={`absolute bottom-0 left-0 w-full h-0.5 bg-[#16A34A] transform transition-transform duration-200 origin-left ${active ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}`} />
-                  </button>
-                  
-                  {/* Hover Dropdown for Promo Codes */}
-                  {tab.hasDropdown && activePromos.length > 0 && (
-                    <div className="absolute left-0 mt-2 w-72 bg-white border border-gray-200 rounded-2xl shadow-xl z-50 p-4 hidden group-hover/promo:block font-inter text-slate-800 animate-in fade-in duration-200">
-                      <div className="flex justify-between items-center border-b border-gray-250 pb-2 mb-3">
-                        <h4 className="font-bold text-xs uppercase tracking-wider text-slate-400">Active Promo Codes ({activePromos.length})</h4>
-                      </div>
-                      <div className="max-h-60 overflow-y-auto space-y-2.5 pr-1 scrollbar-thin">
-                        {activePromos.map((promo) => (
-                          <div key={promo.id} className="p-2.5 bg-green-50/50 border border-green-100 rounded-xl text-[11px] flex flex-col gap-1">
-                            <div className="flex justify-between items-center">
-                              <span className="font-mono font-bold text-[#16A34A] uppercase tracking-wider">{promo.code}</span>
-                              <span className="font-black text-slate-800">
-                                {promo.discountType === 'PERCENTAGE' ? `${promo.discountValue}% OFF` : `Rs. ${promo.discountValue} OFF`}
-                              </span>
-                            </div>
-                            <p className="text-[10px] text-gray-500 truncate" title={promo.description || promo.title}>
-                              {promo.description || promo.title}
-                            </p>
-                            {promo.minOrderValue > 0 && (
-                              <span className="text-[9px] text-gray-400">Min. order: Rs. {promo.minOrderValue.toLocaleString()}</span>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                      <div className="border-t border-gray-200 pt-2.5 mt-2.5">
-                        <Link 
-                          to="/promo" 
-                          onClick={() => setActiveMegaTab('Promo Codes')}
-                          className="block w-full py-2 bg-[#16A34A] text-white text-center text-xs font-bold rounded-lg hover:bg-green-700 transition-colors"
-                        >
-                          Go to Promo Center
-                        </Link>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+              'Electronics',
+              'Fashion',
+              'Beauty',
+              'Home & Kitchen',
+              'Sports',
+              'Books',
+              'Grocery',
+              'Furniture',
+              'Toys & Baby',
+            ].map((cat) => (
+              <Link
+                key={cat}
+                to={`/product-list?category=${encodeURIComponent(cat.split(' ')[0])}`}
+                className="text-sm font-medium text-slate-600 hover:text-green-600 whitespace-nowrap px-3 py-3 transition-colors flex-shrink-0"
+              >
+                {cat}
+              </Link>
+            ))}
           </div>
+
+          <Link
+            to="/product-list?onSale=true"
+            className="text-sm font-bold text-red-500 hover:text-red-600 whitespace-nowrap px-4 py-3 flex-shrink-0 self-center"
+          >
+            Deals
+          </Link>
         </div>
       </div>
 

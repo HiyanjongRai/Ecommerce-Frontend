@@ -6,6 +6,13 @@
 
 import apiClient from '../../../shared/api/apiClient';
 
+export const getHomePage = async (limit = 12) => {
+  const response = await apiClient.get('/homepage', {
+    params: { limit: Math.min(limit, 60) },
+  });
+  return response.data;
+};
+
 /**
  * PRODUCT ENDPOINTS
  */
