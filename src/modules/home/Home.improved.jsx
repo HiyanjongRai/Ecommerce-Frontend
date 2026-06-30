@@ -1,13 +1,13 @@
-import React, { useLayoutEffect } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useMemo, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import Navbar from '../../shared/components/Navbar/Navbar';
 import Footer from '../../shared/components/Footer/Footer';
 
 // Section Components
-import HeroSection from './HeroSection';
+import HeroSection from './sections/HeroSection';
 import ShopByCategory from './sections/ShopByCategory';
 import PopularCollections from './sections/PopularCollections';
-import FlashDeals from './FlashDeals';
+import FlashDeals from './sections/FlashDeals';
 import FeaturedProducts from './sections/FeaturedProducts';
 import PromoBanners from './sections/PromoBanners';
 import BestSellersAndNewArrivals from './sections/BestSellersAndNewArrivals';
@@ -23,7 +23,7 @@ import useFlashCountdown from './hooks/useFlashCountdown';
 import useNewsletterSubscribe from './hooks/useNewsletterSubscribe';
 
 // Utils
-import ErrorBoundary from '../../shared/components/ErrorBoundary';
+import { ErrorBoundary } from '../../shared/components/ErrorBoundary';
 
 /**
  * Home Component - Main e-commerce homepage
@@ -33,16 +33,7 @@ import ErrorBoundary from '../../shared/components/ErrorBoundary';
 export default function Home() {
   const location = useLocation();
   const flashTimeLeft = useFlashCountdown();
-  const { email, setEmail, subscribed, isLoading, handleSubscribe } = useNewsletterSubscribe();
-  const {
-    categories,
-    flashDeals,
-    featuredProducts,
-    bestSellers,
-    newArrivals,
-    recommended,
-    loading,
-  } = useHomepageData();
+  const { subscribed, handleSubscribe } = useNewsletterSubscribe();
 
   // Set body background on mount and cleanup on unmount
   useLayoutEffect(() => {
@@ -67,22 +58,22 @@ export default function Home() {
 
         {/* Shop by Category */}
         <ErrorBoundary>
-          <ShopByCategory categories={categories} loading={loading.categories} />
+          <ShopByCategory />
         </ErrorBoundary>
 
         {/* Popular Collections */}
         <ErrorBoundary>
-          <PopularCollections products={featuredProducts} loading={loading.featured} />
+          <PopularCollections />
         </ErrorBoundary>
 
         {/* Flash Deals with Countdown Timer */}
         <ErrorBoundary>
-          <FlashDeals timeLeft={flashTimeLeft} flashDeals={flashDeals} loading={loading.flash} />
+          <FlashDeals timeLeft={flashTimeLeft} />
         </ErrorBoundary>
 
         {/* Featured Products */}
         <ErrorBoundary>
-          <FeaturedProducts products={featuredProducts} loading={loading.featured} />
+          <FeaturedProducts />
         </ErrorBoundary>
 
         {/* Promotional Banners */}
@@ -92,21 +83,17 @@ export default function Home() {
 
         {/* Best Sellers & New Arrivals (Side by Side) */}
         <ErrorBoundary>
-          <BestSellersAndNewArrivals
-            bestSellers={bestSellers}
-            newArrivals={newArrivals}
-            loading={{ bestSellers: loading.bestSellers, newArrivals: loading.newArrivals }}
-          />
+          <BestSellersAndNewArrivals />
         </ErrorBoundary>
 
         {/* Shop by Brand */}
         <ErrorBoundary>
-          <ShopByBrand brands={featuredProducts} loading={loading.featured} />
+          <ShopByBrand />
         </ErrorBoundary>
 
         {/* Recommended for You */}
         <ErrorBoundary>
-          <RecommendedProducts products={recommended} loading={loading.recommended} />
+          <RecommendedProducts />
         </ErrorBoundary>
 
         {/* Testimonials / Reviews */}
@@ -116,13 +103,7 @@ export default function Home() {
 
         {/* Newsletter Subscription */}
         <ErrorBoundary>
-          <NewsletterSection
-            email={email}
-            setEmail={setEmail}
-            subscribed={subscribed}
-            isLoading={isLoading}
-            onSubscribe={handleSubscribe}
-          />
+          <NewsletterSection subscribed={subscribed} onSubscribe={handleSubscribe} />
         </ErrorBoundary>
 
         {/* Trust & Features Bar */}

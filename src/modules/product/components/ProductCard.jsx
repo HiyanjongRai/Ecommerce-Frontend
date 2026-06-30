@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import {
@@ -8,10 +8,12 @@ import {
   removeFromWishlist,
   getProductById,
 } from '../../../shared/api/customerApi';
+import { BASE_URL } from '../../../shared/api/apiClient';
 import { useCustomer } from '../../customer/contexts/CustomerContext';
 import { getProductLink } from '../../../shared/utils/slugHelper';
 import { Heart, ShoppingCart, ChevronRight } from 'lucide-react';
-/* ─── helpers (unchanged) ─────────────────────────────────────────── */
+
+/* ─── helpers ──────────────────────────────────────────────────────── */
 const toNum = (v) => { const n = Number(v); return Number.isFinite(n) ? n : 0; };
 
 const fmtTitle = (str) => {
@@ -51,7 +53,10 @@ const isVariantProduct = (product, variants) => {
   return false;
 };
 
-// Simple in-memory cache for fetched product details to avoid repeated network calls
+// Simple in-memory cache for fetched product details to avoid repeated network calls.
+// NOTE: this is a module-level cache shared across all ProductCard instances. It is not
+// bounded or evicted; consider moving to a proper data layer (React Query/SWR) if the
+// catalog grows large enough for this to matter.
 const variantDetailsCache = new Map();
 
 const buildOptionGroups = (variants) => {
@@ -74,6 +79,23 @@ const buildOptionGroups = (variants) => {
     .map((g) => ({ ...g, options: [...g.values.values()], isColor: isColorKey(g.key), isPill: isPillKey(g.key) }))
     .sort((a, b) => (a.isColor && !b.isColor ? -1 : !a.isColor && b.isColor ? 1 : 0))
     .slice(0, 2);
+};
+
+// Find the variant matching every currently-selected option (across all attribute keys
+// the variant defines), used to surface variant-specific price/stock once a full
+// selection is made.
+const matchVariant = (variants, selectedOptions, optionGroups) => {
+  if (!variants?.length || optionGroups.length === 0) return null;
+  const requiredKeys = optionGroups.map((g) => g.key);
+  const allChosen = requiredKeys.every((k) => selectedOptions[k]);
+  if (!allChosen) return null;
+  return variants.find((v) => {
+    const attrs = { ...(v.attributes || {}), color: v.color, storage: v.storage, size: v.size };
+    return requiredKeys.every((k) => {
+      const val = attrs[k] ?? attrs[Object.keys(attrs).find((ak) => ak.toLowerCase() === k) || ''];
+      return String(val) === String(selectedOptions[k]);
+    });
+  }) || null;
 };
 
 /* ─── Brand logo (Apple SVG or letter fallback) ───────────────────── */
@@ -141,92 +163,78 @@ const ProductCard = ({ product, onAddToCartSuccess, isSmall = false, variant = '
   const [adding, setAdding]           = useState(false);
   const [added, setAdded]             = useState(false);
   const [wishing, setWishing]         = useState(false);
+  const [optimisticWished, setOptimisticWished] = useState(null); // null = defer to server state
   const [reviewCount, setReviewCount] = useState(product.totalReviews ?? product.reviewCount ?? 0);
   const [selectedOptions, setSelectedOptions] = useState({});
 
-  const productId   = product.productId || product.id;
-  const isWished    = wishlistIds?.has(productId) ?? false;
-  const productLink = getProductLink(product);
-  const brand       = product.brand || product.brandName || '';
+  const productId = product.productId || product.id;
+  const isWished  = optimisticWished ?? (wishlistIds?.has(productId) ?? false);
+  const brand     = product.brand || product.brandName || '';
+  const category  = product.categoryName || product.category || 'Electronics';
+  const seller    = product.storeName || product.sellerStoreName || product.sellerName || product.sellerProfile?.storeName || product.sellerProfile?.name || 'Jhapcham Seller';
 
-  const variants = Array.isArray(product.variants) ? product.variants : [];
-  const variantProduct = isVariantProduct(product, variants);
+  // Stabilize the array reference so the lazy-fetch effect below doesn't re-run on
+  // every render just because `product.variants` is missing (a fresh `[]` literal
+  // would otherwise be a new reference each render and re-trigger the effect).
+  const variants = useMemo(
+    () => (Array.isArray(product.variants) ? product.variants : []),
+    [product.variants]
+  );
+  const hasAttributeOptions = Boolean(product?.attributeOptions && Object.keys(product.attributeOptions).length > 0);
+  const variantProduct = isVariantProduct(product, variants) || hasAttributeOptions;
 
-  // Build option groups from variants when available. If the backend
-  // doesn't supply variant data, fall back to static arrays on the
-  // product object such as `colorOptions` and `storageOptions` so the
-  // UI can still show selectors (matching the reference image).
-  let optionGroups = variantProduct ? buildOptionGroups(variants) : [];
-  // If variants are signalled by the product but `variants` array is empty,
-  // try to lazily fetch full product details (some backends return a lightweight
-  // product list where variants are omitted and require fetching the product by id).
   const [fetchedVariants, setFetchedVariants] = useState(variants);
+  const [loadingVariants, setLoadingVariants] = useState(false);
+
   useEffect(() => {
     let alive = true;
-    const fetchIfNeeded = async () => {
-      if (variantProduct && (!variants || variants.length === 0) && productId && !variantDetailsCache.has(productId)) {
-        try {
-          const res = await getProductById(productId);
-          const full = res.data;
-          variantDetailsCache.set(productId, full.variants || []);
-          if (alive) setFetchedVariants(full.variants || []);
-        } catch (err) {
-          // ignore
-        }
-      } else if (variantProduct && variantDetailsCache.has(productId)) {
-        setFetchedVariants(variantDetailsCache.get(productId));
-      }
-    };
-    fetchIfNeeded();
+    const needsFetch = variantProduct && variants.length === 0 && productId;
+    if (!needsFetch) return;
+
+    if (variantDetailsCache.has(productId)) {
+      setFetchedVariants(variantDetailsCache.get(productId));
+      return;
+    }
+
+    setLoadingVariants(true);
+    getProductById(productId)
+      .then((res) => {
+        const full = res.data;
+        variantDetailsCache.set(productId, full.variants || []);
+        if (alive) setFetchedVariants(full.variants || []);
+      })
+      .catch(() => { /* falls back to the "Select on product page" notice below */ })
+      .finally(() => { if (alive) setLoadingVariants(false); });
+
     return () => { alive = false; };
-  }, [productId, variantProduct]);
+  }, [productId, variantProduct, variants]);
 
-  // If we fetched variants replace optionGroups accordingly
-  if ((!optionGroups || optionGroups.length === 0) && fetchedVariants && fetchedVariants.length > 0) {
-    optionGroups = buildOptionGroups(fetchedVariants);
-  }
-  if (!variantProduct) {
-    const fallback = [];
-    const colors = Array.isArray(product.colorOptions) ? product.colorOptions : Array.isArray(product.colors) ? product.colors : null;
-    const storages = Array.isArray(product.storageOptions) ? product.storageOptions : Array.isArray(product.storages) ? product.storages : null;
-    if (colors && colors.length > 0) {
-      fallback.push({
-        key: 'color', label: 'Color', isColor: true, isPill: false,
-        options: colors.map((c) => ({ label: String(c), hex: resolveColorHex(c) })),
-      });
-    }
-    if (storages && storages.length > 0) {
-      fallback.push({
-        key: 'storage', label: 'Storage', isColor: false, isPill: true,
-        options: storages.map((s) => ({ label: String(s) })),
-      });
-    }
-    if (fallback.length > 0) optionGroups = fallback.slice(0, 2);
-  }
+  // Build option groups from variants when available, falling back to the
+  // lazily-fetched variants.
+  const effectiveVariants = variants.length > 0 ? variants : fetchedVariants;
+  const optionGroups = variantProduct ? buildOptionGroups(effectiveVariants) : [];
+  const showChoose = variantProduct;
 
-  const hasSelectableOpts = optionGroups.length > 0;
-  // Debug: log variant-related data when product appears to have variants but UI shows nothing
-  React.useEffect(() => {
-    try {
-      if ((variants && variants.length > 0) || product?.hasVariants || (product?.colorOptions || product?.storageOptions)) {
-        // eslint-disable-next-line no-console
-        console.log('DEBUG ProductCard variant check', {
-          productId, variantProduct, variantsLength: variants.length, optionGroups, colorOptions: product?.colorOptions, storageOptions: product?.storageOptions,
-        });
-      }
-    } catch (e) { /* ignore */ }
-  }, [productId, variantProduct, optionGroups]);
-  const showChoose = variantProduct || hasSelectableOpts;
+  // Once every option group has a selection, resolve the matching real variant so
+  // price/stock can reflect that exact combination instead of the generic min price.
+  const selectedVariant = variantProduct ? matchVariant(effectiveVariants, selectedOptions, optionGroups) : null;
 
-  /* price math (unchanged) */
+  // Carry the user's swatch/pill selection into the product page link as
+  // query params, so picking "Black / 512GB" on the card and clicking
+  // "Choose Options" lands on the product page pre-filtered to that combo.
+  const productLink = (() => {
+    const base = getProductLink(product);
+    const chosen = Object.entries(selectedOptions).filter(([, v]) => v);
+    if (chosen.length === 0) return base;
+    const params = new URLSearchParams(chosen);
+    return `${base}${base.includes('?') ? '&' : '?'}${params.toString()}`;
+  })();
+
+  /* price math */
   let minPrice = toNum(product.minPrice);
-  let maxPrice = toNum(product.maxPrice);
   if (variants.length > 0) {
     const prices = variants.map((v) => toNum(v.salePrice || v.finalPrice || v.price)).filter((p) => p > 0);
-    if (prices.length > 0) {
-      if (minPrice === 0) minPrice = Math.min(...prices);
-      if (maxPrice === 0) maxPrice = Math.max(...prices);
-    }
+    if (prices.length > 0 && minPrice === 0) minPrice = Math.min(...prices);
   }
   const original   = toNum(product.price || product.originalPrice || minPrice);
   const directSale = toNum(product.salePrice || product.finalPrice);
@@ -234,17 +242,22 @@ const ProductCard = ({ product, onAddToCartSuccess, isSmall = false, variant = '
   const pctPrice   = pctSale > 0 && original > 0 ? original - (original * pctSale) / 100 : 0;
   const fallbackAmt   = toNum(product.discountPrice);
   const inferredSale  = fallbackAmt > 0 && original > fallbackAmt ? original - fallbackAmt : 0;
-  const price    = directSale || pctPrice || inferredSale || minPrice || original;
+
+  // Prefer the selected variant's own price once we know exactly which one is chosen.
+  const variantPrice = selectedVariant ? toNum(selectedVariant.salePrice || selectedVariant.finalPrice || selectedVariant.price) : 0;
+  const price    = variantPrice || directSale || pctPrice || inferredSale || minPrice || original;
   const discount = pctSale > 0 ? pctSale : original > 0 && price > 0 && price < original
     ? Math.round((1 - price / original) * 100) : 0;
 
   /* image */
   const rawImg  = product.imagePaths?.[0] ?? product.imagePath ?? product.thumbnail ?? product.images?.[0]?.imagePath ?? null;
-  const apiBase = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+  const apiBase = BASE_URL || 'http://localhost:8080';
   const imgUrl  = rawImg ? (rawImg.startsWith('http') ? rawImg : `${apiBase}${rawImg.startsWith('/') ? '' : '/'}${rawImg}`) : null;
 
-  /* stock */
-  const qty        = product.stockQuantity ?? product.quantity ?? null;
+  /* stock — reflect the selected variant's stock once one is fully chosen */
+  const qty        = selectedVariant
+    ? (selectedVariant.stockQuantity ?? selectedVariant.quantity ?? null)
+    : (variantProduct ? null : (product.stockQuantity ?? product.quantity ?? null));
   const outOfStock = qty !== null && qty <= 0;
   const lowStock   = !outOfStock && qty !== null && qty <= 10;
 
@@ -255,26 +268,36 @@ const ProductCard = ({ product, onAddToCartSuccess, isSmall = false, variant = '
     let alive = true;
     (async () => {
       if (!productId) return;
+      // Skip the network call entirely if the list endpoint already gave us a count.
+      if (product.totalReviews != null || product.reviewCount != null) return;
       try {
         const res = await getReviewsForProduct(productId);
         if (alive) setReviewCount(Array.isArray(res.data) ? res.data.length : 0);
       } catch { /* silent */ }
     })();
     return () => { alive = false; };
-  }, [productId]);
+  }, [productId, product.totalReviews, product.reviewCount]);
 
-  /* handlers (unchanged) */
+  /* handlers */
   const handleWishlist = async (e) => {
     e.preventDefault(); e.stopPropagation();
     if (!user) { toast.warning('Sign in to manage your wishlist.'); return; }
     if (String(productId).startsWith('mock-')) { toast.success('Added to wishlist!'); return; }
+
+    const next = !isWished;
+    setOptimisticWished(next); // instant feedback; reconciled by refreshWishlist below
     setWishing(true);
     try {
       if (isWished) { await removeFromWishlist(user.id, productId); toast.success('Removed from wishlist'); }
       else          { await addToWishlist(user.id, productId);      toast.success('Added to wishlist'); }
-      refreshWishlist();
-    } catch (err) { toast.error(err.response?.data?.message || 'Could not update wishlist'); }
-    finally { setWishing(false); }
+      await refreshWishlist();
+      setOptimisticWished(null);
+    } catch (err) {
+      setOptimisticWished(null); // roll back to server truth on failure
+      toast.error(err.response?.data?.message || 'Could not update wishlist');
+    } finally {
+      setWishing(false);
+    }
   };
 
   const handleCart = async (e) => {
@@ -291,11 +314,6 @@ const ProductCard = ({ product, onAddToCartSuccess, isSmall = false, variant = '
       setTimeout(() => setAdded(false), 2000); toast.success('Added to cart!');
     } catch (err) { toast.error(err.response?.data?.message || 'Could not add to cart'); }
     finally { setAdding(false); }
-  };
-
-  // If product is a variant product but lacks variant data, clicking the card's CTA should navigate to product page.
-  const handleChooseOptions = (e) => {
-    // noop here — Link navigation handles routing to product page
   };
 
   const toggleOption = (groupKey, value) =>
@@ -359,8 +377,8 @@ const ProductCard = ({ product, onAddToCartSuccess, isSmall = false, variant = '
         hover:-translate-y-1
         hover:z-20
         select-none
+        w-full max-w-[420px] mx-auto p-2
       "
-      style={{ padding: '16px' }}
     >
 
       {/* ── Top-left badge ── */}
@@ -372,6 +390,7 @@ const ProductCard = ({ product, onAddToCartSuccess, isSmall = false, variant = '
         onClick={handleWishlist}
         disabled={wishing}
         aria-label={isWished ? 'Remove from wishlist' : 'Add to wishlist'}
+        aria-pressed={isWished}
         className={`
           absolute top-4 right-4 z-10
           w-10 h-10 flex items-center justify-center
@@ -379,6 +398,7 @@ const ProductCard = ({ product, onAddToCartSuccess, isSmall = false, variant = '
           shadow-md backdrop-blur-sm
           transition-all duration-200
           focus:outline-none focus-visible:ring-2 focus-visible:ring-[#15803d]
+          disabled:opacity-60
           ${isWished
             ? 'text-red-500'
             : 'text-gray-400 hover:text-gray-600'
@@ -395,8 +415,8 @@ const ProductCard = ({ product, onAddToCartSuccess, isSmall = false, variant = '
       {/* ── Product image ── */}
       <Link
         to={productLink}
-        className="relative flex items-center justify-center w-full mb-3 overflow-hidden rounded-xl border border-slate-100 bg-gradient-to-br from-slate-50 to-white p-3"
-        style={{ height: isSmall ? '140px' : '200px' }}
+        className="relative flex items-center justify-center w-full mb-1 overflow-hidden rounded-xl border border-slate-100 bg-gradient-to-br from-slate-50 to-white p-1"
+        style={{ height: isSmall ? '100px' : '120px' }}
         onClick={(e) => e.stopPropagation()}
         tabIndex={-1}
       >
@@ -410,76 +430,96 @@ const ProductCard = ({ product, onAddToCartSuccess, isSmall = false, variant = '
       </Link>
 
       {/* ── Card body ── */}
-      <div className="flex flex-col flex-1">
+      <div className="flex flex-col gap-0.5 flex-1">
 
-        {/* Brand row */}
-        {brand && (
-          <div className="flex items-center gap-2 mb-1">
-            <BrandLogo brandName={brand} />
-            <span className="text-[13px] text-gray-500 font-medium tracking-tight">{brand}</span>
-          </div>
-        )}
+        {/* Brand / category / seller row */}
+        <div className="flex flex-col gap-0.5 mb-0.5 text-slate-500">
+          {brand && (
+            <div className="flex items-center gap-1 flex-wrap text-[11px]">
+              <BrandLogo brandName={brand} />
+              <span className="font-semibold text-slate-700">{brand}</span>
+            </div>
+          )}
 
-        {/* Product name */}
+        </div>
+
         <Link
           to={productLink}
           onClick={(e) => e.stopPropagation()}
-          className="block mb-1.5"
+          className="block mb-0"
         >
           <h4
             className="
               font-extrabold text-slate-900 leading-snug
               line-clamp-2
               hover:text-[#15803d] transition-colors duration-150
-              text-[16px] sm:text-[18px]
+              text-[14px] sm:text-[15px]
             "
           >
             {fmtTitle(product.name)}
           </h4>
         </Link>
 
-        {/* Stars */}
-        <div className="mb-2">
+        <div className="mb-0.5">
           <StarRating value={ratingVal} count={reviewCount} productId={productId} />
         </div>
 
-        {/* Price — show only when there are no selectable options */}
-        {!(variantProduct || hasSelectableOpts) && (
-          <div className="flex items-center justify-between gap-2 flex-wrap mb-2 rounded-xl bg-slate-50 px-3 py-2">
-            <div className="flex items-baseline gap-2 flex-wrap">
-              <span className={`font-bold text-[16px] ${isFlash && discount > 0 ? 'text-[#dc2626]' : 'text-slate-900'}`}>
-                Rs.&nbsp;{price.toLocaleString()}
+        {/* Price block: if options are available but not fully chosen, show a stable
+            “From Rs.” price hint. Once a variant is selected or no option selection is
+            required, show the actual product price in the same block. */}
+        {((!showChoose || selectedVariant) || (showChoose && !selectedVariant && minPrice > 0)) && (
+          <div className="flex items-center justify-between gap-1 flex-wrap mb-1 rounded-xl bg-slate-50 px-3 py-2">
+            <div className="flex items-baseline gap-1 flex-wrap">
+              {showChoose && !selectedVariant && (
+                <span className="text-[11px] text-gray-500">From</span>
+              )}
+              <span className={`font-bold text-[15px] ${isFlash && discount > 0 ? 'text-[#dc2626]' : 'text-slate-900'}`}>
+                Rs.&nbsp;{(showChoose && !selectedVariant ? minPrice : price).toLocaleString()}
               </span>
-              {original > price && (
-                <span className="text-xs line-through text-gray-400">
+              {(!showChoose || selectedVariant) && original > price && (
+                <span className="text-[10px] line-through text-gray-400">
                   Rs.&nbsp;{original.toLocaleString()}
                 </span>
               )}
             </div>
-            {hasFreeShipping && !outOfStock && isRecommended && (
-              <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-600">
-                Free delivery
+            {hasFreeShipping && !outOfStock && isRecommended && (!showChoose || selectedVariant) && (
+              <span className="text-[9px] font-semibold uppercase tracking-[0.18em] text-emerald-600">
+                Free Delivery
               </span>
             )}
           </div>
         )}
 
-        {/* Low-stock nudge */}
-        {isFlash && !outOfStock && lowStock && (
-          <p className="text-xs font-semibold text-[#dc2626] mb-3">Only {qty} left</p>
+        {!variantProduct && (
+          <div className="flex flex-col gap-2 mb-3 text-[10px] text-slate-700">
+            <div className="flex items-center gap-1 flex-wrap">
+              <span className="text-[11px] font-bold text-slate-800 min-w-[55px]">Category:</span>
+              <span className="px-3 py-1 text-slate-700 font-semibold">
+                {category}
+              </span>
+            </div>
+            {seller && (
+              <div className="flex items-center gap-1 flex-wrap">
+                <span className="text-[11px] font-bold text-slate-800 min-w-[55px]">Seller:</span>
+                <span className="px-3 py-1 text-slate-700 font-semibold">
+                  {seller}
+                </span>
+              </div>
+            )}
+          </div>
         )}
 
         {/* Free shipping */}
         {hasFreeShipping && !outOfStock && isRecommended && !variantProduct && (
-          <span className="text-xs font-semibold text-[#15803d] mb-3 block">FREE Delivery</span>
+          <span className="text-[9px] font-semibold text-[#15803d] mb-1 block">FREE Delivery</span>
         )}
 
         {/* ── Variant selectors ── */}
-        {!outOfStock && (variantProduct || hasSelectableOpts) && (
-          <div className="flex flex-col gap-3 mb-5">
+        {!outOfStock && variantProduct && (
+          <div className="flex flex-col gap-2 mb-3">
             {optionGroups.length > 0 && optionGroups.map((group) => (
-              <div key={group.key} className="flex items-center gap-2.5 flex-wrap">
-                <span className="text-[13px] font-bold text-slate-800 min-w-[60px]">{group.label}:</span>
+              <div key={group.key} className="flex items-center gap-1 flex-wrap">
+                <span className="text-[11px] font-bold text-slate-800 min-w-[55px]">{group.label}:</span>
 
                 {group.isColor ? (
                   <div className="flex items-center gap-2.5 flex-wrap">
@@ -490,23 +530,26 @@ const ProductCard = ({ product, onAddToCartSuccess, isSmall = false, variant = '
                           key={opt.label}
                           type="button"
                           title={opt.label}
+                          aria-label={`${group.label}: ${opt.label}`}
+                          aria-pressed={sel}
                           onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleOption(group.key, opt.label); }}
-                          className={`w-[22px] h-[22px] rounded-full transition-all duration-150 focus:outline-none ${sel ? 'ring-2 ring-[#15803d] ring-offset-2' : 'ring-1 ring-gray-200 hover:ring-gray-400'}`}
+                          className={`w-[22px] h-[22px] rounded-full transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#15803d] ${sel ? 'ring-2 ring-[#15803d] ring-offset-2' : 'ring-1 ring-gray-200 hover:ring-gray-400'}`}
                           style={{ backgroundColor: resolveColorHex(opt.label, opt.hex) }}
                         />
                       );
                     })}
                   </div>
                 ) : (
-                  <div className="flex items-center gap-[7px] flex-wrap">
+                  <div className="flex items-center gap-1 flex-wrap">
                     {group.options.slice(0, 4).map((opt) => {
                       const sel = selectedOptions[group.key] === opt.label;
                       return (
                         <button
                           key={opt.label}
                           type="button"
+                          aria-pressed={sel}
                           onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleOption(group.key, opt.label); }}
-                          className={`px-2.5 py-[4px] text-[11px] font-semibold rounded-lg transition-all duration-150 focus:outline-none ${sel ? 'border-2 border-[#15803d] text-[#15803d] bg-white' : 'border border-gray-200 text-slate-700 bg-white hover:border-gray-400'}`}
+                          className={`px-2 py-[2px] text-[9px] font-semibold rounded-lg transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#15803d] ${sel ? 'border-2 border-[#15803d] text-[#15803d] bg-white' : 'border border-gray-200 text-slate-700 bg-white hover:border-gray-400'}`}
                         >
                           {opt.label}
                         </button>
@@ -517,26 +560,41 @@ const ProductCard = ({ product, onAddToCartSuccess, isSmall = false, variant = '
               </div>
             ))}
             {optionGroups.length === 0 && (
-              <div className="text-sm text-gray-500 px-2 py-2 bg-white border border-gray-100 rounded-md">
-                <span>Variants available — </span>
-                <span className="font-semibold text-slate-800">{variants.length}</span>
-                <span>. Select on product page.</span>
+              <div className="text-xs text-gray-500 px-2 py-1 bg-white border border-gray-100 rounded-md">
+                {loadingVariants ? (
+                  <span className="flex items-center gap-2">
+                    <svg className="animate-spin w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 a8 8 0 018-8v8z" />
+                    </svg>
+                    Loading options…
+                  </span>
+                ) : effectiveVariants.length > 0 ? (
+                  <>
+                    <span>Variants available — </span>
+                    <span className="font-semibold text-slate-800">{effectiveVariants.length}</span>
+                    <span>. Select on product page.</span>
+                  </>
+                ) : (
+                  <span>Multiple options available. Select on product page.</span>
+                )}
               </div>
             )}
+
           </div>
         )}
 
         {/* ── CTA button ── */}
-        <div className="mt-auto pt-1">
+        <div className="pt-0.5 mt-auto">
             {showChoose && !outOfStock ? (
             /* Outlined "Choose Options" */
             <Link
               to={productLink}
               className="
                 relative flex items-center justify-center
-                w-full px-4 py-3 rounded-xl
+                w-full px-3 py-2.5 rounded-xl
                 border-2 border-[#15803d]
-                text-[#15803d] text-[14px] font-bold
+                text-[#15803d] text-[13px] font-bold
                 bg-white shadow-sm
                 hover:bg-green-50 hover:shadow-md
                 active:scale-[0.98]
@@ -546,7 +604,7 @@ const ProductCard = ({ product, onAddToCartSuccess, isSmall = false, variant = '
               onClick={(e) => e.stopPropagation()}
             >
               Choose Options
-              <ChevronRight className="absolute right-3.5 w-[14px] h-[14px]" strokeWidth={2.5} />
+              <ChevronRight className="absolute right-3 w-[12px] h-[12px]" strokeWidth={2.5} />
             </Link>
             ) : (
             /* Solid "Add to Cart" */
@@ -555,9 +613,9 @@ const ProductCard = ({ product, onAddToCartSuccess, isSmall = false, variant = '
               onClick={handleCart}
               disabled={adding || outOfStock}
               className={`
-                flex items-center justify-center gap-3
-                w-full px-4 py-3 rounded-xl
-                text-[14px] font-bold shadow-sm
+                relative flex items-center justify-center gap-2
+                w-full px-3 py-2.5 rounded-xl
+                text-[13px] font-bold shadow-sm
                 transition-all duration-150
                 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#15803d]
                 ${outOfStock
@@ -568,8 +626,8 @@ const ProductCard = ({ product, onAddToCartSuccess, isSmall = false, variant = '
                 }
               `}
             >
-              <ShoppingCart className="w-[16px] h-[16px]" strokeWidth={2} />
-              {added ? 'Added ✓' : outOfStock ? 'Unavailable' : 'Add to Cart'}
+              <ShoppingCart className="w-[14px] h-[14px]" strokeWidth={2} />
+              {adding ? 'Adding…' : added ? 'Added ✓' : outOfStock ? 'Unavailable' : 'Add to Cart'}
             </button>
           )}
         </div>
