@@ -415,12 +415,11 @@ const ProductCard = ({ product, onAddToCartSuccess, isSmall = false, variant = '
       {/* ── Product image ── */}
       <Link
         to={productLink}
-        className="relative flex items-center justify-center w-full mb-1 overflow-hidden rounded-xl border border-slate-100 bg-gradient-to-br from-slate-50 to-white p-1"
+        className="relative flex items-center justify-center w-full mb-1 overflow-hidden rounded-xl border border-slate-100 p-1"
         style={{ height: isSmall ? '100px' : '120px' }}
         onClick={(e) => e.stopPropagation()}
         tabIndex={-1}
       >
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(22,163,74,0.06),transparent_60%)]" />
         <img
           src={imgUrl || '/Assets/Banners/homepage_hero_headphones.png'}
           alt={product.name || 'Product'}
@@ -468,7 +467,7 @@ const ProductCard = ({ product, onAddToCartSuccess, isSmall = false, variant = '
             “From Rs.” price hint. Once a variant is selected or no option selection is
             required, show the actual product price in the same block. */}
         {((!showChoose || selectedVariant) || (showChoose && !selectedVariant && minPrice > 0)) && (
-          <div className="flex items-center justify-between gap-1 flex-wrap mb-1 rounded-xl bg-slate-50 px-3 py-2">
+          <div className="flex items-center justify-between gap-1 flex-wrap mb-1 rounded-xl px-3 py-2">
             <div className="flex items-baseline gap-1 flex-wrap">
               {showChoose && !selectedVariant && (
                 <span className="text-[11px] text-gray-500">From</span>
@@ -494,14 +493,14 @@ const ProductCard = ({ product, onAddToCartSuccess, isSmall = false, variant = '
           <div className="flex flex-col gap-2 mb-3 text-[10px] text-slate-700">
             <div className="flex items-center gap-1 flex-wrap">
               <span className="text-[11px] font-bold text-slate-800 min-w-[55px]">Category:</span>
-              <span className="px-3 py-1 text-slate-700 font-semibold">
+              <span className="text-slate-700 font-semibold">
                 {category}
               </span>
             </div>
             {seller && (
               <div className="flex items-center gap-1 flex-wrap">
                 <span className="text-[11px] font-bold text-slate-800 min-w-[55px]">Seller:</span>
-                <span className="px-3 py-1 text-slate-700 font-semibold">
+                <span className="text-slate-700 font-semibold">
                   {seller}
                 </span>
               </div>
