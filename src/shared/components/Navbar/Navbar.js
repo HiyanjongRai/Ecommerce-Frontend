@@ -16,7 +16,7 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 import { useCustomer } from '../../../modules/customer/contexts/CustomerContext';
-import LoginModal from '../../../modules/auth/components/LoginModal';
+import NavbarAuthModal from './NavbarAuthModal';
 import UserDropdown from '../ui/user-dropdown';
 import { getCart, getWishlist, removeCartItem, removeFromWishlist, addToCart, getActivePromos, searchProducts, getCategories } from '../../api/customerApi';
 import { getProductLink } from '../../utils/slugHelper';
@@ -407,25 +407,6 @@ export default function Navbar() {
           {/* User Actions */}
           <div className="flex items-center gap-1 sm:gap-4 flex-shrink-0">
             
-            {/* Account */}
-            <button
-              onClick={() => {
-                if (!isLoggedIn) {
-                  setAuthModalTab('login');
-                  setIsLoginModalOpen(true);
-                } else {
-                  navigate(getDashboardUrl());
-                }
-              }}
-              className="hidden lg:flex items-center gap-2.5 text-left px-2 py-1 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              <User className="w-7 h-7 text-slate-500 flex-shrink-0" strokeWidth={1.5} />
-              <div className="leading-tight">
-                <span className="text-[11px] text-gray-400 block">Hello, {isLoggedIn ? (user?.firstName || 'there') : 'Sign in'}</span>
-                <span className="text-sm font-bold text-slate-800">{isLoggedIn ? 'Account' : 'Account'}</span>
-              </div>
-            </button>
-
             {/* Wishlist */}
             <button 
               onClick={() => {
@@ -720,9 +701,9 @@ export default function Navbar() {
       )}
 
       {/* Auth Modal */}
-      <LoginModal 
-        isOpen={isLoginModalOpen} 
-        onClose={() => setIsLoginModalOpen(false)} 
+      <NavbarAuthModal
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
         initialTab={authModalTab}
         initialRole="CUSTOMER"
       />
