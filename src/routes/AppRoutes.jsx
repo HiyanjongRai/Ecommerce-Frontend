@@ -1,42 +1,42 @@
-﻿import React from 'react';
+import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import Homepage from '../modules/home/Home';
-import CustomerLayout from '../modules/customer/CustomerLayout';
-import ProductDetails from '../modules/product/ProductDetails';
-import SellerLayout from '../modules/seller/SellerLayout';
-import SellerPublicProfile from '../modules/seller/SellerPublicProfile';
-import TopSellers from '../modules/seller/TopSellers';
-import PaymentSuccess from '../features/payment/PaymentSuccess';
-import PaymentFailure from '../features/payment/PaymentFailure';
-import GoogleAuthCallback from '../modules/auth/GoogleAuthCallback';
-import SellerRegistration from '../components/SellerRegistration/SellerRegistration';
-import CourierLogin from '../features/courier/CourierLogin';
-import CourierDashboard from '../features/courier/CourierDashboard';
-import PromoCenter from '../modules/promo/PromoCenter';
-import CampaignCenter from '../modules/promo/CampaignCenter';
-import PromoLayout from '../modules/promo/PromoLayout';
-import ProductListing from '../modules/product/pages/ProductListing';
-import PublicLayout from '../shared/layouts/PublicLayout';
-import AdminDashboard from '../modules/admin/components/AdminDashboard';
-import AdminUsers from '../modules/admin/components/AdminUsers';
-import AdminSellers from '../modules/admin/components/AdminSellers';
-import AdminProducts from '../modules/admin/components/AdminProducts';
-import AdminOrders from '../modules/admin/components/AdminOrders';
-import AdminPayments from '../modules/admin/components/AdminPayments';
-import AdminReviews from '../modules/admin/components/AdminReviews';
-import AdminBanners from '../modules/admin/components/AdminBanners';
-import AdminCampaigns from '../modules/admin/components/AdminCampaigns';
-import AdminCampaignDetail from '../modules/admin/components/AdminCampaignDetail';
-import AdminCommissions from '../modules/admin/components/AdminCommissions';
-import AdminPromos from '../modules/admin/components/AdminPromos';
-import AdminReports from '../modules/admin/components/AdminReports';
-import AdminDisputes from '../modules/admin/components/AdminDisputes';
-import AdminAuditLogs from '../modules/admin/components/AdminAuditLogs';
-import AdminInbox from '../modules/admin/components/AdminInbox';
-import AdminSettings from '../modules/admin/components/AdminSettings';
-import { CustomerProvider } from '../modules/customer/contexts/CustomerContext';
-import StatusPage from '../shared/components/StatusPage';
-import { RequireCustomerAuth, RequireCourierAuth } from '../shared/components/RouteGuards';
+import Homepage from '../pages/customer/Home/Home';
+import CustomerLayout from '../components/layout/CustomerLayout/CustomerLayout';
+import ProductDetails from '../pages/customer/ProductDetails/ProductDetails';
+import SellerLayout from '../components/layout/SellerLayout/SellerLayout';
+import SellerPublicProfile from '../pages/customer/Sellers/SellerPublicProfile';
+import TopSellers from '../pages/customer/Sellers/TopSellers';
+import PaymentSuccess from '../pages/customer/Payment/PaymentSuccess';
+import PaymentFailure from '../pages/customer/Payment/PaymentFailure';
+import GoogleAuthCallback from '../pages/customer/Auth/GoogleAuthCallback';
+import SellerRegistration from '../pages/seller/Register/SellerRegistration';
+import CourierLogin from '../pages/courier/Login/CourierLogin';
+import CourierDashboard from '../pages/courier/Dashboard/CourierDashboard';
+import PromoCenter from '../pages/customer/Promos/PromoCenter';
+import CampaignCenter from '../pages/customer/Promos/CampaignCenter';
+import PromoLayout from '../pages/customer/Promos/PromoLayout';
+import ProductListing from '../pages/customer/Products/ProductListing';
+import PublicLayout from '../components/layout/PublicLayout/PublicLayout';
+import AdminDashboard from '../pages/admin/Dashboard/Dashboard';
+import AdminUsers from '../pages/admin/Users/Users';
+import AdminSellers from '../pages/admin/Sellers/Sellers';
+import AdminProducts from '../pages/admin/Products/Products';
+import AdminOrders from '../pages/admin/Orders/Orders';
+import AdminPayments from '../pages/admin/Payments/Payments';
+import AdminReviews from '../pages/admin/Reviews/Reviews';
+import AdminBanners from '../pages/admin/Banners/Banners';
+import AdminCampaigns from '../pages/admin/Campaigns/Campaigns';
+import AdminCampaignDetail from '../pages/admin/CampaignDetail/CampaignDetail';
+import AdminCommissions from '../pages/admin/Commissions/Commissions';
+import AdminPromos from '../pages/admin/Promos/Promos';
+import AdminReports from '../pages/admin/Reports/Reports';
+import AdminDisputes from '../pages/admin/Disputes/Disputes';
+import AdminAuditLogs from '../pages/admin/AuditLogs/AuditLogs';
+import AdminInbox from '../pages/admin/Inbox/Inbox';
+import AdminSettings from '../pages/admin/Settings/Settings';
+import { CustomerProvider } from '../context/CustomerContext';
+import StatusPage from '../components/common/StatusPage/StatusPage';
+import { RequireCustomerAuth, RequireCourierAuth } from './PrivateRoute';
 
 export default function AppRoutes() {
   return (
@@ -87,7 +87,7 @@ export default function AppRoutes() {
             </RequireCourierAuth>
           )}
         />
-        {/* Google OAuth 2.0 callback ΓÇö must be outside PublicLayout (no navbar/footer) */}
+        {/* Google OAuth 2.0 callback G�� must be outside PublicLayout (no navbar/footer) */}
         <Route path="/auth/google/callback" element={<GoogleAuthCallback />} />
         <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
         <Route
