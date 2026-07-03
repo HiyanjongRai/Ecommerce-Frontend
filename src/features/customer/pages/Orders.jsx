@@ -1,8 +1,10 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { getUserOrders } from '../api/customerApi';
 import { BASE_URL } from '../../../shared/api/apiClient';
 import CustomerOrderDetails from './OrderDetails';
+import { useCustomer } from '../contexts/CustomerContext';
+import PageHeader from '../components/PageHeader';
 
 const ITEMS_PER_PAGE = 4;
 
@@ -114,6 +116,8 @@ const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const ACTIVE_STATUSES = STATUS_GROUPS.PROCESSING;
 
 const CustomerOrders = () => {
+  const { unreadNotifs } = useCustomer();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -203,6 +207,12 @@ const CustomerOrders = () => {
 
   return (
     <div className="pb-10 font-sans text-gray-800 animate-in fade-in duration-300">
+      
+      <PageHeader
+        title="My Orders"
+        subtitle="View and track all your orders, returns, and refunds."
+        breadcrumbs={[{ label: 'My Orders' }]}
+      />
       {/* ── Tabs & Filters Toolbar ── */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
         <div className="flex overflow-x-auto w-full md:w-auto scrollbar-hide gap-2 py-1" role="tablist" aria-label="Order status filter">

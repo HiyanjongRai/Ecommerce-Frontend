@@ -4,6 +4,15 @@ import {
   ArrowRight, Headphones, Shirt, Sparkles, UtensilsCrossed, Volleyball, BookOpen,
   ShoppingBasket, Armchair, Smartphone, Laptop, Car, PawPrint, Package,
 } from 'lucide-react';
+import { BASE_URL } from '../../../shared/api/apiClient';
+
+const getImgUrl = (path) => {
+  if (!path) return null;
+  if (path.startsWith('http://') || path.startsWith('https://')) return path;
+  const base = BASE_URL.endsWith('/') ? BASE_URL.slice(0, -1) : BASE_URL;
+  return `${base}${path.startsWith('/') ? '' : '/'}${path}`;
+};
+
 
 const CATEGORY_ICONS = {
   electronics: Headphones,
@@ -39,7 +48,7 @@ function ShopByCategory({ categories = [], loading = false }) {
           ? category
           : category.slug || category.id || title;
         const itemCount = typeof category === 'object' ? category.itemCount ?? category.count ?? null : null;
-        const imageUrl = typeof category === 'object' ? category.imageUrl || category.image || null : null;
+        const imageUrl = typeof category === 'object' ? category.imageUrl || category.image || category.imagePath || null : null;
         return {
           title,
           itemCount,
@@ -102,7 +111,7 @@ function ShopByCategory({ categories = [], loading = false }) {
             >
               <div className={`flex h-20 w-20 items-center justify-center rounded-full overflow-hidden transition group-hover:scale-105 ${card.color}`}>
                 {card.imageUrl ? (
-                  <img src={card.imageUrl} alt={card.title} className="h-full w-full object-cover" />
+                  <img src={getImgUrl(card.imageUrl)} alt={card.title} className="h-full w-full object-cover" />
                 ) : (
                   <Icon className="h-8 w-8 text-slate-600" strokeWidth={1.5} />
                 )}

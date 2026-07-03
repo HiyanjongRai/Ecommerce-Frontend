@@ -105,14 +105,13 @@ export const parseCustomerCounterOffer = (detail, customerCounterLog) => {
 };
 export const getCustomerCounterLog = (detail) => {
   if (!detail.auditLogs || detail.auditLogs.length === 0) return null;
-  if (detail.status !== 'OFFER_MADE') return null;
 
-  // Find the last participant log (either CUSTOMER or SELLER) to check who made the proposal
+  // Find the last customer or seller participant log to check who made the proposal.
   const lastParticipantLog = [...detail.auditLogs].reverse().find(
     log => log.actorRole === 'CUSTOMER' || log.actorRole === 'SELLER'
   );
 
-  // If the last non-system log is CUSTOMER, it's a customer counter-offer
+  // If the last non-system log is CUSTOMER, it's a customer counter-offer.
   if (lastParticipantLog && lastParticipantLog.actorRole === 'CUSTOMER') {
     return lastParticipantLog;
   }

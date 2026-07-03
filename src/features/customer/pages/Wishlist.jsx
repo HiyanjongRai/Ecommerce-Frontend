@@ -1,9 +1,10 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Heart, ShoppingCart, Trash2, Share2, MoreVertical, Bell, Clock, Eye, Tag, PackageCheck } from 'lucide-react';
 import { getWishlist, removeFromWishlist, addToCart } from '../api/customerApi';
 import { BASE_URL } from '../../../shared/api/apiClient';
 import { useCustomer } from '../contexts/CustomerContext';
+import PageHeader from '../components/PageHeader';
 import { getProductLink } from '../../../shared/utils/slugHelper';
 
 const SIDEBAR_LINKS = [

@@ -168,13 +168,12 @@ const StepTracker = ({ order }) => {
             return (
               <div key={step.key} className="flex flex-col items-center flex-1 text-center z-10">
                 <div
-                  className={`w-9 h-9 rounded-full flex items-center justify-center ring-4 ring-white ${
-                    isCompleted
+                  className={`w-9 h-9 rounded-full flex items-center justify-center ring-4 ring-white ${isCompleted
                       ? 'bg-[#16A34A] text-white'
                       : isCurrent
-                      ? 'bg-white border-2 border-[#16A34A] text-[#16A34A]'
-                      : 'bg-white border border-gray-200 text-gray-300'
-                  }`}
+                        ? 'bg-white border-2 border-[#16A34A] text-[#16A34A]'
+                        : 'bg-white border border-gray-200 text-gray-300'
+                    }`}
                 >
                   {isCompleted || isCurrent ? STEP_ICON[idx] : <div className="w-2 h-2 rounded-full bg-gray-300" />}
                 </div>
@@ -355,7 +354,7 @@ export default function CustomerOrderDetails({ order, onBack, busyId, setBusyId,
       {/* ── Header row ── */}
       <div className="flex items-start justify-between mb-5">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Order Details</h1>
+          <h1 className="text-2xl font-bold text-slate-899">Order Details</h1>
           <p className="text-xs text-gray-500 font-medium mt-1">
             Order ID: <span className="font-semibold text-slate-700">{order.customOrderId || `#${order.orderId}`}</span>
             <span className="mx-1.5 text-gray-300">|</span>
@@ -680,10 +679,13 @@ export default function CustomerOrderDetails({ order, onBack, busyId, setBusyId,
               )}
               {['DELIVERED', 'SHIPPED'].includes(order.status) && (
                 <button
-                  onClick={() => setDisputeOpen(true)}
-                  className="w-full py-2 rounded-lg border border-violet-200 bg-violet-50 text-violet-700 font-bold text-[10px] uppercase tracking-wide hover:bg-violet-100 transition-colors cursor-pointer"
+                  onClick={() => setRefundModalOpen(true)}
+                  className="w-full py-3 rounded-xl bg-[#16A34A] hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-sm"
                 >
-                  Open Dispute
+                  <svg className="w-4 h-4 text-white/90" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  Request Refund
                 </button>
               )}
               {CANCELLABLE.includes(order.status) && (
@@ -716,38 +718,100 @@ export default function CustomerOrderDetails({ order, onBack, busyId, setBusyId,
 
       {/* ══ Dispute Modal ══ */}
       {disputeOpen && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="w-full max-w-lg overflow-hidden rounded-xl bg-white shadow-2xl">
-            <div className="flex items-start justify-between gap-4 border-b border-gray-100 bg-[#f6f0ff] px-5 py-4">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-[510px] rounded-2xl bg-white shadow-2xl overflow-hidden">
+
+            {/* ── Header ── */}
+            <div className="flex items-start justify-between px-6 pt-6 pb-5 border-b border-gray-100">
               <div>
-                <h3 className="text-sm font-black text-gray-900">File Dispute Ticket</h3>
-                <p className="mt-1 text-xs font-semibold text-gray-500">Escalate an issue for Order {order.customOrderId || `#${order.orderId}`}.</p>
+                <h2 className="text-[18px] font-bold text-gray-900 leading-tight">Open a Dispute</h2>
+                <p className="mt-1.5 text-[13px] text-gray-500 leading-snug">
+                  We're here to help resolve your issue.<br />
+                  Please tell us what went wrong with your order.
+                </p>
               </div>
-              <button onClick={() => setDisputeOpen(false)} className="rounded-lg p-2 text-gray-400 hover:bg-white hover:text-gray-700 transition-colors" type="button">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/></svg>
+              <button
+                type="button"
+                onClick={() => setDisputeOpen(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors flex-shrink-0 ml-4"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
-            <form onSubmit={handleDisputeSubmit} className="space-y-4 p-5">
-              <div>
-                <label className="mb-1.5 block text-[10px] font-black uppercase tracking-wider text-gray-500">Dispute Type</label>
-                <select value={disputeType} onChange={(e) => setDisputeType(e.target.value)} className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs font-semibold text-gray-700 outline-none focus:border-violet-400" required>
-                  <option value="NOT_RECEIVED">Item Not Received</option>
-                  <option value="DAMAGED">Damaged Item Received</option>
-                  <option value="COUNTERFEIT">Counterfeit / Fake Product</option>
-                  <option value="OTHER">Other Issue</option>
-                </select>
+
+            <form onSubmit={handleDisputeSubmit}>
+              <div className="px-6 pt-5 pb-2 space-y-5">
+
+                {/* Alerts */}
+                {disputeError && (
+                  <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-[12px] font-semibold text-red-700">{disputeError}</div>
+                )}
+                {disputeSuccess && (
+                  <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-[12px] font-semibold text-emerald-700">{disputeSuccess}</div>
+                )}
+
+                {/* Dispute Type — styled exactly like "Select Item" card */}
+                <div>
+                  <p className="text-[13px] font-semibold text-gray-800 mb-2">Dispute Type</p>
+                  <div className="relative">
+                    <select
+                      value={disputeType}
+                      onChange={(e) => setDisputeType(e.target.value)}
+                      className="w-full appearance-none border border-gray-200 rounded-xl px-4 py-3 text-[13px] font-medium text-gray-800 bg-white outline-none focus:border-gray-400 transition-colors pr-10 cursor-pointer"
+                      required
+                    >
+                      <option value="NOT_RECEIVED">Item Not Received</option>
+                      <option value="DAMAGED">Damaged Item Received</option>
+                      <option value="COUNTERFEIT">Counterfeit / Fake Product</option>
+                      <option value="OTHER">Other Issue</option>
+                    </select>
+                    <svg className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+                  </div>
+                </div>
+
+                {/* Describe the Issue — styled exactly like "Additional Details" */}
+                <div>
+                  <p className="text-[13px] font-semibold text-gray-800 mb-2">
+                    Describe the Issue
+                  </p>
+                  <div className="relative">
+                    <textarea
+                      value={disputeReason}
+                      onChange={(e) => setDisputeReason(e.target.value.slice(0, 300))}
+                      placeholder="Describe the issue in detail…"
+                      rows={4}
+                      className="w-full resize-none border border-gray-200 rounded-xl px-4 py-3 text-[13px] text-gray-700 bg-white outline-none focus:border-gray-400 transition-colors placeholder:text-gray-400 font-medium"
+                      required
+                    />
+                    <span className="absolute bottom-3 right-3.5 text-[11px] text-gray-400 select-none">
+                      {disputeReason.length}/300
+                    </span>
+                  </div>
+                </div>
               </div>
-              <div>
-                <label className="mb-1.5 block text-[10px] font-black uppercase tracking-wider text-gray-500">Describe the Issue</label>
-                <textarea value={disputeReason} onChange={(e) => setDisputeReason(e.target.value)} className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs font-semibold text-gray-700 outline-none focus:border-violet-400 min-h-[80px]" placeholder="Describe the issue in detail…" required />
-              </div>
-              {disputeError && <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-xs font-bold text-red-700">{disputeError}</div>}
-              {disputeSuccess && <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-xs font-bold text-emerald-700">{disputeSuccess}</div>}
-              <div className="flex gap-3 pt-2 justify-end">
-                <button type="button" onClick={() => setDisputeOpen(false)} className="rounded-lg border border-gray-200 bg-white px-4 py-2 text-xs font-bold text-gray-600 hover:bg-gray-50 cursor-pointer transition-colors">Cancel</button>
-                <button type="submit" disabled={disputeSubmitting || !disputeReason.trim()} className="rounded-lg bg-[#5c2d91] px-5 py-2 text-xs font-black text-white hover:bg-[#4a2275] disabled:opacity-50 cursor-pointer transition-colors">
-                  {disputeSubmitting ? 'Submitting…' : 'Submit Dispute'}
-                </button>
+
+              {/* ── Footer ── */}
+              <div className="px-6 pt-4 pb-6 space-y-3">
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setDisputeOpen(false)}
+                    className="px-6 py-3 rounded-xl border border-gray-200 text-[13px] font-semibold text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={disputeSubmitting || !disputeReason.trim()}
+                    className="flex-1 py-3 rounded-xl bg-[#16A34A] hover:bg-emerald-700 text-[13px] font-bold text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-sm"
+                  >
+                    {disputeSubmitting ? 'Submitting…' : 'Submit Dispute'}
+                  </button>
+                </div>
+                <div className="flex items-center justify-center gap-1.5 text-[11px] text-gray-400">
+                  <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                  <span>Your dispute will be reviewed by our team within 1-3 business days.</span>
+                </div>
               </div>
             </form>
           </div>

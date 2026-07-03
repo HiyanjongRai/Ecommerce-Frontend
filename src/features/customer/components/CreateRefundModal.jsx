@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { createRefund, uploadRefundFile } from '../../refund/api/refundApi';
-import { Upload, X, ShieldAlert } from 'lucide-react';
+import { X, Upload, ChevronDown, ShieldCheck } from 'lucide-react';
 import { BASE_URL } from '../../../shared/api/apiClient';
 
 const getImgUrl = (path) => {
@@ -27,117 +27,93 @@ const getApiErrorMessage = (err) => {
     data?.error ||
     data?.detail ||
     (typeof data === 'string' ? data : '');
-
   if (status === 409) {
-    return message || 'A refund or exchange request already exists for this order item. Please check My Disputes/Refunds instead of submitting another request.';
+    return message || 'A refund request already exists for this item. Check My Disputes/Refunds.';
   }
-
   return message || 'Failed to submit refund request.';
 };
 
+const REFUND_REASONS = [
+  { value: '', label: 'Select a reason...' },
+  { value: 'ITEM_NOT_AS_DESCRIBED', label: 'Item is not as described' },
+  { value: 'DEFECTIVE_PRODUCT', label: 'Defective / Damaged product' },
+  { value: 'WRONG_ITEM', label: 'Wrong product delivered' },
+  { value: 'QUALITY_UNSATISFACTORY', label: 'Quality not as expected' },
+  { value: 'MISSING_PARTS', label: 'Missing parts / accessories' },
+  { value: 'EXPIRED', label: 'Expired product' },
+  { value: 'OTHER', label: 'Other reason' },
+];
+
+const MAX_CHARS = 300;
+
 export default function CreateRefundModal({ isOpen, onClose, order, onCreated }) {
-  const [type, setType] = useState('REFUND');
+  const [selectedItemId, setSelectedItemId] = useState(() => {
+    if (order?.items?.length) {
+      const first = order.items.find(i => !hasActiveRefund(i));
+      return first ? String(first.id) : '';
+    }
+    return '';
+  });
+  const [itemDropdownOpen, setItemDropdownOpen] = useState(false);
   const [reason, setReason] = useState('');
   const [description, setDescription] = useState('');
   const [files, setFiles] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
-  
-  const [selectedItems, setSelectedItems] = useState(() => {
-    const init = {};
-    if (order && order.items) {
-      order.items.forEach(item => {
-        init[item.id] = {
-          selected: false,
-          quantity: 1,
-          maxQuantity: item.quantity,
-          disabled: hasActiveRefund(item),
-        };
-      });
-    }
-    return init;
-  });
+  const [dragOver, setDragOver] = useState(false);
 
   if (!isOpen || !order) return null;
 
-  const toggleItem = (itemId) => {
-    setSelectedItems(prev => ({
-      ...prev,
-      [itemId]: prev[itemId]?.disabled
-        ? prev[itemId]
-        : { ...prev[itemId], selected: !prev[itemId].selected }
-    }));
-  };
+  const items = order.items || [];
+  const selectedItem = items.find(i => String(i.id) === selectedItemId);
 
-  const changeQuantity = (itemId, delta) => {
-    setSelectedItems(prev => {
-      const current = prev[itemId];
-      const newQ = Math.max(1, Math.min(current.maxQuantity, current.quantity + delta));
-      return { ...prev, [itemId]: { ...current, quantity: newQ } };
-    });
-  };
-
-  const handleFileChange = async (e) => {
-    const selectedFiles = Array.from(e.target.files);
-    if (selectedFiles.length === 0) return;
-
+  const processFiles = async (fileList) => {
+    const selected = Array.from(fileList).filter(f => f.type.startsWith('image/'));
+    if (!selected.length) return;
     setUploading(true);
     setError('');
     const newFiles = [...files];
-
     try {
-      for (const file of selectedFiles) {
+      for (const file of selected) {
         const res = await uploadRefundFile(file);
-        if (res.data && res.data.fileUrl) {
-          newFiles.push({
-            name: file.name,
-            url: res.data.fileUrl
-          });
+        if (res.data?.fileUrl) {
+          newFiles.push({ name: file.name, url: res.data.fileUrl, preview: URL.createObjectURL(file) });
         }
       }
       setFiles(newFiles);
     } catch (err) {
-      setError(err.response?.data?.message || 'File upload failed. Supported formats: JPG, PNG, WEBP, PDF.');
+      setError('File upload failed. Supported formats: JPG, PNG (max 5MB each).');
     } finally {
       setUploading(false);
     }
   };
 
-  const removeFile = (index) => {
-    setFiles(prev => prev.filter((_, i) => i !== index));
+  const handleFileChange = (e) => processFiles(e.target.files);
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setDragOver(false);
+    processFiles(e.dataTransfer.files);
   };
+
+  const removeFile = (index) => setFiles(prev => prev.filter((_, i) => i !== index));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!reason.trim()) {
-      setError('Please provide a reason for this request.');
-      return;
-    }
-
+    if (!selectedItemId) { setError('Please select an item to return.'); return; }
+    if (!reason) { setError('Please select a reason for the refund.'); return; }
     setSubmitting(true);
     setError('');
-
     try {
-      const itemsPayload = Object.entries(selectedItems)
-        .filter(([_, data]) => data.selected && !data.disabled)
-        .map(([id, data]) => ({ orderItemId: Number(id), quantity: data.quantity }));
-
-      if (itemsPayload.length === 0) {
-        setError('Please select at least one item.');
-        setSubmitting(false);
-        return;
-      }
-
       const payload = {
         orderId: order.orderId,
-        type,
+        type: 'REFUND',
         reason,
         description,
         fileUrls: files.map(f => f.url),
-        items: itemsPayload
+        items: [{ orderItemId: Number(selectedItemId), quantity: 1 }],
       };
-
       const res = await createRefund(payload);
       onCreated(res.data);
       onClose();
@@ -149,197 +125,228 @@ export default function CreateRefundModal({ isOpen, onClose, order, onCreated })
   };
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="w-full max-w-lg overflow-hidden rounded-xl bg-white shadow-2xl">
-        <div className="flex items-start justify-between gap-4 border-b border-gray-100 bg-emerald-50 px-5 py-4">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+      <div className="w-full max-w-[520px] overflow-hidden rounded-2xl bg-white shadow-2xl flex flex-col max-h-[92vh]">
+
+        {/* Header */}
+        <div className="flex items-start justify-between px-6 pt-6 pb-4 border-b border-gray-100 flex-shrink-0">
           <div>
-            <h3 className="text-lg font-black text-gray-900">📦 Request Refund / Exchange</h3>
-            <p className="mt-1 text-xs font-semibold text-gray-500">
-              For Order {order.customOrderId || `#${order.orderId}`}
+            <h2 className="text-[17px] font-bold text-gray-900">Request Refund</h2>
+            <p className="mt-1 text-[12px] text-gray-500 font-medium leading-snug">
+              {"We're sorry to hear that you want a refund."}<br />
+              Please tell us why you want to return this item.
             </p>
           </div>
           <button
-            onClick={onClose}
-            className="rounded-lg p-2 text-gray-400 hover:bg-white hover:text-gray-700"
             type="button"
+            onClick={onClose}
+            className="w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors flex-shrink-0 ml-4"
+            aria-label="Close"
           >
-            ✕
+            <X size={18} />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-4 space-y-3 text-left text-sm font-sans text-gray-800">
-          {error && (
-            <div className="rounded-lg bg-red-50 border border-red-200 p-3 text-red-700 flex items-start gap-2 text-xs">
-              <ShieldAlert size={16} className="shrink-0 mt-0.5" />
-              <span>{error}</span>
-            </div>
-          )}
+        {/* Scrollable body */}
+        <form onSubmit={handleSubmit} className="flex flex-col overflow-y-auto flex-1">
+          <div className="px-6 py-5 space-y-5">
 
-          {/* Request Type */}
-          <div>
-            <label className="mb-1.5 block text-[10px] font-black uppercase tracking-wider text-gray-500">
-              Request Type
-            </label>
-            <div className="grid grid-cols-3 gap-2">
-              {[
-                { id: 'REFUND', label: 'Full Refund' },
-                { id: 'EXCHANGE', label: 'Exchange Item' },
-                { id: 'PARTIAL_REFUND', label: 'Partial Refund' }
-              ].map(opt => (
-                <button
-                  key={opt.id}
-                  type="button"
-                  onClick={() => setType(opt.id)}
-                  className={`py-1.5 rounded-md border text-xs font-bold text-center transition-all ${
-                    type === opt.id
-                      ? 'border-emerald-500 bg-emerald-50 text-emerald-800 shadow-sm'
-                      : 'border-gray-200 hover:bg-gray-50 text-gray-600'
-                  }`}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Select Items */}
-          <div>
-            <label className="mb-1.5 block text-[10px] font-black uppercase tracking-wider text-gray-500">
-              Select Items to Return / Refund
-            </label>
-            <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
-              {order.items?.map(item => {
-                const state = selectedItems[item.id] || { selected: false, quantity: 1, maxQuantity: 1 };
-                return (
-                  <div key={item.id} className={`flex items-center gap-3 p-2 rounded-lg border transition-colors ${state.disabled ? 'border-gray-100 bg-gray-100 opacity-70' : state.selected ? 'border-emerald-500 bg-emerald-50' : 'border-gray-100 bg-gray-50'}`}>
-                    <input 
-                      type="checkbox" 
-                      className="w-4 h-4 text-emerald-600 rounded border-gray-300 focus:ring-emerald-500"
-                      checked={state.selected}
-                      disabled={state.disabled}
-                      onChange={() => toggleItem(item.id)}
-                    />
-                    <div className="w-10 h-10 bg-white rounded flex-shrink-0 border border-gray-100 overflow-hidden flex items-center justify-center">
-                      {item.imagePath ? (
-                        <img src={getImgUrl(item.imagePath)} alt={item.productName} className="w-full h-full object-cover" />
-                      ) : (
-                        <span className="text-[10px] text-gray-400">No img</span>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-bold text-gray-900 truncate">{item.productName}</p>
-                      <p className="text-[10px] font-semibold text-gray-500 truncate">{item.variantLabel || 'Standard'}</p>
-                      {state.disabled && (
-                        <p className="text-[10px] font-bold text-amber-600 mt-0.5">Refund request already exists</p>
-                      )}
-                    </div>
-                    {state.selected && state.maxQuantity > 1 && (
-                      <div className="flex items-center gap-2 bg-white rounded-md border border-emerald-200 px-1 py-0.5">
-                        <button type="button" onClick={() => changeQuantity(item.id, -1)} disabled={state.quantity <= 1} className="w-5 h-5 flex items-center justify-center text-gray-500 hover:bg-gray-100 rounded disabled:opacity-50 font-bold">-</button>
-                        <span className="text-xs font-bold w-4 text-center">{state.quantity}</span>
-                        <button type="button" onClick={() => changeQuantity(item.id, 1)} disabled={state.quantity >= state.maxQuantity} className="w-5 h-5 flex items-center justify-center text-gray-500 hover:bg-gray-100 rounded disabled:opacity-50 font-bold">+</button>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Reason Select */}
-          <div>
-            <label className="mb-1.5 block text-[10px] font-black uppercase tracking-wider text-gray-500">
-              Reason
-            </label>
-            <select
-              value={reason}
-              onChange={e => setReason(e.target.value)}
-              className="w-full rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs focus:border-emerald-500 focus:outline-none"
-              required
-            >
-              <option value="">Select a reason...</option>
-              <option value="DEFECTIVE_PRODUCT">Defective / Damaged product</option>
-              <option value="WRONG_ITEM">Wrong product delivered</option>
-              <option value="QUALITY_UNSATISFACTORY">Quality not as expected</option>
-              <option value="MISSING_PARTS">Missing parts / accessories</option>
-              <option value="EXPIRED">Expired product</option>
-              <option value="OTHER">Other reason</option>
-            </select>
-          </div>
-
-          {/* Description */}
-          <div>
-            <label className="mb-1.5 block text-[10px] font-black uppercase tracking-wider text-gray-500">
-              Additional Description
-            </label>
-            <textarea
-              value={description}
-              onChange={e => setDescription(e.target.value)}
-              rows="2"
-              placeholder="Describe the issue in detail..."
-              className="w-full rounded-md border border-gray-200 px-3 py-1.5 text-xs focus:border-emerald-500 focus:outline-none"
-            />
-          </div>
-
-          {/* File Uploads */}
-          <div>
-            <label className="mb-1.5 block text-[10px] font-black uppercase tracking-wider text-gray-500">
-              Evidence Upload
-            </label>
-            <div className="flex items-center justify-center w-full">
-              <label className="flex flex-col items-center justify-center w-full h-20 border-2 border-dashed border-gray-200 rounded-md cursor-pointer hover:bg-gray-50 transition-colors">
-                <div className="flex flex-col items-center justify-center pt-4 pb-4">
-                  <Upload className="w-5 h-5 text-gray-400 mb-1" />
-                  <p className="text-xs text-gray-500 font-semibold">
-                    {uploading ? 'Uploading files...' : 'Click to upload evidence'}
-                  </p>
-                  <p className="text-[10px] text-gray-400 mt-0.5">Images or PDF (max 10MB)</p>
-                </div>
-                <input
-                  type="file"
-                  multiple
-                  onChange={handleFileChange}
-                  disabled={uploading}
-                  className="hidden"
-                />
-              </label>
-            </div>
-
-            {/* Uploaded Files Preview */}
-            {files.length > 0 && (
-              <div className="mt-3 grid grid-cols-2 gap-2">
-                {files.map((file, idx) => (
-                  <div key={idx} className="flex items-center justify-between border border-gray-100 rounded-lg p-2 bg-gray-50 text-xs font-semibold">
-                    <span className="truncate flex-1 pr-2">{file.name}</span>
-                    <button
-                      type="button"
-                      onClick={() => removeFile(idx)}
-                      className="text-gray-400 hover:text-red-500"
-                    >
-                      <X size={14} />
-                    </button>
-                  </div>
-                ))}
+            {/* Error */}
+            {error && (
+              <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs font-semibold text-red-700">
+                {error}
               </div>
             )}
+
+            {/* Select Item */}
+            <div>
+              <p className="text-[13px] font-semibold text-gray-800 mb-2">Select Item</p>
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setItemDropdownOpen(o => !o)}
+                  className="w-full flex items-center gap-3 border border-gray-200 rounded-xl px-3 py-2.5 bg-white hover:border-gray-300 transition-colors text-left"
+                >
+                  {selectedItem ? (
+                    <>
+                      <div className="w-9 h-9 rounded-lg bg-gray-50 border border-gray-100 flex-shrink-0 overflow-hidden flex items-center justify-center">
+                        {selectedItem.imagePath ? (
+                          <img src={getImgUrl(selectedItem.imagePath)} alt={selectedItem.productName} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-4 h-4 rounded bg-gray-300" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[13px] font-semibold text-gray-900 truncate">{selectedItem.productName || selectedItem.name}</p>
+                        <p className="text-[11px] text-gray-500 font-medium">{selectedItem.variantLabel || selectedItem.color || 'Standard'}</p>
+                      </div>
+                      <span className="text-[13px] font-bold text-gray-800 flex-shrink-0 mr-1">
+                        {selectedItem.lineTotal != null
+                          ? `Rs. ${Number(selectedItem.lineTotal).toLocaleString()}`
+                          : selectedItem.unitPrice != null
+                          ? `Rs. ${Number(selectedItem.unitPrice * (selectedItem.quantity || 1)).toLocaleString()}`
+                          : ''}
+                      </span>
+                    </>
+                  ) : (
+                    <span className="text-[13px] text-gray-400 font-medium flex-1">Choose an item...</span>
+                  )}
+                  <ChevronDown
+                    size={16}
+                    className={`text-gray-400 flex-shrink-0 transition-transform duration-200 ${itemDropdownOpen ? 'rotate-180' : ''}`}
+                  />
+                </button>
+
+                {itemDropdownOpen && (
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-10 overflow-hidden">
+                    {items.map(item => {
+                      const disabled = hasActiveRefund(item);
+                      return (
+                        <button
+                          key={item.id}
+                          type="button"
+                          disabled={disabled}
+                          onClick={() => { setSelectedItemId(String(item.id)); setItemDropdownOpen(false); }}
+                          className={`w-full flex items-center gap-3 px-3 py-2.5 text-left transition-colors ${
+                            disabled
+                              ? 'opacity-50 cursor-not-allowed bg-gray-50'
+                              : String(item.id) === selectedItemId
+                              ? 'bg-emerald-50'
+                              : 'hover:bg-gray-50'
+                          }`}
+                        >
+                          <div className="w-9 h-9 rounded-lg bg-gray-50 border border-gray-100 flex-shrink-0 overflow-hidden flex items-center justify-center">
+                            {item.imagePath ? (
+                              <img src={getImgUrl(item.imagePath)} alt={item.productName} className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-4 h-4 rounded bg-gray-300" />
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-[13px] font-semibold text-gray-900 truncate">{item.productName || item.name}</p>
+                            <p className="text-[11px] text-gray-500 font-medium">
+                              {item.variantLabel || item.color || 'Standard'}
+                              {disabled && <span className="ml-2 text-amber-600">• Refund exists</span>}
+                            </p>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Reason for Refund */}
+            <div>
+              <p className="text-[13px] font-semibold text-gray-800 mb-2">Reason for Refund</p>
+              <div className="relative">
+                <select
+                  value={reason}
+                  onChange={e => setReason(e.target.value)}
+                  className="w-full appearance-none border border-gray-200 rounded-xl px-4 py-2.5 text-[13px] font-medium text-gray-700 bg-white outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors pr-10 cursor-pointer"
+                  required
+                >
+                  {REFUND_REASONS.map(r => (
+                    <option key={r.value} value={r.value} disabled={r.value === ''}>
+                      {r.label}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+              </div>
+            </div>
+
+            {/* Additional Details */}
+            <div>
+              <p className="text-[13px] font-semibold text-gray-800 mb-2">
+                Additional Details <span className="text-gray-400 font-normal">(Optional)</span>
+              </p>
+              <div className="relative">
+                <textarea
+                  value={description}
+                  onChange={e => setDescription(e.target.value.slice(0, MAX_CHARS))}
+                  placeholder="Describe the issue in detail..."
+                  rows={4}
+                  className="w-full resize-none border border-gray-200 rounded-xl px-4 py-3 text-[13px] font-medium text-gray-700 bg-white outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors placeholder:text-gray-400"
+                />
+                <span className="absolute bottom-3 right-3 text-[11px] text-gray-400 font-medium select-none">
+                  {description.length}/{MAX_CHARS}
+                </span>
+              </div>
+            </div>
+
+            {/* Upload Images */}
+            <div>
+              <p className="text-[13px] font-semibold text-gray-800 mb-2">
+                Upload Images <span className="text-gray-400 font-normal">(Optional)</span>
+              </p>
+              <label
+                className={`flex flex-col items-center justify-center w-full h-[90px] border-2 border-dashed rounded-xl cursor-pointer transition-colors ${
+                  dragOver
+                    ? 'border-emerald-400 bg-emerald-50'
+                    : 'border-gray-200 bg-gray-50 hover:border-gray-300 hover:bg-gray-100'
+                }`}
+                onDragOver={e => { e.preventDefault(); setDragOver(true); }}
+                onDragLeave={() => setDragOver(false)}
+                onDrop={handleDrop}
+              >
+                <Upload size={20} className="text-gray-400 mb-1.5" />
+                <p className="text-[12px] text-gray-500 font-semibold">
+                  {uploading ? 'Uploading...' : 'Click to upload or drag and drop'}
+                </p>
+                <p className="text-[11px] text-gray-400 mt-0.5">JPG, PNG up to 5MB</p>
+                <input type="file" multiple accept="image/*" onChange={handleFileChange} disabled={uploading} className="hidden" />
+              </label>
+
+              {files.length > 0 && (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {files.map((file, idx) => (
+                    <div key={idx} className="relative group">
+                      <div className="w-14 h-14 rounded-lg border border-gray-200 overflow-hidden bg-gray-50">
+                        {file.preview ? (
+                          <img src={file.preview} alt={file.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-[9px] font-bold text-gray-400 text-center px-1">{file.name}</div>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removeFile(idx)}
+                        className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow"
+                      >
+                        <X size={10} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Form Actions */}
-          <div className="pt-2 flex gap-3">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 py-2 rounded-md border border-gray-200 text-xs text-gray-500 font-bold hover:bg-gray-50 transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={submitting || uploading}
-              className="flex-1 py-2 rounded-md bg-emerald-500 hover:bg-emerald-600 text-xs text-white font-bold transition-colors disabled:opacity-50"
-            >
-              {submitting ? 'Submitting...' : 'Submit Request'}
-            </button>
+          {/* Footer actions */}
+          <div className="px-6 pb-6 flex-shrink-0 space-y-3">
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={onClose}
+                className="flex-1 py-3 rounded-xl border border-gray-200 text-[13px] font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={submitting || uploading}
+                className="flex-1 py-3 rounded-xl bg-[#16A34A] hover:bg-emerald-700 text-[13px] font-bold text-white transition-colors disabled:opacity-60 disabled:cursor-not-allowed shadow-sm"
+              >
+                {submitting ? 'Submitting...' : 'Submit Refund Request'}
+              </button>
+            </div>
+
+            <div className="flex items-center justify-center gap-1.5 text-[11px] text-gray-400 font-medium">
+              <ShieldCheck size={13} className="text-gray-400 flex-shrink-0" />
+              <span>Your request will be reviewed within 1-2 business days.</span>
+            </div>
           </div>
         </form>
       </div>

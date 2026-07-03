@@ -10,6 +10,7 @@ import {
   getProducts 
 } from '../api/customerApi';
 import { BASE_URL } from '../../../shared/api/apiClient';
+import PageHeader from '../components/PageHeader';
 
 const getImgUrl = (path) => {
   if (!path) return null;
@@ -144,7 +145,7 @@ const QUICK_LINKS = [
 
 /* ── Component ───────────────────────────────────────────────── */
 const CustomerHome = () => {
-  const { user } = useCustomer();
+  const { user, unreadNotifs } = useCustomer();
   const navigate = useNavigate();
   const [orders,        setOrders]        = useState([]);
   const [loyalty,       setLoyalty]       = useState(null);
@@ -197,9 +198,14 @@ const CustomerHome = () => {
   const today        = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
   const activeRefunds = refunds.filter(r => !['CLOSED', 'REFUND_COMPLETED', 'EXCHANGE_COMPLETED'].includes(r.status));
   const recentNotifsList = notifs.slice(0, 3);
-
   return (
     <div className="space-y-6 pb-10 animate-in fade-in duration-300">
+
+      <PageHeader
+        title="Dashboard"
+        subtitle="Track your orders, manage your account and enjoy a better shopping experience."
+        breadcrumbs={[{ label: 'Dashboard' }]}
+      />
 
       {/* ── Hero Banner ── */}
       <div

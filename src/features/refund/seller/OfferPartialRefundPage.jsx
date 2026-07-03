@@ -10,7 +10,9 @@ export default function OfferPartialRefundPage({
 }) {
   const {
     handleAcceptNegotiation,
+    handleEscalateClaim,
     setShowOfferModal,
+    setShowRejectModal,
     setAcceptStep,
     setOfferType,
     setOfferNotes,
@@ -149,6 +151,22 @@ export default function OfferPartialRefundPage({
             }`}
           >
             Make Counter-Proposal
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowRejectModal(true)}
+            disabled={submitting}
+            className="flex-1 sm:flex-initial px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-xs shadow-xs cursor-pointer border-0 transition-all"
+          >
+            Reject Counter-Offer
+          </button>
+          <button
+            type="button"
+            onClick={handleEscalateClaim}
+            disabled={submitting}
+            className="flex-1 sm:flex-initial px-4 py-2.5 border rounded-xl font-bold text-xs cursor-pointer bg-transparent transition-all border-white/10 hover:bg-white/5 text-white"
+          >
+            Escalate to Admin
           </button>
         </div>
       </div>

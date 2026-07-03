@@ -329,34 +329,7 @@ const CustomerLayout = () => {
           animation: slideIn 0.25s ease-out forwards;
         }
       `}</style>
-      {/* Breadcrumb Banner */}
-      <div className={`${darkMode ? 'theme-dark' : ''} bg-white border-b border-[#E5E7EB] py-2.5 mb-4 shadow-xs`}>
-        <div className="max-w-[1440px] mx-auto px-6">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
-            {/* Left Column: Breadcrumbs, Title, Subtitle */}
-            <div className="space-y-0.5">
-              <nav className="flex items-center gap-2 text-[11px] font-semibold text-[#6B7280]">
-                <Link to="/" className="hover:text-green-600 transition-colors">Home</Link>
-                <span className="text-gray-300">/</span>
-                <span className="hover:text-green-600 cursor-pointer transition-colors">Shop</span>
-                <span className="text-gray-300">/</span>
-                <span className="text-gray-500">{currentLabel}</span>
-              </nav>
-              <h1 className="text-xl md:text-2xl font-bold text-slate-800 leading-tight tracking-tight">{currentLabel}</h1>
-              {SUBTITLES[location.pathname] && (
-                <p className="text-[11px] text-gray-400 font-medium">{SUBTITLES[location.pathname]}</p>
-              )}
-            </div>
-            {/* Right Column: Notification Bell */}
-            <div className="flex items-center gap-3 shrink-0">
-              <NotificationButton
-                count={unreadNotifs}
-                onClick={() => navigate('/customer/notifications')}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
+
 
       {/* Main Content */}
       <div className="max-w-[1440px] mx-auto px-6 py-2.5">

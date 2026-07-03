@@ -194,6 +194,7 @@ export function useSellerRefund({ detail, onRefresh, error, setError }) {
 
   // Determine which actions are active in the Action Card
   const isActionActive = (actionKey) => {
+    if (!detail) return false;
     const status = detail.status;
     if (actionKey === 'ACCEPT_REFUND' || actionKey === 'REJECT_REFUND') {
       return ['REQUEST_CREATED', 'UNDER_REVIEW', 'MORE_EVIDENCE_REQUESTED', 'INSPECTION_COMPLETE'].includes(status);
