@@ -14,11 +14,15 @@ import {
   ShoppingBag,
   ArrowLeftRight,
   CheckCircle2,
+  Tag,
+  Zap,
+  Gift,
 } from 'lucide-react';
 import { useCustomer } from '../../../features/customer/contexts/CustomerContext';
 import NavbarAuthModal from './NavbarAuthModal';
 import UserDropdown from '../ui/user-dropdown';
 import { getCart, getWishlist, removeCartItem, removeFromWishlist, addToCart, getActivePromos, searchProducts, getCategories } from '../../../features/customer/api/customerApi';
+import { getActiveCampaigns } from '../../../features/homepage/api/homepageApi';
 import { getProductLink } from '../../utils/slugHelper';
 import { toast } from 'react-toastify';
 
@@ -53,6 +57,12 @@ export default function Navbar() {
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [isSearchSuggestionsOpen, setIsSearchSuggestionsOpen] = useState(false);
 
+  // Deals Dropdown States
+  const [isDealsOpen, setIsDealsOpen] = useState(false);
+  const [dealsData, setDealsData] = useState({ promos: [], campaigns: [], saleProducts: [] });
+  const [loadingDeals, setLoadingDeals] = useState(false);
+  const dealsRef = useRef(null);
+
   // Click outside listener for dropdowns
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -62,12 +72,48 @@ export default function Navbar() {
       if (searchRef.current && !searchRef.current.contains(event.target)) {
         setIsSearchSuggestionsOpen(false);
       }
+      if (dealsRef.current && !dealsRef.current.contains(event.target)) {
+        setIsDealsOpen(false);
+      }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Fetch cart count + total for logged-in users
+  // Fetch Deals data when dropdown opens
+  useEffect(() => {
+    if (!isDealsOpen) return;
+
+    setLoadingDeals(true);
+    Promise.all([
+      getActivePromos().catch(() => []),
+      getActiveCampaigns().catch(() => []),
+    ])
+      .then(([promosRes, campaignsRes]) => {
+        const promos = Array.isArray(promosRes?.data) ? promosRes.data : [];
+        const campaigns = Array.isArray(campaignsRes?.data) ? campaignsRes.data : [];
+        
+        // Fetch sale products from product list
+        fetch(`${BASE_URL}/api/products?onSale=true&limit=6`)
+          .then((res) => res.json())
+          .then((saleRes) => {
+            const saleProducts = Array.isArray(saleRes?.data) ? saleRes.data : [];
+            setDealsData({
+              promos: promos.slice(0, 3),
+              campaigns: campaigns.slice(0, 3),
+              saleProducts: saleProducts.slice(0, 3),
+            });
+            setLoadingDeals(false);
+          })
+          .catch(() => {
+            setDealsData({ promos, campaigns, saleProducts: [] });
+            setLoadingDeals(false);
+          });
+      })
+      .catch(() => {
+        setLoadingDeals(false);
+      });
+  }, [isDealsOpen]);
   useEffect(() => {
     if (!user?.id) {
       setCartTotal(0);
@@ -589,12 +635,131 @@ export default function Navbar() {
             ))}
           </div>
 
-          <Link
-            to="/product-list?onSale=true"
-            className="text-sm font-bold text-red-500 hover:text-red-600 whitespace-nowrap px-4 py-3 flex-shrink-0 self-center"
-          >
-            Deals
-          </Link>
+          <div ref={dealsRef} className="relative">
+            <button
+              onClick={() => setIsDealsOpen(!isDealsOpen)}
+              className="text-sm font-bold text-red-500 hover:text-red-600 whitespace-nowrap px-4 py-3 flex-shrink-0 self-center flex items-center gap-1 transition-colors"
+            >
+              Deals
+              <Flame className="w-4 h-4" />
+            </button>
+
+            {/* Deals Dropdown Panel */}
+            {isDealsOpen && (
+              <>
+                <div 
+                  onClick={() => setIsDealsOpen(false)}
+                  className="fixed inset-0 z-40"
+                />
+                <div className="absolute right-0 mt-2 w-96 bg-white border border-gray-200 rounded-lg shadow-xl z-50 overflow-hidden">
+                  {loadingDeals ? (
+                    <div className="p-6 text-center">
+                      <div className="animate-pulse space-y-3">
+                        <div className="h-4 bg-gray-200 rounded w-3/4 mx-auto"></div>
+                        <div className="h-4 bg-gray-200 rounded w-1/2 mx-auto"></div>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      {/* Promo Codes Section */}
+                      {dealsData.promos.length > 0 && (
+                        <div className="border-b border-gray-100">
+                          <div className="bg-gradient-to-r from-red-50 to-orange-50 px-4 py-3 flex items-center gap-2">
+                            <Tag className="w-4 h-4 text-red-500" />
+                            <h4 className="font-bold text-sm text-gray-800">Active Promo Codes</h4>
+                          </div>
+                          <div className="p-3 space-y-2 max-h-40 overflow-y-auto">
+                            {dealsData.promos.map((promo) => (
+                              <Link
+                                key={promo.id}
+                                to="/promo"
+                                onClick={() => setIsDealsOpen(false)}
+                                className="block p-2 rounded hover:bg-red-50 transition-colors"
+                              >
+                                <div className="font-semibold text-xs text-gray-900">{promo.code}</div>
+                                <div className="text-[10px] text-gray-600">{promo.discountPercentage || promo.discountAmount}% OFF</div>
+                              </Link>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Campaigns Section */}
+                      {dealsData.campaigns.length > 0 && (
+                        <div className="border-b border-gray-100">
+                          <div className="bg-gradient-to-r from-purple-50 to-pink-50 px-4 py-3 flex items-center gap-2">
+                            <Zap className="w-4 h-4 text-purple-500" />
+                            <h4 className="font-bold text-sm text-gray-800">Featured Campaigns</h4>
+                          </div>
+                          <div className="p-3 space-y-2 max-h-40 overflow-y-auto">
+                            {dealsData.campaigns.map((campaign) => (
+                              <Link
+                                key={campaign.id}
+                                to="/promo/campaign"
+                                onClick={() => setIsDealsOpen(false)}
+                                className="block p-2 rounded hover:bg-purple-50 transition-colors"
+                              >
+                                <div className="font-semibold text-xs text-gray-900">{campaign.title || campaign.name}</div>
+                                <div className="text-[10px] text-gray-600">{campaign.description?.substring(0, 50)}...</div>
+                              </Link>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Sale Products Section */}
+                      {dealsData.saleProducts.length > 0 && (
+                        <div>
+                          <div className="bg-gradient-to-r from-green-50 to-emerald-50 px-4 py-3 flex items-center gap-2">
+                            <Gift className="w-4 h-4 text-green-600" />
+                            <h4 className="font-bold text-sm text-gray-800">On Sale Now</h4>
+                          </div>
+                          <div className="p-3 space-y-2 max-h-40 overflow-y-auto">
+                            {dealsData.saleProducts.map((product) => {
+                              const rawImg = product.imagePaths?.[0] || product.imagePath || product.thumbnail || null;
+                              const resolvedUrl = rawImg ? (rawImg.startsWith('http') ? rawImg : `${BASE_URL}${rawImg.startsWith('/') ? '' : '/'}${rawImg}`) : null;
+                              const prodLink = getProductLink(product);
+                              return (
+                                <Link
+                                  key={product.id}
+                                  to={prodLink}
+                                  onClick={() => setIsDealsOpen(false)}
+                                  className="flex gap-2 p-2 rounded hover:bg-green-50 transition-colors"
+                                >
+                                  <div className="w-12 h-12 bg-gray-100 rounded flex-shrink-0 flex items-center justify-center overflow-hidden">
+                                    {resolvedUrl ? (
+                                      <img src={resolvedUrl} alt={product.name} className="w-full h-full object-contain" />
+                                    ) : (
+                                      <span>📦</span>
+                                    )}
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <div className="font-semibold text-xs text-gray-900 line-clamp-2">{product.name}</div>
+                                    <div className="text-[10px] text-[#16A34A] font-bold">Rs. {(product.price || product.minPrice || 0).toLocaleString()}</div>
+                                  </div>
+                                </Link>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* View All Link */}
+                      <div className="border-t border-gray-100 px-4 py-3 bg-gray-50">
+                        <Link
+                          to="/product-list?onSale=true"
+                          onClick={() => setIsDealsOpen(false)}
+                          className="text-xs font-bold text-[#16A34A] hover:text-green-700 flex items-center justify-center gap-1 transition-colors"
+                        >
+                          View All Deals →
+                        </Link>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </div>
 
@@ -681,7 +846,94 @@ export default function Navbar() {
         <div className="md:hidden border-t border-gray-250 bg-white px-6 py-4 space-y-3 font-semibold uppercase text-xs">
           <Link to="/" className="block py-2 text-slate-800 hover:text-[#16A34A]" onClick={() => setIsMobileMenuOpen(false)}>Home</Link>
           <Link to="/product-list" className="block py-2 text-slate-800 hover:text-[#16A34A]" onClick={() => setIsMobileMenuOpen(false)}>Browse Product</Link>
-          <Link to="/promo/landing" className="block py-2 text-slate-800 hover:text-[#16A34A]" onClick={() => setIsMobileMenuOpen(false)}>Deals</Link>
+          
+          {/* Mobile Deals with expandable dropdown */}
+          <div className="relative">
+            <button
+              onClick={() => setIsDealsOpen(!isDealsOpen)}
+              className="block py-2 text-slate-800 hover:text-[#16A34A] w-full text-left flex items-center justify-between"
+            >
+              Deals
+              <ChevronDown className={`w-4 h-4 transition-transform ${isDealsOpen ? 'rotate-180' : ''}`} />
+            </button>
+            
+            {isDealsOpen && (
+              <div className="mt-2 ml-4 space-y-2 border-l-2 border-gray-200 pl-3">
+                {/* Promo Codes */}
+                {dealsData.promos.length > 0 && (
+                  <>
+                    <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wide">Promo Codes</div>
+                    {dealsData.promos.map((promo) => (
+                      <Link
+                        key={promo.id}
+                        to="/promo"
+                        onClick={() => {
+                          setIsDealsOpen(false);
+                          setIsMobileMenuOpen(false);
+                        }}
+                        className="block text-[11px] text-slate-700 hover:text-[#16A34A] truncate"
+                      >
+                        {promo.code} - {promo.discountPercentage || promo.discountAmount}% OFF
+                      </Link>
+                    ))}
+                  </>
+                )}
+
+                {/* Campaigns */}
+                {dealsData.campaigns.length > 0 && (
+                  <>
+                    <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wide mt-2">Campaigns</div>
+                    {dealsData.campaigns.map((campaign) => (
+                      <Link
+                        key={campaign.id}
+                        to="/promo/campaign"
+                        onClick={() => {
+                          setIsDealsOpen(false);
+                          setIsMobileMenuOpen(false);
+                        }}
+                        className="block text-[11px] text-slate-700 hover:text-[#16A34A] truncate"
+                      >
+                        {campaign.title || campaign.name}
+                      </Link>
+                    ))}
+                  </>
+                )}
+
+                {/* Sale Products */}
+                {dealsData.saleProducts.length > 0 && (
+                  <>
+                    <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wide mt-2">On Sale</div>
+                    {dealsData.saleProducts.map((product) => (
+                      <Link
+                        key={product.id}
+                        to={getProductLink(product)}
+                        onClick={() => {
+                          setIsDealsOpen(false);
+                          setIsMobileMenuOpen(false);
+                        }}
+                        className="block text-[11px] text-slate-700 hover:text-[#16A34A] truncate"
+                      >
+                        {product.name}
+                      </Link>
+                    ))}
+                  </>
+                )}
+
+                {/* View All */}
+                <Link
+                  to="/product-list?onSale=true"
+                  onClick={() => {
+                    setIsDealsOpen(false);
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="block text-[11px] font-bold text-[#16A34A] hover:text-green-700 mt-2"
+                >
+                  View All Deals →
+                </Link>
+              </div>
+            )}
+          </div>
+
           <Link to="/promo" className="block py-2 text-amber-500" onClick={() => setIsMobileMenuOpen(false)}>🎟 Promo Center</Link>
           
           {/* Search for mobile */}

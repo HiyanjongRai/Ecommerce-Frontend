@@ -69,8 +69,7 @@ const isTestProduct = (p) => {
   const name = String(p.name || '').trim();
   if (!name || name.length < 3) return true;
   if (/^(.)\1{2,}$/i.test(name)) return true;
-  const price = Number(p.price || p.minPrice || p.salePrice || 0);
-  if (price > 0 && price < 50) return true;
+  // Don't filter based on price - legitimate products can be cheap
   return false;
 };
 

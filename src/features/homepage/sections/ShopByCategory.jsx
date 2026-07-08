@@ -33,7 +33,34 @@ const CATEGORY_ICONS = {
   pets: PawPrint,
 };
 
+const CATEGORY_FALLBACK_IMAGES = {
+  electronics: 'https://picsum.photos/seed/electronics-jhapcham/200/200',
+  fashion: 'https://picsum.photos/seed/fashion-jhapcham/200/200',
+  beauty: 'https://picsum.photos/seed/beauty-jhapcham/200/200',
+  'home & kitchen': 'https://picsum.photos/seed/home-kitchen-jhapcham/200/200',
+  home: 'https://picsum.photos/seed/home-kitchen-jhapcham/200/200',
+  kitchen: 'https://picsum.photos/seed/home-kitchen-jhapcham/200/200',
+  sports: 'https://picsum.photos/seed/sports-jhapcham/200/200',
+  books: 'https://picsum.photos/seed/books-jhapcham/200/200',
+  grocery: 'https://picsum.photos/seed/grocery-jhapcham/200/200',
+  furniture: 'https://picsum.photos/seed/furniture-jhapcham/200/200',
+};
+
 const getCategoryIcon = (title = '') => CATEGORY_ICONS[title.trim().toLowerCase()] || Package;
+const getCategoryFallbackImage = (title = '') => CATEGORY_FALLBACK_IMAGES[title.trim().toLowerCase()] || CATEGORY_FALLBACK_IMAGES['home & kitchen'];
+const resolveCategoryImage = (category) => {
+  if (!category || typeof category !== 'object') {
+    return null;
+  }
+
+  return category.imageUrl
+    || category.image
+    || category.imagePath
+    || category.iconUrl
+    || category.icon
+    || category.thumbnail
+    || null;
+};
 
 // Cycled pastel backgrounds for the circle behind each category image/icon.
 const CIRCLE_COLORS = ['bg-blue-50', 'bg-pink-50', 'bg-purple-50', 'bg-slate-100', 'bg-orange-50', 'bg-emerald-50', 'bg-lime-50', 'bg-amber-50'];
@@ -48,7 +75,9 @@ function ShopByCategory({ categories = [], loading = false }) {
           ? category
           : category.slug || category.id || title;
         const itemCount = typeof category === 'object' ? category.itemCount ?? category.count ?? null : null;
-        const imageUrl = typeof category === 'object' ? category.imageUrl || category.image || category.imagePath || null : null;
+        const imageUrl = typeof category === 'object'
+          ? resolveCategoryImage(category) || getCategoryFallbackImage(title)
+          : getCategoryFallbackImage(title);
         return {
           title,
           itemCount,

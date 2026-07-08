@@ -9,18 +9,14 @@ import ShopByCategory from '../sections/ShopByCategory';
 import PopularCollections from '../sections/PopularCollections';
 import FlashDeals from './sections/FlashDeals';
 import FeaturedProducts from '../sections/FeaturedProducts';
+import CampaignBanners from '../sections/CampaignBanners';
 import PromoBanners from '../sections/PromoBanners';
-import BestSellersAndNewArrivals from '../sections/BestSellersAndNewArrivals';
 import ShopByBrand from '../sections/ShopByBrand';
 import RecommendedProducts from '../sections/RecommendedProducts';
-import Testimonials from '../sections/Testimonials';
-import NewsletterSection from '../sections/NewsletterSection';
-import TrustFeatures from '../sections/TrustFeatures';
 
 // Hooks
 import useHomepageData from '../hooks/useHomepageData';
 import useFlashCountdown from '../hooks/useFlashCountdown';
-import useNewsletterSubscribe from '../hooks/useNewsletterSubscribe';
 
 // Utils
 import { ErrorBoundary } from '../../../shared/components/ErrorState/ErrorBoundary';
@@ -33,7 +29,6 @@ import { ErrorBoundary } from '../../../shared/components/ErrorState/ErrorBounda
 export default function Home() {
   const location = useLocation();
   const flashTimeLeft = useFlashCountdown();
-  const { subscribed, handleSubscribe } = useNewsletterSubscribe();
 
   // Set body background on mount and cleanup on unmount
   useLayoutEffect(() => {
@@ -76,14 +71,14 @@ export default function Home() {
           <FeaturedProducts />
         </ErrorBoundary>
 
+        {/* Campaign Banners */}
+        <ErrorBoundary>
+          <CampaignBanners />
+        </ErrorBoundary>
+
         {/* Promotional Banners */}
         <ErrorBoundary>
           <PromoBanners />
-        </ErrorBoundary>
-
-        {/* Best Sellers & New Arrivals (Side by Side) */}
-        <ErrorBoundary>
-          <BestSellersAndNewArrivals />
         </ErrorBoundary>
 
         {/* Shop by Brand */}
@@ -94,21 +89,6 @@ export default function Home() {
         {/* Recommended for You */}
         <ErrorBoundary>
           <RecommendedProducts />
-        </ErrorBoundary>
-
-        {/* Testimonials / Reviews */}
-        <ErrorBoundary>
-          <Testimonials />
-        </ErrorBoundary>
-
-        {/* Newsletter Subscription */}
-        <ErrorBoundary>
-          <NewsletterSection subscribed={subscribed} onSubscribe={handleSubscribe} />
-        </ErrorBoundary>
-
-        {/* Trust & Features Bar */}
-        <ErrorBoundary>
-          <TrustFeatures />
         </ErrorBoundary>
       </main>
 

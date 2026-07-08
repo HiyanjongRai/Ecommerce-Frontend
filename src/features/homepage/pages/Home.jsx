@@ -9,18 +9,14 @@ import ShopByCategory from '../sections/ShopByCategory';
 import PopularCollections from '../sections/PopularCollections';
 import FlashDeals from '../components/FlashDeals';
 import FeaturedProducts from '../sections/FeaturedProducts';
+import CampaignBanners from '../sections/CampaignBanners';
 import PromoBanners from '../sections/PromoBanners';
-import BestSellersAndNewArrivals from '../sections/BestSellersAndNewArrivals';
 import ShopByBrand from '../sections/ShopByBrand';
 import RecommendedProducts from '../sections/RecommendedProducts';
-import Testimonials from '../sections/Testimonials';
-import NewsletterSection from '../sections/NewsletterSection';
-import TrustFeatures from '../sections/TrustFeatures';
 
 // Hooks
 import useHomepageData from '../hooks/useHomepageData';
 import useFlashCountdown from '../hooks/useFlashCountdown';
-import useNewsletterSubscribe from '../hooks/useNewsletterSubscribe';
 
 // Utils
 import ErrorBoundary from '../../../shared/components/ErrorState/ErrorBoundary';
@@ -33,13 +29,10 @@ import ErrorBoundary from '../../../shared/components/ErrorState/ErrorBoundary';
 export default function Home() {
   const location = useLocation();
   const flashTimeLeft = useFlashCountdown();
-  const { email, setEmail, subscribed, isLoading, handleSubscribe } = useNewsletterSubscribe();
   const {
     categories,
     flashDeals,
     featuredProducts,
-    bestSellers,
-    newArrivals,
     recommended,
     loading,
   } = useHomepageData();
@@ -85,18 +78,14 @@ export default function Home() {
           <FeaturedProducts products={featuredProducts} loading={loading.featured} />
         </ErrorBoundary>
 
+        {/* Campaign Banners */}
+        <ErrorBoundary>
+          <CampaignBanners />
+        </ErrorBoundary>
+
         {/* Promotional Banners */}
         <ErrorBoundary>
           <PromoBanners />
-        </ErrorBoundary>
-
-        {/* Best Sellers & New Arrivals (Side by Side) */}
-        <ErrorBoundary>
-          <BestSellersAndNewArrivals
-            bestSellers={bestSellers}
-            newArrivals={newArrivals}
-            loading={{ bestSellers: loading.bestSellers, newArrivals: loading.newArrivals }}
-          />
         </ErrorBoundary>
 
         {/* Shop by Brand */}
@@ -107,27 +96,6 @@ export default function Home() {
         {/* Recommended for You */}
         <ErrorBoundary>
           <RecommendedProducts products={recommended} loading={loading.recommended} />
-        </ErrorBoundary>
-
-        {/* Testimonials / Reviews */}
-        <ErrorBoundary>
-          <Testimonials />
-        </ErrorBoundary>
-
-        {/* Newsletter Subscription */}
-        <ErrorBoundary>
-          <NewsletterSection
-            email={email}
-            setEmail={setEmail}
-            subscribed={subscribed}
-            isLoading={isLoading}
-            onSubscribe={handleSubscribe}
-          />
-        </ErrorBoundary>
-
-        {/* Trust & Features Bar */}
-        <ErrorBoundary>
-          <TrustFeatures />
         </ErrorBoundary>
       </main>
 
